@@ -1,5 +1,7 @@
 <?php
 
+echo "Starting";
+
 //*****************GRAB_INPUT_DATA**********
 
 $uploaddir = 'uploads/';
