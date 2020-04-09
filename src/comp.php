@@ -142,7 +142,7 @@ while (!feof($file_handle) )  {
 		echo "<p>ERROR: There was an error getting the draft list:</p><pre>" . var_export($output, true) . "</pre>";
 		continue;
 	} else {
-		echo "Got draft for list $listID</br>";
+		echo "Got draft for list </br>";
 	}
 
 	$title = $output_json->data->attributes->title;
@@ -170,7 +170,7 @@ while (!feof($file_handle) )  {
 					"id": "' . $uuid . '",
 					"type": "items",
 					"attributes": {
-						"student_note": "' . $NEW_URL . '"
+						"student_note": "' . $NEW_VALUE . '"
 					},
 					"relationships": {
 						"container": {
