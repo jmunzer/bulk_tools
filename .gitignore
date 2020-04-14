@@ -1,2 +1,2 @@
-src/uploads/*
+src/uploads/**
 *.log
