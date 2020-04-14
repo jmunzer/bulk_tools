@@ -172,7 +172,6 @@ while (!feof($file_handle) )  {
 	echo "    List ID: " . $listID . "</br>";
 	fwrite($myfile, $listID ."\t");
 	echo "    ETag: " . $etag . "</br>";
-	fwrite($myfile, $etag ."\t");
 	echo "    UUID: " . $uuid . "</br>";
 	fwrite($myfile, $uuid ."\t");
 	//**************ADD_PARAGRAPH***************
@@ -226,12 +225,12 @@ while (!feof($file_handle) )  {
 	curl_close($ch2);
 	if ($info2 !== 201){
 		echo "<p>ERROR: There was an error adding the paragraph:</p><pre>" . var_export($output2, true) . "</pre>";
+		fwrite($myfile, "Item not added - failed" . "\t");
 		continue;
 	} else {
 		echo "    Added Item $uuid to list $listID</br>";
+		fwrite($myfile, "Item added successfully" . "\t");
 	}
-
-	fwrite($myfile, "$uuid");
 
 	//************GRAB**AN**ETAG**AGAIN*************
 
@@ -253,7 +252,6 @@ while (!feof($file_handle) )  {
 
 	$etag2 = $output_json2->data->meta->list_etag;
 	echo "    Updated ETag: " . $etag2 . "</br>";
-	fwrite($myfile, $etag2 ."\t");
 	echo "    ---------------------------------------------------";
 	echo "</br>";
 
@@ -292,15 +290,19 @@ while (!feof($file_handle) )  {
 	curl_close($ch3);
 	if ($info3 !== 202){
 		echo "<p>ERROR: There was an error publishing the list:</p><pre>" . var_export($output3, true) . "</pre>";
+		fwrite($myfile, "Publish failed" . "\t");
 		continue;
 	} else {
 		echo "    Published changes to $listID</br>";
+		fwrite($myfile, "Published successfully" . "\t");
 	}
 
 	fwrite($myfile, "\n");
 	echo "End of Record.";
 	echo "---------------------------------------------------</br></br>";
 }
+
+fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 
 fclose($file_handle);
 fclose($myfile);

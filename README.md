@@ -1,40 +1,59 @@
 # PARA_UPD
 
-## Running with Docker
+## Running with XAMPP
 
-We assume that you have a working docker engine on your machine. You can download an easy to use docker desktop application from <https://docs.docker.com/get-docker/>
+This guide will instruct you how to get this paragraph updater working on a personal/work computer providing you have administrative rights enabled.
 
-- First build the image.
+## Installer
 
-    ```bash
-    # in the project root directory.
-    docker build -t para_upd .
-    ```
+- First download & run XAMPP.
 
-- Run up a container, this will mount the src folder locally for easy dev work.
+    This can be found at https://www.apachefriends.org/ - Download the latest version for your operating system of choice.
 
-    ```bash
-    docker run -p 127.0.0.1:8081:80/tcp --name para_upd -v $PWD/src:/var/www/html para_upd
-    ```
+- Once in the installer you will be prompted to 'Select Components'.
 
-    You'll also now be able to access the app on <http://localhost:8081> Change the local port number in the above command if you need a different port to avoid a clash.
+    Untick everything besides the following:
 
-- Access container that is running for debugging.
+            Apache
+            PHP
 
-    ```bash
-    docker exec -it para_upd bash
-    ```
+- Install Location
 
-- Stop a running container
+    Install XAMPP to "C:\xampp" if on Windows.
 
-    ```bash
-    # list all running docker processes.
-    docker ps
-    docker stop para_upd
-    ```
+- Windows Firewall
 
-- If you have to rebuild the image, you might need to delete the container to use the same name again.
+    Depending on your Windows security settings, you may receive a Windows Security Alert from Windows Defender Firewall asking for Apache HTTP Server to communicate on certain networks. If you do, ensure that the following network is ticked:
 
-    ```bash
-    docker rm para_upd
-    ```
+        # Private networks, such as my home or work network
+
+## Running the XAMPP environment
+
+- Once XAMPP has successfully installed, please run this service by doing the following:
+
+    1) Click on the start menu
+    2) Type 'xampp'
+    3) Select 'XAMPP Control Panel'
+
+- Once the XAMPP Control Panel is running, start the Apache service by clicking 'Start' under Actions. If successful, you should see the following:
+
+    10:49:53  [main] 	Control Panel Ready
+    10:49:56  [Apache] 	Attempting to start Apache app...
+    10:49:56  [Apache] 	Status change detected: running
+
+    ...and the Apache module will be highlighted in green.
+
+## Putting the tool in the right place
+
+- Download the script from: https://github.com/jmunzer/para_upd/archive/master.zip
+- Extract the downloaded ZIP file to the following location: c:\xampp\htdocs
+
+## Running the tool
+
+- click on: http://localhost/para_upd-master/src/index.html
+- Follow step on webform.
+
+## Report Files
+
+- Report files are under the name and root folder of ./output.log
+- If you extracted the tool to the suggestioned location in the above steps, this will be: c:\xampp\htdocs\para_upd-master\src\output.log
