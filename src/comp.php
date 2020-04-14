@@ -74,7 +74,8 @@ $uuid = getUUID();
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
 $myfile = fopen("output.log", "a") or die("Unable to open output.log");
-fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\n");
+fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
+fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Item added" . "\t" . "List Published" . "\r\n");
 
 //************SET_VARIABLES***********
 //uncomment if you want to set these permanently.. good idea tbh!
