@@ -6,6 +6,26 @@ error_reporting(E_ALL);
 
 echo "<p>Starting</p>";
 
+//functions
+
+	//uuid functions
+	$uuids = [];
+	
+	function refreshUUIDS(){
+		global $uuids;
+		$newUuids = file_get_contents("https://www.uuidgenerator.net/api/version4/10");
+		$uuids = explode("\n", $newUuids);
+		array_pop($uuids);
+	}
+
+	function getUUID(){
+		global $uuids;
+		if(count($uuids) == 0){
+		refreshUUIDS();
+		}
+		return trim(array_pop($uuids));
+	}
+
 //*****************GRAB_INPUT_DATA**********
 
 $uploaddir = 'uploads/';
@@ -49,16 +69,11 @@ echo "Paragraph text to use: " . $NEW_VALUE;
 echo "</br>";
 echo "</br>";
 
-$uuid = $_REQUEST['UUID'];
-
-echo "UUID being used (for testing purposes): " . $uuid;
-echo "</br>";
-echo "</br>";
+$uuid = getUUID();
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
-$myfile = fopen("output.log", "a") or die("Unable to open file!");
-
+$myfile = fopen("output.log", "a") or die("Unable to open output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\n");
 
 //************SET_VARIABLES***********
@@ -109,15 +124,17 @@ if (!empty($jsontoken->access_token)){
 	exit;
 }
 
+
 //***********READ**DATA******************
 
 $file_handle = fopen($uploadfile, "rb");
 
 while (!feof($file_handle) )  {
 
+	$uuid = getUUID();
 	$line_of_text = fgets($file_handle);
 	$parts = explode(" ", $line_of_text);
-
+	
 	//************GRAB**AN**ETAG***************
 
 	$barc = trim($parts[0]);
@@ -142,7 +159,7 @@ while (!feof($file_handle) )  {
 		echo "<p>ERROR: There was an error getting the draft list:</p><pre>" . var_export($output, true) . "</pre>";
 		continue;
 	} else {
-		echo "Got draft for list </br>";
+		echo "    Got draft for list </br>";
 	}
 
 	$title = $output_json->data->attributes->title;
@@ -155,9 +172,8 @@ while (!feof($file_handle) )  {
 	fwrite($myfile, $listID ."\t");
 	echo "    ETag: " . $etag . "</br>";
 	fwrite($myfile, $etag ."\t");
-	echo "    ---------------------------------------------------";
-	echo "</br>";
-
+	echo "    UUID: " . $uuid . "</br>";
+	fwrite($myfile, $uuid ."\t");
 	//**************ADD_PARAGRAPH***************
 	$patch_url = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/';
 
@@ -211,7 +227,7 @@ while (!feof($file_handle) )  {
 		echo "<p>ERROR: There was an error adding the paragraph:</p><pre>" . var_export($output2, true) . "</pre>";
 		continue;
 	} else {
-		echo "Added Item $uuid to list $listID</br>";
+		echo "    Added Item $uuid to list $listID</br>";
 	}
 
 	fwrite($myfile, "$uuid");
@@ -274,18 +290,20 @@ while (!feof($file_handle) )  {
 	$info3 = curl_getinfo($ch3, CURLINFO_HTTP_CODE);
 	curl_close($ch3);
 	if ($info3 !== 202){
-		echo "<p>ERROR: There was an error oublishing the list:</p><pre>" . var_export($output3, true) . "</pre>";
+		echo "<p>ERROR: There was an error publishing the list:</p><pre>" . var_export($output3, true) . "</pre>";
 		continue;
 	} else {
-		echo "Published changes to $listID</br>";
+		echo "    Published changes to $listID</br>";
 	}
 
 	fwrite($myfile, "\n");
 	echo "End of Record.";
-	echo "---------------------------------------------------";
+	echo "---------------------------------------------------</br></br>";
 }
 
 fclose($file_handle);
 fclose($myfile);
+
+print("</br></br><a href='index.html'>Back</a>");
 
 ?>
