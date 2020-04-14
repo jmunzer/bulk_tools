@@ -8,7 +8,7 @@ This guide will instruct you how to get this paragraph updater working on a pers
 
 - First download & run XAMPP.
 
-    This can be found at https://www.apachefriends.org/ - Download the latest version for your operating system of choice.
+        This can be found at https://www.apachefriends.org/ - Download the latest version for your operating system of choice.
 
 - Once in the installer you will be prompted to 'Select Components'.
 
@@ -19,7 +19,7 @@ This guide will instruct you how to get this paragraph updater working on a pers
 
 - Install Location
 
-    Install XAMPP to "C:\xampp" if on Windows.
+        Install XAMPP to "C:\xampp" if on Windows.
 
 - Windows Firewall
 
@@ -31,16 +31,16 @@ This guide will instruct you how to get this paragraph updater working on a pers
 
 - Once XAMPP has successfully installed, please run this service by doing the following:
 
-    1) Click on the start menu
-    2) Type 'xampp'
-    3) Select 'XAMPP Control Panel'
+        1) Click on the start menu
+        2) Type 'xampp'
+        3) Select 'XAMPP Control Panel'
 
 - Once the XAMPP Control Panel is running, start the Apache service by clicking 'Start' under Actions. If successful, you should see the following:
 
-    10:49:53  [main] 	Control Panel Ready
-    10:49:56  [Apache] 	Attempting to start Apache app...
-    10:49:56  [Apache] 	Status change detected: running
-
+        10:49:53  [main] 	Control Panel Ready
+        10:49:56  [Apache] 	Attempting to start Apache app...
+        10:49:56  [Apache] 	Status change detected: running
+        
     ...and the Apache module will be highlighted in green.
 
 ## Putting the tool in the right place
