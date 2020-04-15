@@ -6,34 +6,6 @@ error_reporting(E_ALL);
 
 echo "<p>Starting</p>";
 
-//classes
-
-	//uuid classes
-	class UUIDGenerator {
-		private $uuids = [];
-		private $preFetch;
-	
-		/**
-		 * @param int $preFetch The number of uuids to cache-ahead when generating
-		 **/
-		public function __construct($preFetch = 100){
-			$this->preFetch = $preFetch;
-		}
-		
-		private function refreshUUIDS(){
-			$response = file_get_contents("https://www.uuidgenerator.net/api/version4/$this->preFetch");
-			$this->uuids = explode("\n", $response);
-			array_pop($this->uuids);
-		}
-	
-		public function getUUID(){
-			if(count($this->uuids) == 0){
-			  $this->refreshUUIDS();
-			}
-			return trim(array_pop($this->uuids));
-		}
-	}
-
 //*****************GRAB_INPUT_DATA**********
 
 $uploaddir = 'uploads/';
@@ -70,16 +42,6 @@ $TalisGUID = $_REQUEST['GUID'];
 echo "User GUID to use: " . $TalisGUID;
 echo "</br>";
 echo "</br>";
-
-
-$resourceID = $_REQUEST['UUID'];
-
-echo "Resource ID to use: " . $resourceID;
-echo "</br>";
-echo "</br>";
-
-
-$uuidGen = new UUIDGenerator();
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
@@ -142,18 +104,49 @@ $file_handle = fopen($uploadfile, "rb");
 
 while (!feof($file_handle) )  {
 
-	$uuid = $uuidGen->getUUID();
 	$line_of_text = fgets($file_handle);
 	$parts = explode(" ", $line_of_text);
+	$barc = trim($parts[0]);
+	$item_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $barc;
+
+	//************GRAB**A LIST_ID*************
+
+		$ch4 = curl_init();
+
+		curl_setopt($ch4, CURLOPT_URL, $item_lookup);
+		curl_setopt($ch4, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch4, CURLOPT_HTTPHEADER, array(
 	
+			"X-Effective-User: $TalisGUID",
+			"Authorization: Bearer $token",
+			'Cache-Control: no-cache'
+	
+		));
+		$output4 = curl_exec($ch4);
+		$info4 = curl_getinfo($ch4, CURLINFO_HTTP_CODE);
+		$output_json2 = json_decode($output4);
+		curl_close($ch4);
+
+		if ($info4 !== 200){
+			echo "<p>ERROR: There was an error getting the draft item information:</p><pre>" . var_export($output, true) . "</pre>";
+			continue;
+		} else {
+			echo "    Got item draft information</br>";
+		}
+	
+		$assoc_listid = $output_json2->data->relationships->list->data->id;
+
+
+		echo "    list_id: " . $assoc_listid . "</br>";
+		echo "</br>";
+	/*
 	//************GRAB**AN**ETAG***************
 
-	$barc = trim($parts[0]);
+	$list_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $assoc_listid;
 
-	$item_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $barc;
 	$ch1 = curl_init();
 	
-	curl_setopt($ch1, CURLOPT_URL, $item_lookup);
+	curl_setopt($ch1, CURLOPT_URL, $list_lookup);
 	curl_setopt($ch1, CURLOPT_RETURNTRANSFER, 1);
 	curl_setopt($ch1, CURLOPT_HTTPHEADER, array(
 		
@@ -182,45 +175,23 @@ while (!feof($file_handle) )  {
 	echo "    List ID: " . $listID . "</br>";
 	fwrite($myfile, $listID ."\t");
 	echo "    ETag: " . $etag . "</br>";
-	echo "    UUID: " . $uuid . "</br>";
-	fwrite($myfile, $uuid ."\t");
-	//**************ADD_ITEM***************
+	
+	//**************DELETE_ITEM***************
 	$patch_url = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/';
 
-	$input = '{
-				"meta": {
-					"list_etag": "' . $etag . '",
-					"list_id": "' . $listID . '"
-				},
-				"data": {
-					"id": "' . $uuid . '",
-					"type": "items",
-					"relationships": {
-						"container": {
-							"data": {
-								"id": "' . $listID . '",
-								"type": "lists"
-							},
-							"meta": {
-								"index": 0
-							}
-						},
-						"resource": {
-							"data": {
-								"id": "' . $resourceID . '",
-								"type": "resources"
-							}
-						}
+	$input = '	{
+					"meta": {
+						"list_etag": "' . $etag . '",
+						"list_id": "' . $listID . '"
 					}
-				}
-			}';
+				}';
 
 	//**************PARAGRAPH POST*****************
 
 	$ch2 = curl_init();
 
 	curl_setopt($ch2, CURLOPT_URL, $patch_url);
-	curl_setopt($ch2, CURLOPT_CUSTOMREQUEST, 'POST');
+	curl_setopt($ch2, CURLOPT_CUSTOMREQUEST, 'DELETE');
 	curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch2, CURLOPT_HTTPHEADER, array(
 		
@@ -237,33 +208,33 @@ while (!feof($file_handle) )  {
 
 	curl_close($ch2);
 	if ($info2 !== 201){
-		echo "<p>ERROR: There was an error adding the item:</p><pre>" . var_export($output2, true) . "</pre>";
-		fwrite($myfile, "Item not added - failed" . "\t");
+		echo "<p>ERROR: There was an error deleting the item:</p><pre>" . var_export($output2, true) . "</pre>";
+		fwrite($myfile, "Item not deleted - failed" . "\t");
 		continue;
 	} else {
-		echo "    Added Item $uuid to list $listID</br>";
-		fwrite($myfile, "Item added successfully" . "\t");
+		echo "    Deleted item $barc from list $listID</br>";
+		fwrite($myfile, "Item deleted successfully" . "\t");
 	}
 
 	//************GRAB**AN**ETAG**AGAIN*************
 
-	$ch4 = curl_init();
+	$ch5 = curl_init();
 
-	curl_setopt($ch4, CURLOPT_URL, $item_lookup);
-	curl_setopt($ch4, CURLOPT_RETURNTRANSFER, 1);
-	curl_setopt($ch4, CURLOPT_HTTPHEADER, array(
+	curl_setopt($ch5, CURLOPT_URL, $list_lookup);
+	curl_setopt($ch5, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch5, CURLOPT_HTTPHEADER, array(
 
 		"X-Effective-User: $TalisGUID",
 		"Authorization: Bearer $token",
 		'Cache-Control: no-cache'
 
 	));
-	$output4 = curl_exec($ch4);
-	$info4 = curl_getinfo($ch4, CURLINFO_HTTP_CODE);
-	$output_json2 = json_decode($output4);
-	curl_close($ch4);
+	$output5 = curl_exec($ch5);
+	$info5 = curl_getinfo($ch5, CURLINFO_HTTP_CODE);
+	$output_json3 = json_decode($output5);
+	curl_close($ch5);
 
-	$etag2 = $output_json2->data->meta->list_etag;
+	$etag2 = $output_json3->data->meta->list_etag;
 	echo "    Updated ETag: " . $etag2 . "</br>";
 	echo "    ---------------------------------------------------";
 	echo "</br>";
@@ -313,6 +284,7 @@ while (!feof($file_handle) )  {
 	fwrite($myfile, "\n");
 	echo "End of Record.";
 	echo "---------------------------------------------------</br></br>";
+*/
 }
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
