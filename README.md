@@ -1,4 +1,4 @@
-# PARA_UPD - add_item
+# PARA_UPD - del_item
 
 ## Running with XAMPP
 
