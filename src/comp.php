@@ -6,24 +6,32 @@ error_reporting(E_ALL);
 
 echo "<p>Starting</p>";
 
-//functions
+//classes
 
-	//uuid functions
-	$uuids = [];
+	//uuid classes
+	class UUIDGenerator {
+		private $uuids = [];
+		private $preFetch;
 	
-	function refreshUUIDS(){
-		global $uuids;
-		$newUuids = file_get_contents("https://www.uuidgenerator.net/api/version4/10");
-		$uuids = explode("\n", $newUuids);
-		array_pop($uuids);
-	}
-
-	function getUUID(){
-		global $uuids;
-		if(count($uuids) == 0){
-		refreshUUIDS();
+		/**
+		 * @param int $preFetch The number of uuids to cache-ahead when generating
+		 **/
+		public function __construct($preFetch = 100){
+			$this->preFetch = $preFetch;
 		}
-		return trim(array_pop($uuids));
+		
+		private function refreshUUIDS(){
+			$response = file_get_contents("https://www.uuidgenerator.net/api/version4/$this->preFetch");
+			$this->uuids = explode("\n", $response);
+			array_pop($this->uuids);
+		}
+	
+		public function getUUID(){
+			if(count($this->uuids) == 0){
+			  $this->refreshUUIDS();
+			}
+			return trim(array_pop($this->uuids));
+		}
 	}
 
 //*****************GRAB_INPUT_DATA**********
@@ -63,13 +71,15 @@ echo "User GUID to use: " . $TalisGUID;
 echo "</br>";
 echo "</br>";
 
-$NEW_VALUE = $_REQUEST['NEW_VALUE'];
 
-echo "Paragraph text to use: " . $NEW_VALUE;
+$resourceID = $_REQUEST['UUID'];
+
+echo "Resource ID to use: " . $resourceID;
 echo "</br>";
 echo "</br>";
 
-$uuid = getUUID();
+
+$uuidGen = new UUIDGenerator();
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
@@ -132,7 +142,7 @@ $file_handle = fopen($uploadfile, "rb");
 
 while (!feof($file_handle) )  {
 
-	$uuid = getUUID();
+	$uuid = $uuidGen->getUUID();
 	$line_of_text = fgets($file_handle);
 	$parts = explode(" ", $line_of_text);
 	
@@ -174,7 +184,7 @@ while (!feof($file_handle) )  {
 	echo "    ETag: " . $etag . "</br>";
 	echo "    UUID: " . $uuid . "</br>";
 	fwrite($myfile, $uuid ."\t");
-	//**************ADD_PARAGRAPH***************
+	//**************ADD_ITEM***************
 	$patch_url = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/';
 
 	$input = '{
@@ -185,9 +195,6 @@ while (!feof($file_handle) )  {
 				"data": {
 					"id": "' . $uuid . '",
 					"type": "items",
-					"attributes": {
-						"student_note": "' . $NEW_VALUE . '"
-					},
 					"relationships": {
 						"container": {
 							"data": {
@@ -196,6 +203,12 @@ while (!feof($file_handle) )  {
 							},
 							"meta": {
 								"index": 0
+							}
+						},
+						"resource": {
+							"data": {
+								"id": "' . $resourceID . '",
+								"type": "resources"
 							}
 						}
 					}
@@ -224,7 +237,7 @@ while (!feof($file_handle) )  {
 
 	curl_close($ch2);
 	if ($info2 !== 201){
-		echo "<p>ERROR: There was an error adding the paragraph:</p><pre>" . var_export($output2, true) . "</pre>";
+		echo "<p>ERROR: There was an error adding the item:</p><pre>" . var_export($output2, true) . "</pre>";
 		fwrite($myfile, "Item not added - failed" . "\t");
 		continue;
 	} else {
