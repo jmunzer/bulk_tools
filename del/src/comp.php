@@ -1,6 +1,6 @@
 <?php
 
-print("</br><a href='para.html'>Back to Delete tool</a>");
+print("</br><a href='del.html'>Back to Delete tool</a>");
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -8,9 +8,15 @@ error_reporting(E_ALL);
 
 echo "<p>Starting</p>";
 
+//*********GET DATE**********************
+
+$date = date('Y-m-d\TH:i:s');
+// $date1 = "2015-12-21T15:44:36";
+
+
 //*****************GRAB_INPUT_DATA**********
 
-$uploaddir = 'uploads/';
+$uploaddir = '../uploads/';
 $uploadfile = $uploaddir . basename($_FILES['userfile']['name']);
 
 echo '<pre>';
@@ -47,7 +53,7 @@ echo "</br>";
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
-$myfile = fopen("output.log", "a") or die("Unable to open output.log");
+$myfile = fopen("../../report_files/del_output.log", "a") or die("Unable to open del_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
 fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Item added" . "\t" . "List Published" . "\r\n");
 
@@ -62,11 +68,6 @@ fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "It
 
 $tokenURL = 'https://users.talis.com/oauth/tokens';
 $content = "grant_type=client_credentials";
-
-//*********GET DATE**********************
-
-$date = date('Y-m-d\TH:i:s');
-// $date1 = "2015-12-21T15:44:36";
 
 //************GET_TOKEN***************
 

@@ -35,7 +35,7 @@ class UUIDGenerator {
 
 //*****************GRAB_INPUT_DATA**********
 
-$uploaddir = 'uploads/';
+$uploaddir = '../uploads/';
 $uploadfile = $uploaddir . basename($_FILES['userfile']['name']);
 
 echo '<pre>';
@@ -78,7 +78,7 @@ echo "</br>";
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
-$myfile = fopen("output.log", "a") or die("Unable to open output.log");
+$myfile = fopen("../../report_files/para_output.log", "a") or die("Unable to open para_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
 fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Item added" . "\t" . "List Published" . "\r\n");
 
