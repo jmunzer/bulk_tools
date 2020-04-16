@@ -46,7 +46,7 @@ This guide will instruct you how to get these bulk tools working on a personal/w
 
 ## Putting the tool in the right place
 
-- Download the script from: https://github.com/jmunzer/para_upd/archive/master.zip
+- Download the script from: https://github.com/jmunzer/bulk_tools/archive/master.zip
 - Extract the downloaded ZIP file to the following location: c:\xampp\htdocs
 
 ## Running the tool
@@ -76,5 +76,5 @@ Item IDs can be acquired from the TARL 'All List Items' report by grabbing the u
     
 ## Report Files
 
-- Report files are under the name and src folder of each respective function (\item \del \para) of ./output.log
-- If you extracted the tool to the suggestioned location in the above steps, this will be: c:\xampp\htdocs\para_upd-master\item\src\output.log
+- Report files are under the root folder of ./report_files and are separated by function.
+- If you extracted the tool to the suggestioned location in the above steps, this will be: c:\xampp\htdocs\bulk_tools-master\report_files\
