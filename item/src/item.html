@@ -9,6 +9,10 @@
 			margin: 10, 0;
 			padding: 0;
 			}
+			mark { 
+				background-color: yellow;
+				color: black;
+				}
 		body, input, select { font-family: 'Raleway', sans-serif; }
 		select, input { font-size: 1em; }
 		form { font-size: 1.5em; }
@@ -30,7 +34,10 @@
 </br><a href="../../index.html">Back to Index</a></br>
 
 <div id="TARL_bulk updater">
-		<h1>Bulk add_item Tool - Please attach a .txt file containing one TARL list ID per line.</h1>
+		<h1>Bulk Item Tool - Please attach a .txt file containing one TARL list ID per line.</h1>
+		<h2>You will need to provide a resourceID to populate this item.. do so by selecting 'Edit' on a pre-created bookmark. The ResourceID is in the URL between /resources/ & .html </h2>
+		<h3> - for example: https://yorksj.rl.talis.com/resources/<mark>C86AD996-66D9-3C52-7B11-7D0158522F6F</mark>.html</h3>
+		
 			<form enctype="multipart/form-data" action="comp.php" method="POST">
 				<input type="hidden" name="MAX_FILE_SIZE" value="3000000" />
 				<h2>Configuration</h2>

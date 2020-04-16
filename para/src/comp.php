@@ -1,12 +1,14 @@
 <?php
 
+print("</br><a href='para.html'>Back to Paragraph tool</a>");
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 echo "<p>Starting</p>";
 
-/class UUIDGenerator {
+class UUIDGenerator {
     private $uuids = [];
     private $preFetch;
 
@@ -311,6 +313,6 @@ fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d
 fclose($file_handle);
 fclose($myfile);
 
-print("</br></br><a href='index.html'>Back</a>");
+
 
 ?>

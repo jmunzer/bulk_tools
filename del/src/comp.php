@@ -1,5 +1,7 @@
 <?php
 
+print("</br><a href='para.html'>Back to Delete tool</a>");
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -259,7 +261,5 @@ fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d
 
 fclose($file_handle);
 fclose($myfile);
-
-print("</br></br><a href='index.html'>Back</a>");
 
 ?>

@@ -12,3 +12,21 @@ Item deleted successfully	Published successfully
 Item deleted successfully	Published successfully	
 
 Stopped | End of File: uploads/list_id - test.txt | Date: 16-04-2020 10:37:29
+Started | Input File: uploads/list_id.txt | Date: 16-04-2020 11:47:13
+
+List name	List ID	Item UUID	Item added	List Published
+Library Systems List 3	185251D1-23F3-F0CF-00C7-286D4645F07C	cb7e80a0-c69c-44c4-94b2-1d9689cf26b7	Item added successfully	Published successfully	
+
+Stopped | End of File: uploads/list_id.txt | Date: 16-04-2020 11:47:15
+Started | Input File: uploads/list_id.txt | Date: 16-04-2020 11:48:36
+
+List name	List ID	Item UUID	Item added	List Published
+Library Systems List 3	185251D1-23F3-F0CF-00C7-286D4645F07C	2220ce6f-b3c3-47a8-be88-0d53ddd8af88	Item added successfully	Published successfully	
+
+Stopped | End of File: uploads/list_id.txt | Date: 16-04-2020 11:48:38
+Started | Input File: uploads/list_id.txt | Date: 16-04-2020 11:48:47
+
+List name	List ID	Item UUID	Item added	List Published
+Library Systems List 3	185251D1-23F3-F0CF-00C7-286D4645F07C	22928ea0-16b3-4eee-878a-4f17cb30625e	Item added successfully	Published successfully	
+
+Stopped | End of File: uploads/list_id.txt | Date: 16-04-2020 11:48:49
