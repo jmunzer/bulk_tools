@@ -1,8 +1,8 @@
-# PARA_UPD
+# TARL Bulk Tools
 
 ## Running with XAMPP
 
-This guide will instruct you how to get this paragraph updater working on a personal/work computer providing you have administrative rights enabled.
+This guide will instruct you how to get these bulk tools working on a personal/work computer providing you have administrative rights enabled.
 
 ## Installer
 
@@ -51,7 +51,7 @@ This guide will instruct you how to get this paragraph updater working on a pers
 
 ## Running the tool
 
-- click on: http://localhost/para_upd-master/src/index.html
+- click on: http://localhost/para_upd-master/index.html
 - Follow step on webform.
 - An example upload file is included as list_id.txt and looks like this (one list ID per line):
 
@@ -70,7 +70,11 @@ List IDs can be acquired from the TARL 'All Lists' report by grabbing the unique
 
     http://yorksj.rl.talis.com/lists/5AF6B766-325D-A542-5837-7AD6DC4F703E
 
+Item IDs can be acquired from the TARL 'All List Items' report by grabbing the unique ID from the end of each Item Link:
+
+
+
 ## Report Files
 
-- Report files are under the name and root folder of ./output.log
-- If you extracted the tool to the suggestioned location in the above steps, this will be: c:\xampp\htdocs\para_upd-master\src\output.log
+- Report files are under the name and src folder of each respective function (\item \del \para) of ./output.log
+- If you extracted the tool to the suggestioned location in the above steps, this will be: c:\xampp\htdocs\para_upd-master\item\src\output.log
