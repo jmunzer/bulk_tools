@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+ <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
+	
+	<style>
+		html, body {
+			margin: 10, 0;
+			padding: 0;
+			}
+		body, input, select { font-family: 'Raleway', sans-serif; }
+		select, input { font-size: 1em; }
+		form { font-size: 1.5em; }
+		#shelf, #lastSeen, #res {
+			display: inline-block;
+			position: relative;
+			width: 50%;
+			box-sizing: border-box;
+			padding: 44px;
+			vertical-align: top;
+		}
+
+	</style>
+	
+ </head>
+
+ <body>
+<div id="TARL_bulk updater">
+		<h1>Bulk add_item Tool - Please attach a .txt file containing one TARL list ID per line.</h1>
+			<form enctype="multipart/form-data" action="comp.php" method="POST">
+				<input type="hidden" name="MAX_FILE_SIZE" value="3000000" />
+				<h2>Configuration</h2>
+					Tenancy Short Code: <input name="SHORT_CODE" type ="text" size="12" />
+					<br/>
+					<br/>
+					Client ID: <input name="CLIENT_ID" type ="text" size="12" />
+					<br/>
+					<br/>
+					Client Secret: <input name="CLIENT_SEC" type ="text" size="20" />
+					<br/>
+					<br/>
+					Talis User GUID: <input name="GUID" type ="text" size="26" />
+					<br/>
+					<br/>
+				<h2>Rules</h2>
+				Send this file: <input name="userfile" type="file" />
+					<br/>
+					<br/>
+					Input a Resource ID to assign: <input name="UUID" type ="text"/>
+					<br/>
+					<br/>
+				<h2>Action</h2>
+				<input type="submit" value="Send" />
+			</form>
+		
+		
+</div>
+
+		
+  </body>
+
+</html>
