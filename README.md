@@ -52,7 +52,7 @@ This guide will instruct you how to get these bulk tools working on a personal/w
 ## Running the tool
 
 - click on: http://localhost/bulk_tools-master/index.html
-- Follow step on webform.
+- Follow steps on webform.
 - An example upload file is included as list_id.txt and looks like this (one list ID per line):
 
         5AF6B766-325D-A542-5837-7AD6DC4F703E
