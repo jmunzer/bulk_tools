@@ -55,7 +55,7 @@ echo "</br>";
 
 $myfile = fopen("../../report_files/del_output.log", "a") or die("Unable to open del_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Item added" . "\t" . "List Published" . "\r\n");
+fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Item deleted" . "\t" . "List Published" . "\r\n");
 
 //************SET_VARIABLES***********
 //uncomment if you want to set these permanently.. good idea tbh!
@@ -145,6 +145,10 @@ while (!feof($file_handle) )  {
 		$etag = $output_json2->included[0]->meta->list_etag;
 		echo "    ETag: " . $etag . "</br>";
 		
+		fwrite($myfile, "\n" $title . "\t");
+		fwrite($myfile, $assoc_listid . "\t");
+		fwrite($myfile, $title . "\t");
+		fwrite($myfile, $barc . "\t");
 
 	//**************DELETE_ITEM***************
 	$patch_url = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $barc;

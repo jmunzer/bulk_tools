@@ -80,7 +80,7 @@ echo "</br>";
 
 $myfile = fopen("../../report_files/para_output.log", "a") or die("Unable to open para_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Item added" . "\t" . "List Published" . "\r\n");
+fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Paragraph added" . "\t" . "List Published" . "\r\n");
 
 //************SET_VARIABLES***********
 //uncomment if you want to set these permanently.. good idea tbh!
@@ -231,11 +231,11 @@ while (!feof($file_handle) )  {
 	curl_close($ch2);
 	if ($info2 !== 201){
 		echo "<p>ERROR: There was an error adding the paragraph:</p><pre>" . var_export($output2, true) . "</pre>";
-		fwrite($myfile, "Item not added - failed" . "\t");
+		fwrite($myfile, "Paragraph not added - failed" . "\t");
 		continue;
 	} else {
-		echo "    Added Item $uuid to list $listID</br>";
-		fwrite($myfile, "Item added successfully" . "\t");
+		echo "    Added paragraph $uuid to list $listID</br>";
+		fwrite($myfile, "Paragraph added successfully" . "\t");
 	}
 
 	//************GRAB**AN**ETAG**AGAIN*************
