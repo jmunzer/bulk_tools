@@ -51,7 +51,7 @@ This guide will instruct you how to get these bulk tools working on a personal/w
 
 ## Running the tool
 
-- click on: http://localhost/para_upd-master/index.html
+- click on: http://localhost/bulk_tools-master/index.html
 - Follow step on webform.
 - An example upload file is included as list_id.txt and looks like this (one list ID per line):
 
