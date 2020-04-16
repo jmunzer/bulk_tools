@@ -81,9 +81,9 @@ $return = curl_exec($ch);
 $info = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
 if ($info !== 200){
-	echo "<p>ERROR: There was an error getting a token:</p><pre>" . var_export($return, true) . "</pre>";
+	echo "<p>    ERROR: There was an error getting a token:</p><pre>" . var_export($return, true) . "</pre>";
 } else {
-	echo "Got Token</br>";
+	echo "    Got Token</br>";
 }
 
 curl_close($ch);
@@ -93,7 +93,7 @@ $jsontoken = json_decode($return);
 if (!empty($jsontoken->access_token)){
 	$token = $jsontoken->access_token;
 } else {
-	echo "<p>ERROR: Unable to get an access token</p>";
+	echo "<p>    ERROR: Unable to get an access token</p>";
 	exit;
 }
 
@@ -107,9 +107,9 @@ while (!feof($file_handle) )  {
 	$line_of_text = fgets($file_handle);
 	$parts = explode(" ", $line_of_text);
 	$barc = trim($parts[0]);
-	$item_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $barc;
+	$item_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $barc . '?include=list';
 
-	//************GRAB**A LIST_ID*************
+	//************GRAB**LIST**DETAILS*************
 
 		$ch4 = curl_init();
 
@@ -123,7 +123,8 @@ while (!feof($file_handle) )  {
 	
 		));
 		$output4 = curl_exec($ch4);
-		$info4 = curl_getinfo($ch4, CURLINFO_HTTP_CODE);
+
+  		$info4 = curl_getinfo($ch4, CURLINFO_HTTP_CODE);
 		$output_json2 = json_decode($output4);
 		curl_close($ch4);
 
@@ -131,62 +132,28 @@ while (!feof($file_handle) )  {
 			echo "<p>ERROR: There was an error getting the draft item information:</p><pre>" . var_export($output, true) . "</pre>";
 			continue;
 		} else {
-			echo "    Got item draft information</br>";
+			echo "    Got item draft information</br></br>";
 		}
-	
-		$assoc_listid = $output_json2->data->relationships->list->data->id;
 
-
+		$assoc_listid = $output_json2->included[0]->id;
 		echo "    list_id: " . $assoc_listid . "</br>";
-		echo "</br>";
-	/*
-	//************GRAB**AN**ETAG***************
-
-	$list_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $assoc_listid;
-
-	$ch1 = curl_init();
-	
-	curl_setopt($ch1, CURLOPT_URL, $list_lookup);
-	curl_setopt($ch1, CURLOPT_RETURNTRANSFER, 1);
-	curl_setopt($ch1, CURLOPT_HTTPHEADER, array(
+		$title = $output_json2->included[0]->attributes->title;
+		echo "    Title: " . $title . "</br>";
+		$etag = $output_json2->included[0]->meta->list_etag;
+		echo "    ETag: " . $etag . "</br>";
 		
-		"X-Effective-User: $TalisGUID",
-		"Authorization: Bearer $token",
-		'Cache-Control: no-cache'
 
-	));
-	$output = curl_exec($ch1);
-	$info1 = curl_getinfo($ch1, CURLINFO_HTTP_CODE);
-	$output_json = json_decode($output);
-	curl_close($ch1);
-	if ($info1 !== 200){
-		echo "<p>ERROR: There was an error getting the draft list:</p><pre>" . var_export($output, true) . "</pre>";
-		continue;
-	} else {
-		echo "    Got draft for list </br>";
-	}
-
-	$title = $output_json->data->attributes->title;
-	$listID = $output_json->data->id;
-	$etag = $output_json->data->meta->list_etag;
-
-	echo "    Title: " . $title . "</br>";
-	fwrite($myfile, $title ."\t");
-	echo "    List ID: " . $listID . "</br>";
-	fwrite($myfile, $listID ."\t");
-	echo "    ETag: " . $etag . "</br>";
-	
 	//**************DELETE_ITEM***************
-	$patch_url = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/';
+	$patch_url = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $barc;
 
 	$input = '	{
 					"meta": {
 						"list_etag": "' . $etag . '",
-						"list_id": "' . $listID . '"
+						"list_id": "' . $assoc_listid . '"
 					}
 				}';
 
-	//**************PARAGRAPH POST*****************
+	//**************POST_THE_DELETE************
 
 	$ch2 = curl_init();
 
@@ -207,16 +174,18 @@ while (!feof($file_handle) )  {
 	$info2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
 
 	curl_close($ch2);
-	if ($info2 !== 201){
+	if ($info2 !== 200){
 		echo "<p>ERROR: There was an error deleting the item:</p><pre>" . var_export($output2, true) . "</pre>";
 		fwrite($myfile, "Item not deleted - failed" . "\t");
 		continue;
 	} else {
-		echo "    Deleted item $barc from list $listID</br>";
+		echo "    Deleted item $barc from list $assoc_listid</br>";
 		fwrite($myfile, "Item deleted successfully" . "\t");
 	}
 
 	//************GRAB**AN**ETAG**AGAIN*************
+
+	$list_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $assoc_listid;
 
 	$ch5 = curl_init();
 
@@ -240,7 +209,7 @@ while (!feof($file_handle) )  {
 	echo "</br>";
 
 	//**************PUBLISH**LIST***************
-	$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $listID . '/publish_actions';
+	$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $assoc_listid . '/publish_actions';
 	$input2 = '{
 				"data": {
 					"type": "list_publish_actions"
@@ -248,7 +217,7 @@ while (!feof($file_handle) )  {
 				"meta": {
 					"has_unpublished_changes": "true",
 					"list_etag": "' . $etag2 . '",
-					"list_id": "' . $listID . '"
+					"list_id": "' . $assoc_listid . '"
 				}
 			}';
 
@@ -277,14 +246,13 @@ while (!feof($file_handle) )  {
 		fwrite($myfile, "Publish failed" . "\t");
 		continue;
 	} else {
-		echo "    Published changes to $listID</br>";
+		echo "    Published changes to $assoc_listid </br>";
 		fwrite($myfile, "Published successfully" . "\t");
 	}
 
 	fwrite($myfile, "\n");
 	echo "End of Record.";
 	echo "---------------------------------------------------</br></br>";
-*/
 }
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
