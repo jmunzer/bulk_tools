@@ -72,8 +72,8 @@ List IDs can be acquired from the TARL 'All Lists' report by grabbing the unique
 
 Item IDs can be acquired from the TARL 'All List Items' report by grabbing the unique ID from the end of each Item Link:
 
-
-
+    http://yorksj.rl.talis.com/items/CED33BC7-309A-3306-47EB-0FB9CB9D9136
+    
 ## Report Files
 
 - Report files are under the name and src folder of each respective function (\item \del \para) of ./output.log
