@@ -145,7 +145,7 @@ while (!feof($file_handle) )  {
 		$etag = $output_json2->included[0]->meta->list_etag;
 		echo "    ETag: " . $etag . "</br>";
 		
-		fwrite($myfile, "\n" $title . "\t");
+		fwrite($myfile, "\n" . $title . "\t");
 		fwrite($myfile, $assoc_listid . "\t");
 		fwrite($myfile, $title . "\t");
 		fwrite($myfile, $barc . "\t");
