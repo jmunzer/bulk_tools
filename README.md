@@ -73,7 +73,39 @@ List IDs can be acquired from the TARL 'All Lists' report by grabbing the unique
 Item IDs can be acquired from the TARL 'All List Items' report by grabbing the unique ID from the end of each Item Link:
 
     http://yorksj.rl.talis.com/items/CED33BC7-309A-3306-47EB-0FB9CB9D9136
-    
+
+## __IMPORTANT__ Publishing lists
+
+Every edit you make to a list is only made to the draft version of the list. to be visible to end users you need to publish your changes.
+Publishing lists is a 'computing expensive' operation and Talis Aspire uses a queuing mechanism to do this in the background so that you can do other things while waiting for the changes to be published.
+
+In the future all API list publishing changes will be on a queue that won't affect real human list editors. Right now, if you put thousands of list publish requests through it will delay publish events for other users. You will always want to make sure that you only make a list publish request when needed.
+
+We will update this readme when this issue is resolved (it is being worked on now).
+
+There are two strategies for publishing the changes that you are making to lists.
+
+### Strategy 1: Edit now, publish later (preferred)
+
+This strategy is about not using the API to publish lists. In the future (for reasons given above) this will not be an issue, but right now this is the preferred method.
+
+1. Go to the all lists report and select lists with a status of `Published with unpublished changes`. These will be lists that may be affected be the last step in this process, you need to decide if it is important to get to a point where there are no lists wuth outstanding changes before you proceed.
+2. Edit the list using the scripts included in this repo.
+3. __Important__ Leave the list publish option set to false so that the scripts do not publish the lists.
+4. Complete all the edits you require. This might mean running the item or paragraph additions multiple times.
+5. Once all updates are complete. Go to the all lists report and select lists with a status of `Published with unpublished changes`. These will be lists which you have edited.
+6. Use the bulk actions tools within the all lists report to queue them for publishing. These publish events will __not__ impact end users editing lists.
+
+### Strategy 2: Edit now, publish now on last edit
+
+This strategy limits the publish events to being __once__ per list. It uses the API to publish the lists. Right now, this causes end user edits to be queued behind your changes. This may mean that you cause a delay to other Talis Aspire tenants who are editing their lists.
+
+1. Use the scripts to add items, paragraphs or delete items. You may have multiple operations to perform.
+2. On each operation, make sure the publish list option is set to false.
+3. On the __last__ operation, make sure the publish list option is set to true. This will publish the lists via the API.
+
+If you forget to make the change on the last operation, don't worry, as you can still use the all lists report to find lists with changes and bulk publish those lists.
+
 ## Report Files
 
 - Report files are under the root folder of ./report_files and are separated by function.
