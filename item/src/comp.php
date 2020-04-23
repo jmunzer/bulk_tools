@@ -78,6 +78,11 @@ $resourceID = $_REQUEST['UUID'];
 
 echo "Resource ID to use: " . $resourceID;
 echo "</br>";
+
+$shouldPublishLists = filter_var($_REQUEST['PUBLISH_LISTS'], FILTER_VALIDATE_BOOLEAN) || FALSE;
+
+echo "Should publish lists?: " . var_export($shouldPublishLists, true);
+echo "</br>";
 echo "</br>";
 
 
@@ -270,48 +275,51 @@ while (!feof($file_handle) )  {
 	echo "    ---------------------------------------------------";
 	echo "</br>";
 
-	//**************PUBLISH**LIST***************
-	$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $listID . '/publish_actions';
-	$input2 = '{
-				"data": {
-					"type": "list_publish_actions"
-				},
-				"meta": {
-					"has_unpublished_changes": "true",
-					"list_etag": "' . $etag2 . '",
-					"list_id": "' . $listID . '"
-				}
-			}';
 
-	//**************PUBLISH POST*****************
+	if ($shouldPublishLists === TRUE) {
+		//**************PUBLISH**LIST***************
+		$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $listID . '/publish_actions';
+		$input2 = '{
+					"data": {
+						"type": "list_publish_actions"
+					},
+					"meta": {
+						"has_unpublished_changes": "true",
+						"list_etag": "' . $etag2 . '",
+						"list_id": "' . $listID . '"
+					}
+				}';
 
-	$ch3 = curl_init();
+		//**************PUBLISH POST*****************
 
-	curl_setopt($ch3, CURLOPT_URL, $patch_url2);
-	curl_setopt($ch3, CURLOPT_CUSTOMREQUEST, 'POST');
-	curl_setopt($ch3, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch3, CURLOPT_HTTPHEADER, array(
+		$ch3 = curl_init();
 
-		"X-Effective-User: $TalisGUID",
-		"Authorization: Bearer $token",
-		'Cache-Control: no-cache'
-	));
+		curl_setopt($ch3, CURLOPT_URL, $patch_url2);
+		curl_setopt($ch3, CURLOPT_CUSTOMREQUEST, 'POST');
+		curl_setopt($ch3, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch3, CURLOPT_HTTPHEADER, array(
 
-	curl_setopt($ch3, CURLOPT_POSTFIELDS, $input2);
+			"X-Effective-User: $TalisGUID",
+			"Authorization: Bearer $token",
+			'Cache-Control: no-cache'
+		));
+
+		curl_setopt($ch3, CURLOPT_POSTFIELDS, $input2);
 
 
-	$output3 = curl_exec($ch3);
-	$info3 = curl_getinfo($ch3, CURLINFO_HTTP_CODE);
-	curl_close($ch3);
-	if ($info3 !== 202){
-		echo "<p>ERROR: There was an error publishing the list:</p><pre>" . var_export($output3, true) . "</pre>";
-		fwrite($myfile, "Publish failed" . "\t");
-		continue;
-	} else {
-		echo "    Published changes to $listID</br>";
-		fwrite($myfile, "Published successfully" . "\t");
+		$output3 = curl_exec($ch3);
+		$info3 = curl_getinfo($ch3, CURLINFO_HTTP_CODE);
+		curl_close($ch3);
+		if ($info3 !== 202){
+			echo "<p>ERROR: There was an error publishing the list:</p><pre>" . var_export($output3, true) . "</pre>";
+			fwrite($myfile, "Publish failed" . "\t");
+			continue;
+		} else {
+			echo "    Published changes to $listID</br>";
+			fwrite($myfile, "Published successfully" . "\t");
+		}
 	}
-
+	
 	fwrite($myfile, "\n");
 	echo "End of Record.";
 	echo "---------------------------------------------------</br></br>";
