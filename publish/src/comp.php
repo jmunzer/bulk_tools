@@ -1,6 +1,6 @@
 <?php
 
-print("</br><a href='item.html'>Back to Publish tool</a>");
+print("</br><a href='publish.html'>Back to Publish tool</a>");
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -106,7 +106,6 @@ $file_handle = fopen($uploadfile, "rb");
 
 while (!feof($file_handle) )  {
 
-	$uuid = $uuidGen->getUUID();
 	$line_of_text = fgets($file_handle);
 	$parts = explode(" ", $line_of_text);
 	
@@ -146,9 +145,7 @@ while (!feof($file_handle) )  {
 	echo "    List ID: " . $listID . "</br>";
 	fwrite($myfile, $listID ."\t");
 	echo "    ETag: " . $etag . "</br>";
-	echo "    UUID: " . $uuid . "</br>";
-	fwrite($myfile, $uuid ."\t");
-		
+			
 	//**************PUBLISH**LIST***************
 		$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $listID . '/publish_actions';
 		$input2 = '{
