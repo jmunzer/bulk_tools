@@ -76,7 +76,7 @@ Item IDs can be acquired from the TARL 'All List Items' report by grabbing the u
     
 Paragraph Formatting. If you want to add formatting to your paragraph text, you can use a number of html tags. An example of some functionality can be seen with the below example - if pasted into the 'Input the desired text:' field - 
 
-        "<h1>This <u>paragraph</u> is<strong> in bold</strong> and can be <mark background-color: yellow>highlighted</mark>.</h1>"
+        <h1>This <u>paragraph</u> is<strong> in bold</strong> and can be <mark background-color: yellow>highlighted</mark>.</h1>
 
 ## __IMPORTANT__ Publishing lists
 
