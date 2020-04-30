@@ -73,6 +73,10 @@ List IDs can be acquired from the TARL 'All Lists' report by grabbing the unique
 Item IDs can be acquired from the TARL 'All List Items' report by grabbing the unique ID from the end of each Item Link:
 
     http://yorksj.rl.talis.com/items/CED33BC7-309A-3306-47EB-0FB9CB9D9136
+    
+Paragraph Formatting. If you want to add formatting to your paragraph text, you can use a number of html tags. An example of some functionality can be seen with the below example - if pasted into the 'Input the desired text:' field - 
+
+<h1>This <u>paragraph</u> is<strong> in bold</strong> and can be <mark background-color: yellow>highlighted</mark>.</h1>
 
 ## __IMPORTANT__ Publishing lists
 
