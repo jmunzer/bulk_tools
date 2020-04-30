@@ -10,7 +10,7 @@ echo "<p>Starting</p>";
 
 //*****************GRAB_INPUT_DATA**********
 
-$uploaddir = 'uploads/';
+$uploaddir = '../uploads/';
 $uploadfile = $uploaddir . basename($_FILES['userfile']['name']);
 
 echo '<pre>';
