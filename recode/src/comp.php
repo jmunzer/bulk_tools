@@ -4,6 +4,7 @@ print("</br><a href='recode.html'>Back to recode tool</a>");
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
+
 error_reporting(E_ALL);
 
 echo "<p>Starting</p>";
@@ -102,23 +103,22 @@ if (!empty($jsontoken->access_token)){
 
 //***********READ**DATA******************
 
-$row_array = [];
-
+$row = 1;
 if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
-	while (($line = fgetcsv($file_handle, 1000, "\t")) !== FALSE)
-		{
-			$row_array[] = $line;
+	while (($line = fgetcsv($file_handle, 1000, "\t")) !== FALSE) {
 
-			$listId = $row_array[0][0];
-			$newCode = $row_array[0][1];
-			$listTitle = $row_array[0][2];
+		$num = count($line);
+		$row++;
 
-			echo $listId;
-			echo $newCode;
-			echo $listTitle;
-			echo "</br>";
+		$listId = $line[0];
+		$newCode = $line[1];
+		$listTitle = $line[2];
 
-	
+		echo $listId . "\t";
+		echo $newCode . "\t";
+		echo $listTitle . "\t";
+		echo "</br>";
+
 //************GRAB**LIST**DETAILS*************
 $list_lookup = 'https://rl.talis.com/3/' . $shortCode . '/lists/' . $listId;
 
@@ -196,7 +196,7 @@ $list_lookup = 'https://rl.talis.com/3/' . $shortCode . '/lists/' . $listId;
 		continue;
 	} else {
 		echo "    Title Updated to: " . $listTitle . " for list: $listId</br>";
-		fwrite($myfile, "List Title Updated successfully" . "\t");
+		fwrite($myfile, "Title Updated to: " . $listTitle . " for list: $listId \t");
 	}
 
 	//**************UPDATE_LIST_PARENT***************
@@ -238,7 +238,7 @@ $list_lookup = 'https://rl.talis.com/3/' . $shortCode . '/lists/' . $listId;
 	} else {
 	echo "    Parent node Updated to: " . $newCode . " for list: $listId</br>";
 
-	fwrite($myfile, "List parent node updated successfully" . "\t");
+	fwrite($myfile, "Parent node Updated to: $newCode for list: $listId \t");
 	}
 
 	fwrite($myfile, "\n");
@@ -247,8 +247,8 @@ $list_lookup = 'https://rl.talis.com/3/' . $shortCode . '/lists/' . $listId;
 }
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
-		}
-fclose($file_handle);
 
+fclose($file_handle);
+}
 fclose($myfile);
 ?>
