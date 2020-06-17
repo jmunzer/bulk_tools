@@ -249,6 +249,6 @@ $list_lookup = 'https://rl.talis.com/3/' . $shortCode . '/lists/' . $listId;
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 		}
 fclose($file_handle);
-}
+
 fclose($myfile);
 ?>
