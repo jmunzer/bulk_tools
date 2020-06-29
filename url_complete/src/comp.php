@@ -58,7 +58,7 @@ echo "<br>";
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
-$myfile = fopen("../../report_files/url_output.log", "a") or die("Unable to open url_output.log");
+$myfile = fopen("../../report_files/urlcomplete_output.log", "a") or die("Unable to open url_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
 fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Item added" . "\t" . "List Published" . "\r\n");
 
