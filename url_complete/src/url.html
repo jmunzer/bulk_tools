@@ -20,16 +20,7 @@
 			padding: 44px;
 			vertical-align: top;
 		}
-/*		#lastSeen { float: right; }
-		body>div:first-child:after {
-			content: "";
-			position: fixed;
-			display: block;
-			left: 50%; top: 0; bottom: 0; width: 0;
-			height: 100%;
-			border-right: 1px solid gray;
-		}
-*/
+
 	</style>
 	
  </head>
@@ -39,7 +30,10 @@
 </br><a href="../../index.html">Back to Index</a></br>
 
 <div id="TARL_bulk updater">
-		<h1>Bulk URL updater - Please attach a .txt file containing one TARL item ID per line.</h1>
+		<h1>Bulk URL updater - Please attach a .txt file containing the following: (in order - tab seperated)</h1>
+			<li>Talis Item ID</li>
+			<li>Old/Current URL</li>
+			<li>New URL (to set)</li>
 			<form enctype="multipart/form-data" action="comp.php" method="POST">
 				<input type="hidden" name="MAX_FILE_SIZE" value="3000000" />
 				<h2>Configuration</h2>
@@ -57,12 +51,6 @@
 					<br/>
 				<h2>Rules</h2>
 				Send this file: <input name="userfile" type="file" />
-					<br/>
-					<br/>
-					Input the old URL: <input name="OLD_URL" type ="text" size="125"/>
-					<br/>
-					<br/>
-					Input a new URL: <input name="NEW_URL" type ="text" size="125"/>
 					<br/>
 					<br/>
 				<h2>Action</h2>
