@@ -75,6 +75,12 @@ $NEW_VALUE = $_REQUEST['NEW_VALUE'];
 echo "Paragraph text to use: " . $NEW_VALUE;
 echo "</br>";
 
+// does the paragraph go at the top or the bottom? (header or footer)
+$POSITION = $_REQUEST['POSITION'];
+
+echo "Paragraph text to use: " . $POSITION;
+echo "</br>";
+
 $shouldPublishLists = filter_var($_REQUEST['PUBLISH_LISTS'], FILTER_VALIDATE_BOOLEAN) || FALSE;
 
 echo "Should publish lists?: " . var_export($shouldPublishLists, true);
@@ -177,6 +183,8 @@ while (!feof($file_handle) )  {
 	$title = $output_json->data->attributes->title;
 	$listID = $output_json->data->id;
 	$etag = $output_json->data->meta->list_etag;
+	// positionIndex is the item count for footer (i.e. the next index) otherwise 0 (top)
+	$positionIndex = $POSITION == 'footer' ? $output_json->data->meta->item_count : 0;
 
 	echo "    Title: " . $title . "</br>";
 	fwrite($myfile, $title ."\t");
@@ -206,7 +214,7 @@ while (!feof($file_handle) )  {
 								"type": "lists"
 							},
 							"meta": {
-								"index": 0
+								"index":' . $positionIndex . '
 							}
 						}
 					}
