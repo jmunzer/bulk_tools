@@ -27,18 +27,13 @@ function modify_url($resourceID, $web_addresses, $oldURL_index, $newURL) {
 				}
 			}';
 	$template_obj = json_decode($template, true);
-	echo "<br><br> var_export before<br>";
-	var_export($template_obj);
-	echo "<br><br>";
 	$template_obj['data']['attributes']['web_addresses'] = $web_addresses;
-	echo "<br><br> var_export after<br>";
-	var_export($template_obj);
 
 	return json_encode($template_obj);
 }
 
 function post_url($resourceID, $input, $TalisGUID, $token) {
-	$patch_url = "https://rl.talis.com/3/yorksj/resources/" . $resourceID;
+	$patch_url = "https://rl.talis.com/3/" . $shortCode . "/resources/" . $resourceID;
 	$ch2 = curl_init();
 
 	curl_setopt($ch2, CURLOPT_URL, $patch_url);
@@ -170,7 +165,7 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 
 //************GET_RESOURCE_ID***************
 
-$item_lookup = "https://rl.talis.com/3/yorksj/draft_items/" . $itemID . "?include=resource";
+$item_lookup = "https://rl.talis.com/3/" . $shortCode . "/draft_items/" . $itemID . "?include=resource";
 // echo $item_lookup;
 
 
