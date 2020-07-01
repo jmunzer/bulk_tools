@@ -24,9 +24,15 @@ function modify_url($resourceID, $web_addresses, $oldURL_index, $newURL) {
 							"link": "' . $newURL. '"
 						}
 					} 
-				}';
+				}
+			}';
 	$template_obj = json_decode($template, true);
+	echo "<br><br> var_export before<br>";
+	var_export($template_obj);
+	echo "<br><br>";
 	$template_obj['data']['attributes']['web_addresses'] = $web_addresses;
+	echo "<br><br> var_export after<br>";
+	var_export($template_obj);
 
 	return json_encode($template_obj);
 }
@@ -215,7 +221,6 @@ $online_resource =  $output_json->included[0]->attributes->online_resource->link
 	}
 	else {
 		echo "\t we found a online resource match of $online_resource <br><br>";
-		// call update online_resource function
 	}
 	
 $web_addresses = $output_json->included[0]->attributes->web_addresses;
