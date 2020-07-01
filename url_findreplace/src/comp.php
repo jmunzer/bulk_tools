@@ -122,7 +122,7 @@ while (!feof($file_handle) )  {
 
 $barc = trim($parts[0]);
 
-$item_lookup = "https://rl.talis.com/3/yorksj/draft_items/" . $barc;
+$item_lookup = "https://rl.talis.com/3/" . $shortCode . "/draft_items/" . $barc;
 $ch1 = curl_init();
 		
 		curl_setopt($ch1, CURLOPT_URL, $item_lookup);
@@ -158,7 +158,7 @@ $resourceID = $output_json->data->relationships->resource->data->id;
 
 	//************GET_URL_INFO***************
 
-$patch_url = "https://rl.talis.com/3/yorksj/resources/" . $resourceID;
+$patch_url = "https://rl.talis.com/3/" . $shortCode . "/resources/" . $resourceID;
 
 $ch3 = curl_init();
 		
