@@ -9,23 +9,23 @@ error_reporting(E_ALL);
 echo "<p>Starting</p>";
 //***********FUNCTIONS *******************/
 
-function modify_url($resourceID, $oldURL_found, $newURL) {
-	global $input;
-	$input = '{
+function modify_url($resourceID, $web_addresses, $oldURL_index, $newURL) {
+	
+	$web_addresses[$oldURL_index] = $newURL;  // update the found address
+
+	$template = '{
 				"data": {
 					"type": "resources",
 					"id": "' . $resourceID . '",
-					"attributes": { 
-						"web_addresses": {
-							"[' . $oldURL_found . ']": "' . $newURL . '"
-							}
-						"online_resource": {
-							"source": "uri",
-							"link": "' . $newURL . '"
-							}
-						} 
+					"attributes": {} 
 					} 
 				}';
+	$template_obj = json_decode($template);
+	$template_obj->data->attributes['web_addresses'] = $web_addresses;
+	$template_obj->data->attributes['online_resource']['source'] = 'uri';
+	$template_obj->data->attributes['online_resource']['link'] = $newURL;
+
+	return json_encode($template_obj);
 }
 
 function post_url($resourceID, $input, $TalisGUID, $token) {
@@ -221,8 +221,8 @@ $web_addresses = $output_json->included[0]->attributes->web_addresses;
 	
 	if (isset($oldURL_found)) {
 		echo "\t found matching old URL: $oldURL - at web address array index: $oldURL_found";
-		// call update web_addresss function
-		modify_url($resourceID, $oldURL_found, $newURL);
+		// call update web_addresses function
+		$input = modify_url($resourceID, $web_addresses, $oldURL_found, $newURL);
 		post_url($resourceID, $input, $TalisGUID, $token);
 
 	} else {
