@@ -152,68 +152,61 @@ $ch1 = curl_init();
 
 $self = $output_json->data->links->self;
 $resourceID = $output_json->included[0]->id;
+
+//************GET_URL_INFO***************
+
 $online_resource =  $output_json->included[0]->attributes->online_resource->link;
 
-	echo "Item URL: " . $self . "<br>";
+	echo "\t Item URL: " . $self . "<br>";
 	fwrite($myfile, $self ."\t");
-	echo "Resource ID: " . $resourceID . "<br>";
+	echo "\t Resource ID: " . $resourceID . "<br><br>";
 	fwrite($myfile, $resourceID ."\t");
-	echo "Online Resouce: " . $online_resource . "<br><br>";
+	echo "\t Online Resouce: " . $online_resource . "<br>";
 	fwrite($myfile, $online_resource ."\t");
 
+	if ($online_resource !== $oldURL) {
+		echo "\t no online resource match found for $online_resource <br><br>";
+	}
+	else {
+		echo "\t we found a online resource match of $online_resource <br><br>";
+		// call update online_resource function
+	}
+	
 $web_addresses = $output_json->included[0]->attributes->web_addresses;
-	foreach ($web_addresses as $v) {
+
+	$oldURL_found = array_search($oldURL, $web_addresses);
+	
+	if (isset($oldURL_found)) {
+		echo "\t found matching old URL: $oldURL - at web address array index: $oldURL_found";
+		// call update web_addresss function
+	} else {
+		echo "\t no matching URL found in web address array. Moving onto next row";
+		continue;
+	}
+	
+
+/*	foreach ($web_addresses as $v) {
 		echo "Web Addresses: " . $v . "<br>";
 		fwrite($myfile, $v ."\t");
-	}
 
-	//************GET_URL_INFO***************
-
-
-
+		if ($v !== $oldURL) {
+			echo "no online resource match found for $online_resource <br><br>";
+			continue; }
+		else {
+			echo "we found a web address match on array value $v <br><br>";
+			// call update web_addresss function
+			}
+	} 
+	*/
+}
 
 }
-}
+
+
+
+
+
 /*
-	//************GET_URL_INFO***************
-
-$patch_url = "https://rl.talis.com/3/yorksj/resources/" . $resourceID;
-
-$ch3 = curl_init();
-		
-		curl_setopt($ch3, CURLOPT_URL, $patch_url);
-		curl_setopt($ch3, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($ch3, CURLOPT_HTTPHEADER, array(
-			
-			"X-Effective-User: $TalisGUID",
-			"Authorization: Bearer $token",
-			'Cache-Control: no-cache'
-	
-		));
-		$output3 = curl_exec($ch3);
-		$info3 = curl_getinfo($ch3, CURLINFO_HTTP_CODE);
-		echo "authenticated http request: " . $info3;
-		echo "<br>";
-		echo "<br>";
-		$output_json3 = json_decode($output3);
-	curl_close($ch3);
-	if ($info3 !== 200){
-		echo "<p>ERROR: There was an error getting the resource metadata:</p><pre>" . var_export($output, true) . "</pre>";
-		continue;
-	} else {
-		echo "    Got resource metadata </br>";
-	}
-
-$resource_title = $output_json3->data->attributes->title;
-$web_addr = $output_json3->data->meta->all_online_resources[0]->original_url;
-
-	echo "Resource Title: " . $resource_title . "<br>";
-	fwrite($myfile, $resource_title ."\t");
-	echo "Web Address: " . $web_addr . "<br>";
-	fwrite($myfile, $web_addr ."\t");
-	echo "---------------------------------------------------";
-	echo "<br>";
-
 //**************MODIFY_URL***************
 
 $cleaned_url = str_replace($OLD_URL,$NEW_URL,$web_addr);
