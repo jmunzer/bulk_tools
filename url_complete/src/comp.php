@@ -18,6 +18,7 @@ function modify_url($resourceID, $web_addresses, $oldURL_index, $newURL) {
 					"type": "resources",
 					"id": "' . $resourceID . '",
 					"attributes": {
+						"web_addresses": [],
 						"online_resource": {
 							"source": "uri",
 							"link": "' . $newURL. '"
