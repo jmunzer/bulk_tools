@@ -23,7 +23,6 @@ function modify_url($resourceID, $web_addresses, $oldURL_index, $newURL) {
 							"link": "' . $newURL. '"
 						}
 					} 
-					} 
 				}';
 	$template_obj = json_decode($template);
 	$template_obj->data->attributes->{'web_addresses'} = $web_addresses;
