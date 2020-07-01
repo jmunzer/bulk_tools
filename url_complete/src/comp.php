@@ -99,7 +99,7 @@ echo "<br>";
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
-$myfile = fopen("../../report_files/urlcomplete_output.log", "a") or die("Unable to open url_output.log");
+$myfile = fopen("../../report_files/urlcomplete_output.log", "a") or die("Unable to open urlcomplete_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
 fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Item added" . "\t" . "List Published" . "\r\n");
 
@@ -199,9 +199,6 @@ $ch1 = curl_init();
 		echo "    Got draft for item </br>";
 	}
 
-	//var_dump($output_json);
-	//print_r($output_json);
-
 $self = $output_json->data->links->self;
 $resourceID = $output_json->included[0]->id;
 
@@ -229,7 +226,7 @@ $web_addresses = $output_json->included[0]->attributes->web_addresses;
 	
 	if (isset($oldURL_found)) {
 		echo "\t found matching old URL: $oldURL - at web address array index: $oldURL_found";
-		// call update web_addresses function
+		
 		$input = modify_url($resourceID, $web_addresses, $oldURL_found, $newURL);
 		post_url($resourceID, $input, $TalisGUID, $token);
 
