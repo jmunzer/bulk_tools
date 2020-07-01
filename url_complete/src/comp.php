@@ -25,8 +25,8 @@ function modify_url($resourceID, $web_addresses, $oldURL_index, $newURL) {
 						}
 					} 
 				}';
-	$template_obj = json_decode($template);
-	$template_obj->data->attributes->{'web_addresses'} = $web_addresses;
+	$template_obj = json_decode($template, true);
+	$template_obj['data']['attributes']['web_addresses'] = $web_addresses;
 
 	return json_encode($template_obj);
 }
