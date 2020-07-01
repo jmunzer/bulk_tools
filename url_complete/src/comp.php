@@ -70,24 +70,20 @@ print_r($uploadfile);
 echo "</br>";
 echo "</br>";
 
+/**
+ * Get the user config file. This script will fail disgracefully if it has not been created and nothing will happen.
+ */
 require('../../user.config.php');
 
 echo "Tenancy Shortcode set: " . $shortCode;
 echo "</br>";
 
-
 echo "Client ID set: " . $clientID;
 echo "<br>";
-
-
-echo "Client secret set: " . $secret;
-echo "<br>";
-
 
 echo "User GUID to use: " . $TalisGUID;
 echo "<br>";
 echo "<br>";
-
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
