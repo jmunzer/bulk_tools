@@ -183,28 +183,6 @@ $web_addresses = $output_json->included[0]->attributes->web_addresses;
 		echo "\t no matching URL found in web address array. Moving onto next row";
 		continue;
 	}
-	
-
-/*	foreach ($web_addresses as $v) {
-		echo "Web Addresses: " . $v . "<br>";
-		fwrite($myfile, $v ."\t");
-
-		if ($v !== $oldURL) {
-			echo "no online resource match found for $online_resource <br><br>";
-			continue; }
-		else {
-			echo "we found a web address match on array value $v <br><br>";
-			// call update web_addresss function
-			}
-	} 
-	*/
-}
-
-}
-
-
-
-
 
 /*
 //**************MODIFY_URL***************
@@ -251,7 +229,9 @@ $input = '{
 	}
 
 */
+	}
 
+}
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 
 fclose($file_handle);
