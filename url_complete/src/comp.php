@@ -7,6 +7,48 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 echo "<p>Starting</p>";
+//***********FUNCTIONS *******************/
+
+function modify_url($resourceID, $oldURL_found, $newURL) {
+	global $input;
+	$input = '{
+				"data": {
+					"type": "resources",
+					"id": "' . $resourceID . '",
+					"attributes": { 
+						"web_addresses": {
+							"[' . $oldURL_found . ']": "' . $newURL . '"
+							}
+						"online_resource": {
+							"source": "uri",
+							"link": "' . $newURL . '"
+							}
+						} 
+					} 
+				}';
+}
+
+function post_url($resourceID, $input, $TalisGUID, $token) {
+	$patch_url = "https://rl.talis.com/3/yorksj/resources/" . $resourceID;
+	$ch2 = curl_init();
+
+	curl_setopt($ch2, CURLOPT_URL, $patch_url);
+	curl_setopt($ch2, CURLOPT_CUSTOMREQUEST, 'PATCH');
+	curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch2, CURLOPT_HTTPHEADER, array(
+		
+		"X-Effective-User: $TalisGUID",
+		"Authorization: Bearer $token",
+		'Cache-Control: no-cache'
+	));
+
+	curl_setopt($ch2, CURLOPT_POSTFIELDS, $input);
+
+	$output2 = curl_exec($ch2);
+	$info2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
+	curl_close($ch2);
+	// put some if else logic here please!
+}
 
 //*****************GRAB_INPUT_DATA**********
 
@@ -148,7 +190,8 @@ $ch1 = curl_init();
 		echo "    Got draft for item </br>";
 	}
 
-//	var_dump($output_json);
+	//var_dump($output_json);
+	//print_r($output_json);
 
 $self = $output_json->data->links->self;
 $resourceID = $output_json->included[0]->id;
@@ -179,56 +222,14 @@ $web_addresses = $output_json->included[0]->attributes->web_addresses;
 	if (isset($oldURL_found)) {
 		echo "\t found matching old URL: $oldURL - at web address array index: $oldURL_found";
 		// call update web_addresss function
+		modify_url($resourceID, $oldURL_found, $newURL);
+		post_url($resourceID, $input, $TalisGUID, $token);
+
 	} else {
 		echo "\t no matching URL found in web address array. Moving onto next row";
 		continue;
 	}
 
-/*
-//**************MODIFY_URL***************
-
-$cleaned_url = str_replace($OLD_URL,$NEW_URL,$web_addr);
- echo $cleaned_url;
-echo "<br>";
-echo "--------------------------------------------------- <br>";
-
-$input = '{
-			"data": {
-				"type": "resources",
-				"id": "' . $resourceID . '",
-				"attributes": { 
-					"web_addresses": [ "' . $cleaned_url . '" ], 
-					"online_resource": {
-						"source": "uri",
-						"link": "' . $cleaned_url . '"
-						}
-					} 
-				} 
-			}';
-
-//**************POST_URL_TO_RESOURCE*****************
-
-		$ch2 = curl_init();
-
-		curl_setopt($ch2, CURLOPT_URL, $patch_url);
-		curl_setopt($ch2, CURLOPT_CUSTOMREQUEST, 'PATCH');
-		curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch2, CURLOPT_HTTPHEADER, array(
-			
-			"X-Effective-User: $TalisGUID",
-			"Authorization: Bearer $token",
-			'Cache-Control: no-cache'
-		));
-
-		curl_setopt($ch2, CURLOPT_POSTFIELDS, $input);
-
-		$output2 = curl_exec($ch2);
-		$info2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
-		curl_close($ch2);
-		// put some if else logic here please!
-	}
-
-*/
 	}
 
 }
