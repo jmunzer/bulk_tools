@@ -45,16 +45,6 @@ echo "User GUID to use: " . $TalisGUID;
 echo "<br>";
 echo "<br>";
 
-$OLD_URL = $_REQUEST['OLD_URL'];
-
-echo "old URL to modify: " . $OLD_URL;
-echo "<br>";
-
-$NEW_URL = $_REQUEST['NEW_URL'];
-
-echo "New URL to use: " . $NEW_URL;
-echo "<br>";
-echo "<br>";
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
@@ -109,20 +99,30 @@ if (!empty($jsontoken->access_token)){
 	exit;
 }
 
-//************READ**DATA******************
+//***********READ**DATA******************
 
-$file_handle = fopen($uploadfile, "rb");
+$row = 1;
+if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
+	while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 
-while (!feof($file_handle) )  {
+		$num = count($line);
+		$row++;
 
-	$line_of_text = fgets($file_handle);
-	$parts = explode(" ", $line_of_text);
+		$itemID = $line[0];
+		$oldURL = $line[1];
+		$newURL = $line[2];
+
+		echo $itemID . "\t";
+		echo $oldURL . "\t";
+		echo $newURL . "\t";
+		echo "</br>";
 
 //************GET_RESOURCE_ID***************
 
-$barc = trim($parts[0]);
+$item_lookup = "https://rl.talis.com/3/yorksj/draft_items/" . $itemID . "?include=resource";
+// echo $item_lookup;
 
-$item_lookup = "https://rl.talis.com/3/yorksj/draft_items/" . $barc;
+
 $ch1 = curl_init();
 		
 		curl_setopt($ch1, CURLOPT_URL, $item_lookup);
@@ -148,14 +148,33 @@ $ch1 = curl_init();
 		echo "    Got draft for item </br>";
 	}
 
+//	var_dump($output_json);
+
 $self = $output_json->data->links->self;
-$resourceID = $output_json->data->relationships->resource->data->id;
+$resourceID = $output_json->included[0]->id;
+$online_resource =  $output_json->included[0]->attributes->online_resource->link;
 
 	echo "Item URL: " . $self . "<br>";
 	fwrite($myfile, $self ."\t");
 	echo "Resource ID: " . $resourceID . "<br>";
 	fwrite($myfile, $resourceID ."\t");
+	echo "Online Resouce: " . $online_resource . "<br><br>";
+	fwrite($myfile, $online_resource ."\t");
 
+$web_addresses = $output_json->included[0]->attributes->web_addresses;
+	foreach ($web_addresses as $v) {
+		echo "Web Addresses: " . $v . "<br>";
+		fwrite($myfile, $v ."\t");
+	}
+
+	//************GET_URL_INFO***************
+
+
+
+
+}
+}
+/*
 	//************GET_URL_INFO***************
 
 $patch_url = "https://rl.talis.com/3/yorksj/resources/" . $resourceID;
@@ -237,6 +256,9 @@ $input = '{
 		curl_close($ch2);
 		// put some if else logic here please!
 	}
+
+*/
+
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 
 fclose($file_handle);
