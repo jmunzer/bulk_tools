@@ -33,7 +33,7 @@ function modify_url($resourceID, $web_addresses, $oldURL_index, $newURL) {
 	return json_encode($template_obj);
 }
 
-function post_url($resourceID, $input, $TalisGUID, $token) {
+function post_url($resourceID, $input, $TalisGUID, $token, $shortCode) {
 	$patch_url = "https://rl.talis.com/3/" . $shortCode . "/resources/" . $resourceID;
 	$ch2 = curl_init();
 
@@ -203,7 +203,7 @@ $web_addresses = $output_json->included[0]->attributes->web_addresses;
 		echo "\t found matching old URL: $oldURL - at web address array index: $oldURL_found";
 		
 		$input = modify_url($resourceID, $web_addresses, $oldURL_found, $newURL);
-		post_url($resourceID, $input, $TalisGUID, $token);
+		post_url($resourceID, $input, $TalisGUID, $token, $shortCode);
 
 	} else {
 		echo "\t no matching URL found in web address array. Moving onto next row";
