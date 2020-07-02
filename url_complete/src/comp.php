@@ -67,12 +67,6 @@ function post_url($resourceID, $input, $TalisGUID, $token, $shortCode) {
 	$content = "grant_type=client_credentials";
 	$date = date('Y-m-d\TH:i:s'); // "2015-12-21T15:44:36"
 
-// Creating a report file...
-
-$myfile = fopen("../../report_files/urlcomplete_output.log", "a") or die("Unable to open urlcomplete_output.log");
-fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Item added" . "\t" . "List Published" . "\r\n");
-
 // Reading the input data from web form...
 
 $uploaddir = '../uploads/';
@@ -87,6 +81,12 @@ if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile)) {
 echo "</br>";
 print_r($uploadfile);
 echo "<br><br>";
+
+// Creating a report file...
+
+$myfile = fopen("../../report_files/urlcomplete_output.log", "a") or die("Unable to open urlcomplete_output.log");
+fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
+fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Item added" . "\t" . "List Published" . "\r\n");
 
 // Customer credentials - look into moving these to a separate global file
 
