@@ -95,21 +95,6 @@ $myfile = fopen("../../report_files/urlcomplete_output.log", "a") or die("Unable
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
 fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Item added" . "\t" . "List Published" . "\r\n");
 
-// Reading the input data from web form...
-
-$uploaddir = '../uploads/';
-$uploadfile = $uploaddir . basename($_FILES['userfile']['name']);
-
-echo '<pre>';
-if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile)) {
-    echo "File is valid, and was successfully uploaded.\n";
-} else {
-    echo "File is invalid, and failed to upload - Please try again. -\n";
-}
-echo "</br>";
-print_r($uploadfile);
-echo "<br><br>";
-
 $ch = curl_init();
 
 	curl_setopt($ch, CURLOPT_URL, $tokenURL);
