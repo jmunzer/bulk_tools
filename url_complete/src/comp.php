@@ -88,14 +88,7 @@ echo "</br>";
 print_r($uploadfile);
 echo "<br><br>";
 
-// Customer credentials - look into moving these to a separate global file
 
-$shortCode = $_REQUEST['SHORT_CODE'];
-$clientID = $_REQUEST['CLIENT_ID'];
-$secret = $_REQUEST['CLIENT_SEC'];
-$TalisGUID = $_REQUEST['GUID'];
-
-// Getting an authentication token...
 
 $ch = curl_init();
 
