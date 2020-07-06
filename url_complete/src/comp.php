@@ -55,6 +55,21 @@ function post_url($resourceID, $input, $TalisGUID, $token) {
 	// put some if else logic here please!
 }
 
+/**
+ * Get the user config file. This script will fail disgracefully if it has not been created and nothing will happen.
+ */
+require('../../user.config.php');
+
+echo "Tenancy Shortcode set: " . $shortCode;
+echo "</br>";
+
+echo "Client ID set: " . $clientID;
+echo "</br>";
+
+echo "User GUID to use: " . $TalisGUID;
+echo "</br>";
+
+
 // Setting constants
 // uncomment if you want to set these permanently.. good idea tbh!
 	/*
