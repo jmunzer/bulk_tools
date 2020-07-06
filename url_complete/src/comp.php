@@ -7,7 +7,8 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 echo "<p>Starting</p>";
-//***********FUNCTIONS *******************/
+
+// Functions go here
 
 function modify_url($resourceID, $web_addresses, $oldURL_index, $newURL) {
 	
@@ -54,7 +55,25 @@ function post_url($resourceID, $input, $TalisGUID, $token) {
 	// put some if else logic here please!
 }
 
-//*****************GRAB_INPUT_DATA**********
+// Setting constants
+// uncomment if you want to set these permanently.. good idea tbh!
+	/*
+		$shortCode = "";
+		$clientID = "";
+		$secret = "";
+		$TalisGUID = "";
+	*/
+	$tokenURL = 'https://users.talis.com/oauth/tokens';
+	$content = "grant_type=client_credentials";
+	$date = date('Y-m-d\TH:i:s'); // "2015-12-21T15:44:36"
+
+// Creating a report file...
+
+$myfile = fopen("../../report_files/urlcomplete_output.log", "a") or die("Unable to open urlcomplete_output.log");
+fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
+fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Item added" . "\t" . "List Published" . "\r\n");
+
+// Reading the input data from web form...
 
 $uploaddir = '../uploads/';
 $uploadfile = $uploaddir . basename($_FILES['userfile']['name']);
@@ -67,48 +86,9 @@ if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile)) {
 }
 echo "</br>";
 print_r($uploadfile);
-echo "</br>";
-echo "</br>";
+echo "<br><br>";
 
-/**
- * Get the user config file. This script will fail disgracefully if it has not been created and nothing will happen.
- */
-require('../../user.config.php');
 
-echo "Tenancy Shortcode set: " . $shortCode;
-echo "</br>";
-
-echo "Client ID set: " . $clientID;
-echo "<br>";
-
-echo "User GUID to use: " . $TalisGUID;
-echo "<br>";
-echo "<br>";
-
-//**********CREATE LOG FILE TO WRITE OUTPUT*
-
-$myfile = fopen("../../report_files/urlcomplete_output.log", "a") or die("Unable to open urlcomplete_output.log");
-fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Item added" . "\t" . "List Published" . "\r\n");
-
-//************SET_VARIABLES***********
-//uncomment if you want to set these permanently.. good idea tbh!
-/*
-	$shortCode = "";
-	$clientID = "";
-	$secret = "";
-	$TalisGUID = "";
-*/
-
-$tokenURL = 'https://users.talis.com/oauth/tokens';
-$content = "grant_type=client_credentials";
-
-//*********GET DATE**********************
-
-$date = date('Y-m-d\TH:i:s');
-// $date1 = "2015-12-21T15:44:36";
-
-//************GET_TOKEN***************
 
 $ch = curl_init();
 
