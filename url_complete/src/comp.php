@@ -33,7 +33,7 @@ function modify_url($resourceID, $web_addresses, $oldURL_index, $newURL) {
 	return json_encode($template_obj);
 }
 
-function post_url($resourceID, $input, $TalisGUID, $token) {
+function post_url($shortCode, $resourceID, $input, $TalisGUID, $token) {
 	$patch_url = "https://rl.talis.com/3/" . $shortCode . "/resources/" . $resourceID;
 	$ch2 = curl_init();
 
@@ -69,20 +69,27 @@ echo "</br>";
 echo "User GUID to use: " . $TalisGUID;
 echo "</br>";
 
-
-// Setting constants
-// uncomment if you want to set these permanently.. good idea tbh!
-	/*
-		$shortCode = "";
-		$clientID = "";
-		$secret = "";
-		$TalisGUID = "";
-	*/
 	$tokenURL = 'https://users.talis.com/oauth/tokens';
 	$content = "grant_type=client_credentials";
 	$date = date('Y-m-d\TH:i:s'); // "2015-12-21T15:44:36"
 
-// Creating a report file...
+//*****************GRAB_INPUT_DATA**********
+
+$uploaddir = '../uploads/';
+$uploadfile = $uploaddir . basename($_FILES['userfile']['name']);
+
+echo '<pre>';
+if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile)) {
+    echo "File is valid, and was successfully uploaded.\n";
+} else {
+    echo "File is invalid, and failed to upload - Please try again. -\n";
+}
+echo "</br>";
+print_r($uploadfile);
+echo "</br>";
+echo "</br>";
+
+	// Creating a report file...
 
 $myfile = fopen("../../report_files/urlcomplete_output.log", "a") or die("Unable to open urlcomplete_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
@@ -211,7 +218,7 @@ $web_addresses = $output_json->included[0]->attributes->web_addresses;
 		echo "\t found matching old URL: $oldURL - at web address array index: $oldURL_found";
 		
 		$input = modify_url($resourceID, $web_addresses, $oldURL_found, $newURL);
-		post_url($resourceID, $input, $TalisGUID, $token);
+		post_url($shortCode, $resourceID, $input, $TalisGUID, $token);
 
 	} else {
 		echo "\t no matching URL found in web address array. Moving onto next row";
