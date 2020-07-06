@@ -33,7 +33,7 @@ function modify_url($resourceID, $web_addresses, $oldURL_index, $newURL) {
 	return json_encode($template_obj);
 }
 
-function post_url($resourceID, $input, $TalisGUID, $token, $shortCode) {
+function post_url($shortCode, $resourceID, $input, $TalisGUID, $token) {
 	$patch_url = "https://rl.talis.com/3/" . $shortCode . "/resources/" . $resourceID;
 	$ch2 = curl_init();
 
@@ -55,17 +55,45 @@ function post_url($resourceID, $input, $TalisGUID, $token, $shortCode) {
 	// put some if else logic here please!
 }
 
-// Setting constants
-// uncomment if you want to set these permanently.. good idea tbh!
-	/*
-		$shortCode = "";
-		$clientID = "";
-		$secret = "";
-		$TalisGUID = "";
-	*/
+/**
+ * Get the user config file. This script will fail disgracefully if it has not been created and nothing will happen.
+ */
+require('../../user.config.php');
+
+echo "Tenancy Shortcode set: " . $shortCode;
+echo "</br>";
+
+echo "Client ID set: " . $clientID;
+echo "</br>";
+
+echo "User GUID to use: " . $TalisGUID;
+echo "</br>";
+
 	$tokenURL = 'https://users.talis.com/oauth/tokens';
 	$content = "grant_type=client_credentials";
 	$date = date('Y-m-d\TH:i:s'); // "2015-12-21T15:44:36"
+
+//*****************GRAB_INPUT_DATA**********
+
+$uploaddir = '../uploads/';
+$uploadfile = $uploaddir . basename($_FILES['userfile']['name']);
+
+echo '<pre>';
+if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile)) {
+    echo "File is valid, and was successfully uploaded.\n";
+} else {
+    echo "File is invalid, and failed to upload - Please try again. -\n";
+}
+echo "</br>";
+print_r($uploadfile);
+echo "</br>";
+echo "</br>";
+
+	// Creating a report file...
+
+$myfile = fopen("../../report_files/urlcomplete_output.log", "a") or die("Unable to open urlcomplete_output.log");
+fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
+fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Item added" . "\t" . "List Published" . "\r\n");
 
 // Reading the input data from web form...
 
@@ -81,21 +109,6 @@ if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile)) {
 echo "</br>";
 print_r($uploadfile);
 echo "<br><br>";
-
-// Creating a report file...
-
-$myfile = fopen("../../report_files/urlcomplete_output.log", "a") or die("Unable to open urlcomplete_output.log");
-fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Item added" . "\t" . "List Published" . "\r\n");
-
-// Customer credentials - look into moving these to a separate global file
-
-$shortCode = $_REQUEST['SHORT_CODE'];
-$clientID = $_REQUEST['CLIENT_ID'];
-$secret = $_REQUEST['CLIENT_SEC'];
-$TalisGUID = $_REQUEST['GUID'];
-
-// Getting an authentication token...
 
 $ch = curl_init();
 
@@ -203,7 +216,7 @@ $web_addresses = $output_json->included[0]->attributes->web_addresses;
 		echo "\t found matching old URL: $oldURL - at web address array index: $oldURL_found";
 		
 		$input = modify_url($resourceID, $web_addresses, $oldURL_found, $newURL);
-		post_url($resourceID, $input, $TalisGUID, $token, $shortCode);
+		post_url($shortCode, $resourceID, $input, $TalisGUID, $token);
 
 	} else {
 		echo "\t no matching URL found in web address array. Moving onto next row";

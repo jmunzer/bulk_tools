@@ -5,3 +5,10 @@ Item deleted successfully	Published successfully
 Item deleted successfully	Published successfully	
 
 Stopped | End of File: ../uploads/item_id.txt | Date: 16-04-2020 12:29:57
+Started | Input File: ../uploads/test_items.txt | Date: 06-07-2020 12:57:53
+
+List name	List ID	Item UUID	Item deleted	List Published
+Library Systems List 3	185251D1-23F3-F0CF-00C7-286D4645F07C	Library Systems List 3	b93ab1e7-bf7a-4559-82eb-8a5bc746e648	Item deleted successfully	
+Library Systems List 3	185251D1-23F3-F0CF-00C7-286D4645F07C	Library Systems List 3	db5a33cb-6404-480c-bbcd-ef8f4ca305db	Item deleted successfully	
+
+Stopped | End of File: ../uploads/test_items.txt | Date: 06-07-2020 12:57:54

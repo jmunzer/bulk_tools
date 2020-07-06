@@ -51,6 +51,13 @@ This guide will instruct you how to get these bulk tools working on a personal/w
 
 ## Running the tool
 
+- If this is your first time 
+  - make a copy of the `template.user.config.php` file and call it `user.config/php`
+  - Enter your Shortcode,
+  - Client ID,
+  - Client Secret
+  - and talis_guid user guid.
+  - Check with Talis Support if you don't know what any of these values should be
 - click on: http://localhost/bulk_tools-master/index.html
 - Follow steps on webform.
 - An example upload file is included as list_id.txt and looks like this (one list ID per line):
@@ -113,4 +120,4 @@ If you forget to make the change on the last operation, don't worry, as you can 
 ## Report Files
 
 - Report files are under the root folder of ./report_files and are separated by function.
-- If you extracted the tool to the suggestioned location in the above steps, this will be: c:\xampp\htdocs\bulk_tools-master\report_files\
+- If you extracted the tool to the suggested location in the above steps, this will be: c:\xampp\htdocs\bulk_tools-master\report_files\

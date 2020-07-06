@@ -52,25 +52,18 @@ print_r($uploadfile);
 echo "</br>";
 echo "</br>";
 
-$shortCode = $_REQUEST['SHORT_CODE'];
+/**
+ * Get the user config file. This script will fail disgracefully if it has not been created and nothing will happen.
+ */
+require('../../user.config.php');
 
 echo "Tenancy Shortcode set: " . $shortCode;
 echo "</br>";
 
-$clientID = $_REQUEST['CLIENT_ID'];
-
 echo "Client ID set: " . $clientID;
 echo "</br>";
 
-$secret = $_REQUEST['CLIENT_SEC'];
-
-echo "Client secret set: " . $secret;
-echo "</br>";
-
-$TalisGUID = $_REQUEST['GUID'];
-
 echo "User GUID to use: " . $TalisGUID;
-echo "</br>";
 echo "</br>";
 
 
