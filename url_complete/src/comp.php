@@ -110,8 +110,6 @@ echo "</br>";
 print_r($uploadfile);
 echo "<br><br>";
 
-
-
 $ch = curl_init();
 
 	curl_setopt($ch, CURLOPT_URL, $tokenURL);
