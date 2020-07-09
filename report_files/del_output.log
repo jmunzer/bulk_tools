@@ -12,3 +12,15 @@ Library Systems List 3	185251D1-23F3-F0CF-00C7-286D4645F07C	Library Systems List
 Library Systems List 3	185251D1-23F3-F0CF-00C7-286D4645F07C	Library Systems List 3	db5a33cb-6404-480c-bbcd-ef8f4ca305db	Item deleted successfully	
 
 Stopped | End of File: ../uploads/test_items.txt | Date: 06-07-2020 12:57:54
+Started | Input File: ../uploads/test_items.txt | Date: 09-07-2020 11:07:29
+
+List name	List ID	Item UUID	Item deleted	List Published
+Library Systems List 3	185251D1-23F3-F0CF-00C7-286D4645F07C	Library Systems List 3	79331e9f-997b-4e02-bf10-a8af6a725248	
+
+Stopped | End of File: ../uploads/test_items.txt | Date: 09-07-2020 11:07:29
+Started | Input File: ../uploads/test_items.txt | Date: 09-07-2020 11:08:50
+
+List name	List ID	Item UUID	Item deleted	List Published
+Library Systems List 3	185251D1-23F3-F0CF-00C7-286D4645F07C	Library Systems List 3	79331e9f-997b-4e02-bf10-a8af6a725248	Item deleted successfully	
+
+Stopped | End of File: ../uploads/test_items.txt | Date: 09-07-2020 11:08:51

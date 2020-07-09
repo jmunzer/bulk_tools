@@ -63,8 +63,6 @@ echo "Writing to live tenancy?: $shouldWritetoLive";
 echo "</br>";
 echo "</br>";
 
-/*
-
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
 $myfile = fopen("../../report_files/del_output.log", "a") or die("Unable to open del_output.log");
@@ -154,6 +152,8 @@ while (!feof($file_handle) )  {
 		fwrite($myfile, $assoc_listid . "\t");
 		fwrite($myfile, $title . "\t");
 		fwrite($myfile, $barc . "\t");
+
+	if ($shouldWritetoLive == "true") {
 
 	//**************DELETE_ITEM***************
 	$patch_url = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $barc;
@@ -263,6 +263,7 @@ while (!feof($file_handle) )  {
 			fwrite($myfile, "Published successfully" . "\t");
 		}
 	}
+	}
 
 	fwrite($myfile, "\n");
 	echo "End of Record.";
@@ -273,6 +274,5 @@ fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d
 
 fclose($file_handle);
 fclose($myfile);
-*/
 
 ?>
