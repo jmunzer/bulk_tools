@@ -32,7 +32,8 @@ echo "</br>";
 
 /**
  * Get the user config file. This script will fail disgracefully if it has not been created and nothing will happen.
- */
+**/
+
 require('../../user.config.php');
 
 echo "Tenancy Shortcode set: " . $shortCode;
@@ -48,22 +49,27 @@ $shouldPublishLists = filter_var($_REQUEST['PUBLISH_LISTS'], FILTER_VALIDATE_BOO
 
 echo "Should publish lists?: " . var_export($shouldPublishLists, true);
 echo "</br>";
+
+if(isset($_REQUEST['DRY_RUN']) &&
+	$_REQUEST['DRY_RUN'] == "writeToLive") {
+		$shouldWritetoLive = "true";
+	}
+	else
+	{
+		$shouldWritetoLive = "false";
+	}
+
+echo "Writing to live tenancy?: $shouldWritetoLive";
 echo "</br>";
+echo "</br>";
+
+/*
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
 $myfile = fopen("../../report_files/del_output.log", "a") or die("Unable to open del_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
 fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Item deleted" . "\t" . "List Published" . "\r\n");
-
-//************SET_VARIABLES***********
-//uncomment if you want to set these permanently.. good idea tbh!
-/*
-	$shortCode = "";
-	$clientID = "";
-	$secret = "";
-	$TalisGUID = "";
-*/
 
 $tokenURL = 'https://users.talis.com/oauth/tokens';
 $content = "grant_type=client_credentials";
@@ -267,5 +273,6 @@ fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d
 
 fclose($file_handle);
 fclose($myfile);
+*/
 
 ?>
