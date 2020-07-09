@@ -6,7 +6,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-echo "<p>Starting</p>";
+echo "<p>Starting...</p>";
 
 // Functions go here
 
@@ -52,7 +52,14 @@ function post_url($shortCode, $resourceID, $input, $TalisGUID, $token) {
 	$output2 = curl_exec($ch2);
 	$info2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
 	curl_close($ch2);
-	// put some if else logic here please!
+	
+	if ($info2 !== 200){
+		echo "<p>ERROR: There was an error updating the URL:</p><pre>" . var_export($output2, true) . "</pre>";
+		fwrite($myfile, "ERROR: Resource URL Not Updated \t");
+	} else {
+		echo "Resource URL Updated Successfully</br>";
+		fwrite($myfile, "Resource URL Updated Successfully" . "\t");
+	}
 }
 
 /**
@@ -103,10 +110,10 @@ echo "</br>";
 echo "</br>";
 
 	// Creating a report file...
-
-$myfile = fopen("../../report_files/urlcomplete_output.log", "a") or die("Unable to open urlcomplete_output.log");
+$logfile = "../../report_files/urlcomplete_output.log";
+$myfile = fopen($logfile, "a") or die("Unable to open urlcomplete_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Item added" . "\t" . "List Published" . "\r\n");
+fwrite($myfile, "Item ID,Resource ID, \r\n");
 
 $ch = curl_init();
 
@@ -121,8 +128,6 @@ $ch = curl_init();
 		
 	if ($info !== 200){
 		echo "<p>ERROR: There was an error getting a token:</p><pre>" . var_export($return, true) . "</pre>";
-	} else {
-		echo "Got Token</br>";
 	}
 
 curl_close($ch);
@@ -152,13 +157,10 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		echo $itemID . "\t";
 		echo $oldURL . "\t";
 		echo $newURL . "\t";
-		echo "</br>";
 
 //************GET_RESOURCE_ID***************
 
 $item_lookup = "https://rl.talis.com/3/" . $shortCode . "/draft_items/" . $itemID . "?include=resource";
-// echo $item_lookup;
-
 
 $ch1 = curl_init();
 		
@@ -173,16 +175,11 @@ $ch1 = curl_init();
 		));
 		$output = curl_exec($ch1);
 		$info1 = curl_getinfo($ch1, CURLINFO_HTTP_CODE);
-		echo "authenticated http request: " . $info1;
-		echo "<br>";
-		echo "<br>";
 		$output_json = json_decode($output);
 	curl_close($ch1);
 	if ($info1 !== 200){
 		echo "<p>ERROR: There was an error getting the draft item:</p><pre>" . var_export($output, true) . "</pre>";
 		continue;
-	} else {
-		echo "    Got draft for item </br>";
 	}
 
 $self = $output_json->data->links->self;
@@ -192,35 +189,27 @@ $resourceID = $output_json->included[0]->id;
 
 $online_resource =  $output_json->included[0]->attributes->online_resource->link;
 
-	echo "\t Item URL: " . $self . "<br>";
 	fwrite($myfile, $self ."\t");
-	echo "\t Resource ID: " . $resourceID . "<br><br>";
 	fwrite($myfile, $resourceID ."\t");
-	echo "\t Online Resouce: " . $online_resource . "<br>";
-	fwrite($myfile, $online_resource ."\t");
-
-	if ($online_resource !== $oldURL) {
-		echo "\t no online resource match found for $online_resource <br><br>";
-	}
-	else {
-		echo "\t we found a online resource match of $online_resource <br><br>";
-	}
 	
 $web_addresses = $output_json->included[0]->attributes->web_addresses;
 
 	$oldURL_found = array_search($oldURL, $web_addresses);
 	
 	if (isset($oldURL_found)) {
-		echo "\t found matching old URL: $oldURL - at web address array index: $oldURL_found";
-		
+		echo "Found Matching URL \t";
+		fwrite($myfile, "Found Matching URL at index: [$oldURL_found]");
 		$input = modify_url($resourceID, $web_addresses, $oldURL_found, $newURL);
 
 		if ($shouldWritetoLive == "true") {
 			post_url($shortCode, $resourceID, $input, $TalisGUID, $token);
+		} else {
+			echo "Resource URL Not Updated - Dry Run";
+			fwrite($myfile, "Resource URL Not Updated - Dry Run");
 		}
 
 	} else {
-		echo "\t no matching URL found in web address array. Moving onto next row";
+		echo "\t ERROR: no matching URL found in web address array. Moving onto next row...";
 		continue;
 	}
 
@@ -231,5 +220,9 @@ fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d
 
 fclose($file_handle);
 fclose($myfile);
-	
+
+echo $myfile;
+print("</br><a href=$logfile>Click Here to download your output.log file.</a>");
+
 ?>
+
