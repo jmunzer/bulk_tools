@@ -69,6 +69,19 @@ echo "</br>";
 echo "User GUID to use: " . $TalisGUID;
 echo "</br>";
 
+if(isset($_REQUEST['DRY_RUN']) &&
+	$_REQUEST['DRY_RUN'] == "writeToLive") {
+		$shouldWritetoLive = "true";
+	}
+	else
+	{
+		$shouldWritetoLive = "false";
+	}
+
+echo "Writing to live tenancy?: $shouldWritetoLive";
+echo "</br>";
+echo "</br>";
+
 	$tokenURL = 'https://users.talis.com/oauth/tokens';
 	$content = "grant_type=client_credentials";
 	$date = date('Y-m-d\TH:i:s'); // "2015-12-21T15:44:36"
@@ -201,7 +214,10 @@ $web_addresses = $output_json->included[0]->attributes->web_addresses;
 		echo "\t found matching old URL: $oldURL - at web address array index: $oldURL_found";
 		
 		$input = modify_url($resourceID, $web_addresses, $oldURL_found, $newURL);
-		post_url($shortCode, $resourceID, $input, $TalisGUID, $token);
+
+		if ($shouldWritetoLive == "true") {
+			post_url($shortCode, $resourceID, $input, $TalisGUID, $token);
+		}
 
 	} else {
 		echo "\t no matching URL found in web address array. Moving onto next row";
