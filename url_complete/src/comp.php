@@ -158,19 +158,6 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		echo $oldURL . "\t";
 		echo $newURL . "\t";
 
-		// Build function-select logic here
-			
-		if ($oldURL == NULL) {
-				//point at 'add url' function
-			}
-			elseif ($newURL == NULL) {
-				// point at 'delete url' function
-			}
-			else {
-				// point at 'url swap' function
-			}
-			
-		//
 //************GET_RESOURCE_ID***************
 
 $item_lookup = "https://rl.talis.com/3/" . $shortCode . "/draft_items/" . $itemID . "?include=resource";
