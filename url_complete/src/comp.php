@@ -158,12 +158,12 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		echo $oldURL . "\t";
 		echo $newURL . "\t";
 
-//************GET_RESOURCE_ID***************
+		//************GET_RESOURCE_ID***************
 
-$item_lookup = "https://rl.talis.com/3/" . $shortCode . "/draft_items/" . $itemID . "?include=resource";
+		$item_lookup = "https://rl.talis.com/3/" . $shortCode . "/draft_items/" . $itemID . "?include=resource";
 
-$ch1 = curl_init();
-		
+		$ch1 = curl_init();
+			
 		curl_setopt($ch1, CURLOPT_URL, $item_lookup);
 		curl_setopt($ch1, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch1, CURLOPT_HTTPHEADER, array(
@@ -176,42 +176,62 @@ $ch1 = curl_init();
 		$output = curl_exec($ch1);
 		$info1 = curl_getinfo($ch1, CURLINFO_HTTP_CODE);
 		$output_json = json_decode($output);
-	curl_close($ch1);
-	if ($info1 !== 200){
-		echo "<p>ERROR: There was an error getting the draft item:</p><pre>" . var_export($output, true) . "</pre>";
-		continue;
-	}
-
-$self = $output_json->data->links->self;
-$resourceID = $output_json->included[0]->id;
-
-//************GET_URL_INFO***************
-
-$online_resource =  $output_json->included[0]->attributes->online_resource->link;
-
-	fwrite($myfile, $self ."\t");
-	fwrite($myfile, $resourceID ."\t");
-	
-$web_addresses = $output_json->included[0]->attributes->web_addresses;
-
-	$oldURL_found = array_search($oldURL, $web_addresses);
-	
-	if (isset($oldURL_found)) {
-		echo "Found Matching URL \t";
-		fwrite($myfile, "Found Matching URL at index: [$oldURL_found]");
-		$input = modify_url($resourceID, $web_addresses, $oldURL_found, $newURL);
-
-		if ($shouldWritetoLive == "true") {
-			post_url($shortCode, $resourceID, $input, $TalisGUID, $token);
+		curl_close($ch1);
+		if ($info1 !== 200){
+			echo "<p>ERROR: There was an error getting the draft item:</p><pre>" . var_export($output, true) . "</pre>";
+			continue;
+		}
+		
+		# if we have everything we need to proceed
+		# we want the item link, the resource id and the web_address,
+		# Online_resource is optional and handled separately 
+		if (!empty($output_json->included[0]->id)){
+			$self = $output_json->data->links->self;
+			fwrite($myfile, $self ."\t");
 		} else {
-			echo "Resource URL Not Updated - Dry Run";
-			fwrite($myfile, "Resource URL Not Updated - Dry Run");
+			echo "There was no link to self for this item. This should never happen!";
+			continue;
 		}
 
-	} else {
-		echo "\t ERROR: no matching URL found in web address array. Moving onto next row...";
-		continue;
-	}
+		if (!empty($output_json->data->links->self)){
+			$resourceID = $output_json->included[0]->id;
+			fwrite($myfile, $resourceID ."\t");
+		} else {
+			echo "There was no Resource ID on this item. We cannot proceed to update this item.";
+			continue;
+		}
+
+		if (!empty($output_json->included[0]->attributes->web_addresses)) {
+			$web_addresses = $output_json->included[0]->attributes->web_addresses;
+		} else {
+			echo "There are no web addresses on this item. But that is probably Okay.";
+			# note that in this situation this is OK if we want to go on and add one later.
+		}
+
+		if (!empty($output_json->included[0]->attributes->online_resource->link)){
+			$online_resource = $output_json->included[0]->attributes->online_resource->link;
+		} else {
+			echo "There was no online_resource selected.";
+		}
+
+		$oldURL_found = array_search($oldURL, $web_addresses);
+		
+		if (isset($oldURL_found)) {
+			echo "Found Matching URL \t";
+			fwrite($myfile, "Found Matching URL at index: [$oldURL_found]");
+			$input = modify_url($resourceID, $web_addresses, $oldURL_found, $newURL);
+
+			if ($shouldWritetoLive == "true") {
+				post_url($shortCode, $resourceID, $input, $TalisGUID, $token);
+			} else {
+				echo "Resource URL Not Updated - Dry Run";
+				fwrite($myfile, "Resource URL Not Updated - Dry Run");
+			}
+
+		} else {
+			echo "\t ERROR: no matching URL found in web address array. Moving onto next row...";
+			continue;
+		}
 
 	}
 
