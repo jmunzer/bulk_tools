@@ -52,15 +52,18 @@ This guide will instruct you how to get these bulk tools working on a personal/w
 ## Running the tool
 
 - If this is your first time 
-  - make a copy of the `template.user.config.php` file and call it `user.config/php`
+  - make a copy of the `template.user.config.php` file and call it `user.config.php`
   - Enter your Shortcode,
   - Client ID,
   - Client Secret
-  - and talis_guid user guid.
+  - and talis_guid user guid (you can find this from the final column of the 'All User Profiles' report).
   - Check with Talis Support if you don't know what any of these values should be
 - click on: http://localhost/bulk_tools-master/index.html
 - Follow steps on webform.
-- An example upload file is included as list_id.txt and looks like this (one list ID per line):
+
+## Bulk adding items to lists
+
+An example upload file is included as list_id.txt and looks like this (one list ID per line):
 
         5AF6B766-325D-A542-5837-7AD6DC4F703E
         5D6EA0C2-45F4-268B-878B-0BEBF1C234E9
