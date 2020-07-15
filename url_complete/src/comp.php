@@ -169,7 +169,7 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 
 		if (empty($oldURL)) {
 			//point at 'add url' function
-			add_url($itemID, $newURL);
+			add_url($itemID, $newURL, $shortCode, $TalisGUID, $token);
 
 		} elseif (empty($newURL)) {
 			// point at 'delete url' function
@@ -181,12 +181,16 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 	}
 }
 
-function add_url($itemID, $newURL) {
-	// get the item
-	$item = get_item($shortCode, $itemID, $TalisGUID, $token);
-	$resource = get_resource($item);
+function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
+	echo "\t add_url activated </br></br>";
+
+	// get the resource
+	$resource_data = get_item($shortCode, $itemID, $TalisGUID, $token);
 	// get the existing web addresses
-	$web_addresses = get_web_addresses($resource);
+
+
+/*
+	$web_addresses = get_web_addresses($item);
 	// add a new web addresses to the existing ones
 	$web_addresses = array_push($web_addresses, $newURL);
 	// add an online resource
@@ -196,9 +200,11 @@ function add_url($itemID, $newURL) {
 	} else {
 		// log something
 	}
+	*/
 }
 
 function delete_url($itemID, $oldURL) {
+	echo "delete_url activated </br></br>";
 	// get the item
 	// get the existing web addresses
 	// check that the web address to remove is present
@@ -208,6 +214,7 @@ function delete_url($itemID, $oldURL) {
 }
 
 function replace_url($itemID, $oldURL, $newURL){
+	echo "replace_url activated </br></br>";
 	// get the item
 	// get the existing web addresses
 	// check that the web address to replace is present
@@ -216,7 +223,7 @@ function replace_url($itemID, $oldURL, $newURL){
 	// update the online resource
 	// if not a dry run - update
 }
-
+/*
 function echo_message_to_screen($log_level, $message){
 	// TODO Change this to use numerical comparison so can output all log messages of level and above
 	//DEBUG
@@ -236,10 +243,10 @@ function echo_message_to_screen($log_level, $message){
 		echo "ERROR: $message";
 	}
 }
-
+*/
 //************GET_RESOURCE_ID***************
 
-function get_item() {
+function get_item($shortCode, $itemID, $TalisGUID, $token) {
 $item_lookup = "https://rl.talis.com/3/" . $shortCode . "/draft_items/" . $itemID . "?include=resource";
 
 $ch1 = curl_init();
@@ -260,24 +267,28 @@ $ch1 = curl_init();
 	
 	// TODO - remove this? 
 	// $self = $output_json->data->links->self;
-	$resourceID = $output_json->included[0]->id;
+	$resource = $output_json->included[0]->id;
+	$online_resource = $output_json->included[0]->attributes->online_resource->link;
+	$web_addresses = $output_json->included[0]->attributes->web_addresses;
+
+	echo "resource ID: $resource" . "</br>";
+	echo "view online button: $online_resource" . "</br>";
+	echo "web address array: "; 
+	print_r($web_addresses); 
+	echo "</br>";
 	
 	if ($info1 !== 200){
-		echo "<p>ERROR: There was an error getting the draft item:</p><pre>" . var_export($output, true) . "</pre>";
-		fwrite($myfile, "ERROR: There was an error getting the draft item for " . $itemID . var_export($output, true) . "\r\n");
-		continue;
+		echo "<p>ERROR: There was an error getting the resource ID:</p><pre>" . var_export($output, true) . "</pre>";
+		// continue removed... need to figure out where to put it..
 	} else {
-		return $resourceID;
+		return $output_json;
 	}
 
 }
-
+/*
 //************GET_URL_INFO***************
 
-	fwrite($myfile, $self ."\t");
-	fwrite($myfile, $resourceID ."\t");
-	
-$web_addresses = $output_json->included[0]->attributes->web_addresses;
+function get_web_addresses($oldURL, $item) {
 
 	// TODO move this into either of the replace and delete functions
 	$oldURL_found = array_search($oldURL, $web_addresses);
@@ -301,7 +312,7 @@ $web_addresses = $output_json->included[0]->attributes->web_addresses;
 	}
 
 
-
+*/
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 
 fclose($file_handle);
