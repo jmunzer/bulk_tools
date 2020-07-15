@@ -183,7 +183,7 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 
 function add_url($itemID, $newURL) {
 	// get the item
-	$item = get_item();
+	$item = get_item($shortCode, $itemID, $TalisGUID, $token);
 	$resource = get_resource($item);
 	// get the existing web addresses
 	$web_addresses = get_web_addresses($resource);
@@ -239,6 +239,7 @@ function echo_message_to_screen($log_level, $message){
 
 //************GET_RESOURCE_ID***************
 
+function get_item() {
 $item_lookup = "https://rl.talis.com/3/" . $shortCode . "/draft_items/" . $itemID . "?include=resource";
 
 $ch1 = curl_init();
@@ -256,14 +257,20 @@ $ch1 = curl_init();
 		$info1 = curl_getinfo($ch1, CURLINFO_HTTP_CODE);
 		$output_json = json_decode($output);
 	curl_close($ch1);
+	
+	// TODO - remove this? 
+	// $self = $output_json->data->links->self;
+	$resourceID = $output_json->included[0]->id;
+	
 	if ($info1 !== 200){
 		echo "<p>ERROR: There was an error getting the draft item:</p><pre>" . var_export($output, true) . "</pre>";
 		fwrite($myfile, "ERROR: There was an error getting the draft item for " . $itemID . var_export($output, true) . "\r\n");
 		continue;
+	} else {
+		return $resourceID;
 	}
 
-$self = $output_json->data->links->self;
-$resourceID = $output_json->included[0]->id;
+}
 
 //************GET_URL_INFO***************
 
