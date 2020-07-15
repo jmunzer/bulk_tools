@@ -33,7 +33,7 @@ function modify_url($resourceID, $web_addresses, $oldURL_index, $newURL) {
 	return json_encode($template_obj);
 }
 
-function post_url($shortCode, $resourceID, $input, $TalisGUID, $token) {
+function post_url($shortCode, $resourceID, $input, $TalisGUID, $token, $myfile) {
 	$patch_url = "https://rl.talis.com/3/" . $shortCode . "/resources/" . $resourceID;
 	$ch2 = curl_init();
 
@@ -54,11 +54,11 @@ function post_url($shortCode, $resourceID, $input, $TalisGUID, $token) {
 	curl_close($ch2);
 	
 	if ($info2 !== 200){
-		echo "<p>ERROR: There was an error updating the URL:</p><pre>" . var_export($output2, true) . "</pre>";
-		fwrite($myfile, "ERROR: Resource URL Not Updated \t");
+		echo "<p> - ERROR: There was an error updating the URL:</p><pre>" . var_export($output2, true) . "</pre></br>";
+		fwrite($myfile, " - ERROR: Resource URL Not Updated");
 	} else {
-		echo "Resource URL Updated Successfully</br>";
-		fwrite($myfile, "Resource URL Updated Successfully" . "\t");
+		echo " - Resource URL Updated Successfully</br>";
+		fwrite($myfile, " - Resource URL Updated Successfully");
 	}
 }
 
@@ -113,7 +113,6 @@ echo "</br>";
 $logfile = "../../report_files/urlcomplete_output.log";
 $myfile = fopen($logfile, "a") or die("Unable to open urlcomplete_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-fwrite($myfile, "Item ID,Resource ID, \r\n");
 
 $ch = curl_init();
 
@@ -179,6 +178,7 @@ $ch1 = curl_init();
 	curl_close($ch1);
 	if ($info1 !== 200){
 		echo "<p>ERROR: There was an error getting the draft item:</p><pre>" . var_export($output, true) . "</pre>";
+		fwrite($myfile, "ERROR: There was an error getting the draft item for " . $itemID . var_export($output, true) . "\r\n");
 		continue;
 	}
 
@@ -186,8 +186,6 @@ $self = $output_json->data->links->self;
 $resourceID = $output_json->included[0]->id;
 
 //************GET_URL_INFO***************
-
-$online_resource =  $output_json->included[0]->attributes->online_resource->link;
 
 	fwrite($myfile, $self ."\t");
 	fwrite($myfile, $resourceID ."\t");
@@ -202,14 +200,15 @@ $web_addresses = $output_json->included[0]->attributes->web_addresses;
 		$input = modify_url($resourceID, $web_addresses, $oldURL_found, $newURL);
 
 		if ($shouldWritetoLive == "true") {
-			post_url($shortCode, $resourceID, $input, $TalisGUID, $token);
+			post_url($shortCode, $resourceID, $input, $TalisGUID, $token, $myfile);
 		} else {
-			echo "Resource URL Not Updated - Dry Run";
-			fwrite($myfile, "Resource URL Not Updated - Dry Run");
+			echo "Resource URL Not Updated - Dry Run </br>";
+			fwrite($myfile, " - Resource URL Not Updated - Dry Run \r\n");
 		}
 
 	} else {
-		echo "\t ERROR: no matching URL found in web address array. Moving onto next row...";
+		echo "\t ERROR: no matching URL found in web address array. Moving onto next row... </br>";
+		fwrite($myfile, "ERROR: no matching URL found in web address array. Moving onto next row... \r\n"); 
 		continue;
 	}
 
@@ -221,7 +220,6 @@ fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d
 fclose($file_handle);
 fclose($myfile);
 
-echo $myfile;
 print("</br><a href=$logfile>Click Here to download your output.log file.</a>");
 
 ?>
