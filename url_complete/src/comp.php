@@ -10,9 +10,7 @@ echo "<p>Starting...</p>";
 
 // Functions go here
 
-function modify_url($resourceID, $web_addresses, $oldURL_index, $newURL) {
-	
-	$web_addresses[$oldURL_index] = $newURL;  // update the found address
+function modify_url($resourceID, $web_addresses, $newURL) {
 
 	$template = '{
 				"data": {
@@ -75,6 +73,8 @@ echo "</br>";
 
 echo "User GUID to use: " . $TalisGUID;
 echo "</br>";
+
+$LOG_LEVEL = 'DEBUG';
 
 if(isset($_REQUEST['DRY_RUN']) &&
 	$_REQUEST['DRY_RUN'] == "writeToLive") {
@@ -149,27 +149,93 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		$num = count($line);
 		$row++;
 
-		$itemID = $line[0];
-		$oldURL = $line[1];
-		$newURL = $line[2];
+		$itemID = trim($line[0]);
+		$oldURL = trim($line[1]);
+		$newURL = trim($line[2]);
 
 		echo $itemID . "\t";
 		echo $oldURL . "\t";
 		echo $newURL . "\t";
 
+		// TODO check if the values are URLs.
+
 		// Build function-select logic here
 
-		if ($oldURL == NULL) {
-			//point at 'add url' function
-			}
-			elseif ($newURL == NULL) {
-				// point at 'delete url' function
-				}
-				else {
-					// point at 'url swap' function
-				}
+		if(empty($oldURL) && empty($newURL)){
+			// this is a problem
+			// TODO - add error message logging
+			continue;
+		}
 
-	//
+		if (empty($oldURL)) {
+			//point at 'add url' function
+			add_url($itemID, $newURL);
+
+		} elseif (empty($newURL)) {
+			// point at 'delete url' function
+			delete_url($itemID, $oldURL);
+		} else {
+			// point at 'url swap' function
+			replace_url($itemID, $oldURL, $newURL);
+		}
+	}
+}
+
+function add_url($itemID, $newURL) {
+	// get the item
+	$item = get_item();
+	$resource = get_resource($item);
+	// get the existing web addresses
+	$web_addresses = get_web_addresses($resource);
+	// add a new web addresses to the existing ones
+	$web_addresses = array_push($web_addresses, $newURL);
+	// add an online resource
+	// if not a dry run - update
+	if($shouldWritetoLive){
+		modify_url($resource['id'], $web_addresses, $newURL);
+	} else {
+		// log something
+	}
+}
+
+function delete_url($itemID, $oldURL) {
+	// get the item
+	// get the existing web addresses
+	// check that the web address to remove is present
+	// remove it
+	// remove it from the online resource if set
+	// if not a dry run - update
+}
+
+function replace_url($itemID, $oldURL, $newURL){
+	// get the item
+	// get the existing web addresses
+	// check that the web address to replace is present
+	// remove the old and the new
+	//$web_addresses[$oldURL_index] = $newURL;  // update the found address
+	// update the online resource
+	// if not a dry run - update
+}
+
+function echo_message_to_screen($log_level, $message){
+	// TODO Change this to use numerical comparison so can output all log messages of level and above
+	//DEBUG
+	if ($LOG_LEVEL == 'DEBUG' && $log_level == 'DEBUG') {
+		echo "DEBUG: $message";
+	}
+	//INFO
+	if ($LOG_LEVEL == 'INFO' && $log_level == 'INFO') {
+		echo "INFO: $message";
+	}
+	//WARNING
+	if ($LOG_LEVEL == 'WARNING' && $log_level == 'WARNING') {
+		echo "WARNING: $message";
+	}
+	//ERROR
+	if ($LOG_LEVEL == 'ERROR' && $log_level == 'ERROR') {
+		echo "ERROR: $message";
+	}
+}
 
 //************GET_RESOURCE_ID***************
 
@@ -206,6 +272,7 @@ $resourceID = $output_json->included[0]->id;
 	
 $web_addresses = $output_json->included[0]->attributes->web_addresses;
 
+	// TODO move this into either of the replace and delete functions
 	$oldURL_found = array_search($oldURL, $web_addresses);
 	
 	if (isset($oldURL_found)) {
@@ -226,9 +293,8 @@ $web_addresses = $output_json->included[0]->attributes->web_addresses;
 		continue;
 	}
 
-	}
 
-}
+
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 
 fclose($file_handle);
