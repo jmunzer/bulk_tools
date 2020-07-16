@@ -36,11 +36,18 @@ echo "</br>";
 echo "</br>";
 
 // Constants
-	$tokenURL = 'https://users.talis.com/oauth/tokens';
-	$content = "grant_type=client_credentials";
-	$date = date('Y-m-d\TH:i:s'); // "2015-12-21T15:44:36"
-	$LOG_LEVEL = 'DEBUG';
-	$COUNTERS=[];
+$tokenURL = 'https://users.talis.com/oauth/tokens';
+$content = "grant_type=client_credentials";
+$date = date('Y-m-d\TH:i:s'); // "2015-12-21T15:44:36"
+$COUNTERS=[];
+
+// Error reporting constants
+const DEBUG = 4;
+const INFO = 3;
+const WARNING = 2;
+const ERROR = 1;
+
+$LOG_LEVEL = DEBUG;
 
 // Pull in user file
 $uploaddir = '../uploads/';
@@ -48,9 +55,9 @@ $uploadfile = $uploaddir . basename($_FILES['userfile']['name']);
 
 echo '<pre>';
 if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile)) {
-    echo "File is valid, and was successfully uploaded.\n";
+	echo_message_to_screen(INFO, "File is valid, and was successfully uploaded.");
 } else {
-    echo "File is invalid, and failed to upload - Please try again. -\n";
+    echo_message_to_screen(ERROR, "File is invalid, and failed to upload - Please try again. -");
 }
 echo "</br>";
 print_r($uploadfile);
@@ -101,16 +108,14 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		$row++;
 
 		$itemID = trim($line[0]);
-		$oldURL = trim($line[1]);
-		$newURL = trim($line[2]);
+		$oldURL = filter_var(trim($line[1]), FILTER_VALIDATE_URL);
+		$newURL = filter_var(trim($line[2]), FILTER_VALIDATE_URL);
 
 		/*
 		echo $itemID . "\t";
 		echo $oldURL . "\t";
 		echo $newURL . "\t";
 		*/
-
-		// TODO check if the values are URLs.
 
 		// Function-select logic
 		if(empty($oldURL) && empty($newURL)){
@@ -135,22 +140,19 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 }
 
 function echo_message_to_screen($log_level, $message){
-	// TODO Change this to use numerical comparison so can output all log messages of level and above
-	//DEBUG
-	if ($LOG_LEVEL == 'DEBUG' && $log_level == 'DEBUG') {
-		echo "DEBUG: $message";
-	}
-	//INFO
-	if ($LOG_LEVEL == 'INFO' && $log_level == 'INFO') {
-		echo "INFO: $message";
-	}
-	//WARNING
-	if ($LOG_LEVEL == 'WARNING' && $log_level == 'WARNING') {
-		echo "WARNING: $message";
-	}
-	//ERROR
-	if ($LOG_LEVEL == 'ERROR' && $log_level == 'ERROR') {
-		echo "ERROR: $message";
+	global $LOG_LEVEL;
+
+	// map log levels to friendly names for humans
+	$log_level_map = [
+		4 => "DEBUG",
+		3 => "INFO",
+		2 => "WARN",
+		1 => "ERROR"
+	];
+
+	// echo the log message if the log level says we should.
+	if ($LOG_LEVEL >= $log_level) {
+		echo "<p><strong>{$log_level_map[$log_level]}</strong>: $message</p>";
 	}
 }
 
