@@ -353,7 +353,7 @@ function check_web_addresses($oldURL, $newURL, $web_address_array, $mode) {
 
 function check_online_resource($oldURL, $online_resource, $body) {
 	$body_decoded = json_decode($body, true);
-	unset($body_decoded['data']['attributes']['online_resource']);
+	$body_decoded['data']['attributes']['online_resource'] = null;
 	return json_encode($body_decoded);	
 }
 
