@@ -24,7 +24,7 @@ function increment_counter($counter_name) {
 function counter_summary() {
 	global $COUNTERS;
     foreach ($COUNTERS as $k => $v) {
-		echo "$k $v";
+		echo "</br>$k $v";
     }
 }
 
@@ -205,7 +205,7 @@ function get_resource_id($resource_data) {
 
 	if (! empty( $resource_data->included[0]->id )) {
 		$resource = $resource_data->included[0]->id;
-		echo "resource ID: $resource" . "</br>";
+	//	echo "resource ID: $resource" . "</br>";
 		return $resource;	
 	} 
 	return false;
@@ -214,10 +214,9 @@ function get_resource_id($resource_data) {
 function get_webaddress_array($resource_data) {
 	echo "web address array: ";
 	if (! empty( $resource_data->included[0]->attributes->web_addresses )) {
-		$web_addresses = $resource_data->included[0]->attributes->web_addresses;
-		
-		print_r($web_addresses);
-		echo "</br>";
+		$web_addresses = $resource_data->included[0]->attributes->web_addresses;		
+	//	print_r($web_addresses);
+	//	echo "</br>";
 		return $web_addresses;
 	} 
 	return false;
@@ -227,7 +226,7 @@ function get_online_resource($resource_data) {
 	echo "view online button: ";
 	if (! empty( $resource_data->included[0]->attributes->online_resource->link )) {
 		$online_resource = $resource_data->included[0]->attributes->online_resource->link;	
-	echo $online_resource . "</br>";
+//	echo $online_resource . "</br>";
 	return $online_resource;
 	} 
 	return false;
@@ -236,7 +235,7 @@ function get_online_resource($resource_data) {
 function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 	global $myfile;
 	global $shouldWritetoLive;
-	echo "\t add_url activated </br></br>";
+	echo "\t add_url</br>";
 
 	// get the resource
 	$resource_data = get_item($shortCode, $itemID, $TalisGUID, $token);
@@ -252,7 +251,6 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 		if ($shouldWritetoLive == "true") {
 			post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
 		} else {
-			echo "Resource URL Not Updated - Dry Run";
 			fwrite($myfile, "Resource URL Not Updated - Dry Run");
 		}
 		increment_counter('URLs added to existing items: ');
@@ -262,7 +260,7 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token) {
 	global $myfile;
 	global $shouldWritetoLive;
-	echo "delete_url activated </br></br>";
+	echo "delete</br>";
 
 	$resource_data = get_item($shortCode, $itemID, $TalisGUID, $token);
 	if($resource_data) {
@@ -282,7 +280,6 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token) {
 		if ($shouldWritetoLive == "true") {
 			post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
 		} else {
-			echo "Resource URL Not Updated - Dry Run";
 			fwrite($myfile, "Resource URL Not Updated - Dry Run");
 		}
 		increment_counter('URLs deleted from existing items: ');
@@ -296,7 +293,7 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token) {
 }
 
 function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token){
-	echo "replace_url activated </br></br>";
+	echo "replace</br>";
 	// get the item
 	// get the existing web addresses
 	// check that the web address to replace is present
@@ -371,15 +368,13 @@ function check_web_addresses($oldURL, $newURL, $web_address_array, $mode) {
 	$oldURL_found = array_search($oldURL, $web_address_array);
 	
 	if (isset($oldURL_found)) {
-		echo "Found Matching URL \t";
-		print_r($web_address_array);
+	//	echo "Found Matching URL \t";
 		if($mode == "delete") {
 			unset($web_address_array[$oldURL_found]);
 		} 
 		if($mode == "replace") {
 			$web_address_array[$oldURL_found] = $newURL;
 		}
-		print_r($web_address_array);
 		fwrite($myfile, "Found Matching URL at index: [$oldURL_found]");
 	} else {
 		echo "\t ERROR: no matching URL found in web address array. Moving onto next row...";
@@ -389,24 +384,8 @@ function check_web_addresses($oldURL, $newURL, $web_address_array, $mode) {
 
 function check_online_resource($oldURL, $online_resource, $body) {
 	$body_decoded = json_decode($body, true);
-	echo "you are here";
-	var_export($online_resource);
-	print_r($body_decoded);
 	unset($body_decoded['data']['attributes']['online_resource']);
-	/* inspect the online resource as it is now.
-	if (!empty($online_resource)) {
-		if ($oldURL == $online_resource){
-			// see if there is a match with the URL being changed
-			// make a change 
-			// and update the body
-			unset($body_decoded['data']['attributes']['online_resource']);
-		}
-	}
-	*/
-	print_r($body_decoded);
-	
-	return json_encode($body_decoded);
-	
+	return json_encode($body_decoded);	
 }
 
 counter_summary();
