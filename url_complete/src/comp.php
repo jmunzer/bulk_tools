@@ -192,7 +192,7 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		if (empty($oldURL)) {
 			//point at 'add url' function
 			add_url($itemID, $newURL, $shortCode, $TalisGUID, $token);
-			counter_add();
+		//	counter_add();
 		} elseif (empty($newURL)) {
 			// point at 'delete url' function
 			delete_url($itemID, $oldURL);
@@ -214,20 +214,22 @@ function get_resource_id($resource_data) {
 }
 
 function get_webaddress_array($resource_data) {
-
+	echo "web address array: ";
 	if (! empty( $resource_data->included[0]->attributes->web_addresses )) {
 		$web_addresses = $resource_data->included[0]->attributes->web_addresses;
-		echo "web address array: ";
-		print_r($web_addresses); 
+		
+		print_r($web_addresses);
+		echo "</br>";
 		return $web_addresses;
 	} 
 	return false;
 }
 
 function get_online_resource($resource_data) {
+	echo "view online button: ";
 	if (! empty( $resource_data->included[0]->attributes->online_resource->link )) {
 		$online_resource = $resource_data->included[0]->attributes->online_resource->link;	
-	echo "view online button: $online_resource" . "</br>";
+	echo $online_resource . "</br>";
 	return $online_resource;
 	} 
 	return false;
@@ -239,15 +241,11 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 	// get the resource
 	$resource_data = get_item($shortCode, $itemID, $TalisGUID, $token);
 	// get the existing web addresses
-	get_resource_id($resource_data);
-	get_webaddress_array($resource_data);
-	get_online_resource($resource_data);	
-		echo "</br>";
-
-		/*
-	$web_addresses = get_web_addresses($item);
+	$resource_id = get_resource_id($resource_data);
+	$web_address_array = get_webaddress_array($resource_data);
+	$online_resource = get_online_resource($resource_data);	
 	// add a new web addresses to the existing ones
-	$web_addresses = array_push($web_addresses, $newURL);
+	array_push($web_address_array, $newURL);
 	// add an online resource
 	// if not a dry run - update
 	if($shouldWritetoLive){
@@ -255,7 +253,7 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 	} else {
 		// log something
 	}
-	*/
+	
 }
 
 function delete_url($itemID, $oldURL) {
