@@ -10,26 +10,22 @@ echo "<p>Starting...</p>";
 
 // Functions go here
 
-function counter_add() {
-	$filename = '/counter_add.txt';
-	$fp = fopen($filename,"r");
-	$counter = fread($fp, filesize($filename));
-	fclose($fp);
+$COUNTERS=[];
 
-	++$counter;
-	echo "$counter rows processed";
-
-	$fp = fopen($filename,"w");
-	$fwrite($fp, $counter);
-	fclose($fp);
+function increment_counter($counter_name) {
+	global $COUNTERS;
+		if (! isset($COUNTERS[$counter_name])) {
+        $COUNTERS[$counter_name] = 1;
+    } else {
+        $COUNTERS[$counter_name] += 1;
+	}
 }
 
-function counter_del() {
-	
-}
-
-function counter_repl() {
-	
+function counter_summary() {
+	global $COUNTERS;
+    foreach ($COUNTERS as $k => $v) {
+		echo "$k $v";
+    }
 }
 
 function modify_url($resourceID, $web_addresses, $newURL) {
@@ -258,7 +254,7 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 		echo "Resource URL Not Updated - Dry Run";
 		fwrite($myfile, "Resource URL Not Updated - Dry Run");
 	}
-	
+	increment_counter('URLs added to existing items: ');
 }
 
 function delete_url($itemID, $oldURL) {
@@ -361,8 +357,9 @@ function check_web_addresses($oldURL, $item) {
 		echo "\t ERROR: no matching URL found in web address array. Moving onto next row...";
 		// removed Continue;
 	}
+}
 
-
+counter_summary();
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 
@@ -370,5 +367,4 @@ fclose($file_handle);
 fclose($myfile);
 
 print("</br><a href=$logfile>Click Here to download your output.log file.</a>");
-}
 ?>
