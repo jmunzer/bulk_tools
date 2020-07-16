@@ -8,81 +8,8 @@ error_reporting(E_ALL);
 
 echo "<p>Starting...</p>";
 
-// Functions go here
-
-$COUNTERS=[];
-
-function increment_counter($counter_name) {
-	global $COUNTERS;
-		if (! isset($COUNTERS[$counter_name])) {
-        $COUNTERS[$counter_name] = 1;
-    } else {
-        $COUNTERS[$counter_name] += 1;
-	}
-}
-
-function counter_summary() {
-	global $COUNTERS;
-    foreach ($COUNTERS as $k => $v) {
-		echo "</br>$k $v";
-    }
-}
-
-function build_patch_body($resourceID, $web_addresses, $newURL) {
-
-	$template = '{
-				"data": {
-					"type": "resources",
-					"id": "' . $resourceID . '",
-					"attributes": {
-						"web_addresses": [],
-						"online_resource": {
-							"source": "uri",
-							"link": "' . $newURL . '"
-						}
-					} 
-				}
-			}';
-	$template_obj = json_decode($template, true);
-	$template_obj['data']['attributes']['web_addresses'] = $web_addresses;
-
-	return json_encode($template_obj);
-}
-
-function post_url($shortCode, $resourceID, $body, $TalisGUID, $token) {
-	global $myfile;
-
-	$patch_url = "https://rl.talis.com/3/" . $shortCode . "/resources/" . $resourceID;
-	$ch2 = curl_init();
-
-	curl_setopt($ch2, CURLOPT_URL, $patch_url);
-	curl_setopt($ch2, CURLOPT_CUSTOMREQUEST, 'PATCH');
-	curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch2, CURLOPT_HTTPHEADER, array(
-		
-		"X-Effective-User: $TalisGUID",
-		"Authorization: Bearer $token",
-		'Cache-Control: no-cache'
-	));
-
-	curl_setopt($ch2, CURLOPT_POSTFIELDS, $body);
-
-	$output2 = curl_exec($ch2);
-	$info2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
-	curl_close($ch2);
-	
-	if ($info2 !== 200){
-		echo "<p> - ERROR: There was an error updating the URL:</p><pre>" . var_export($output2, true) . "</pre></br>";
-		fwrite($myfile, " - ERROR: Resource URL Not Updated");
-	} else {
-		echo " - Resource URL Updated Successfully</br>";
-		fwrite($myfile, " - Resource URL Updated Successfully");
-	}
-}
-
-/**
- * Get the user config file. This script will fail disgracefully if it has not been created and nothing will happen.
- */
+// User set variables
+// Get the user config file. This script will fail disgracefully if it has not been created and nothing will happen.
 require('../../user.config.php');
 
 echo "Tenancy Shortcode set: " . $shortCode;
@@ -94,8 +21,8 @@ echo "</br>";
 echo "User GUID to use: " . $TalisGUID;
 echo "</br>";
 
-$LOG_LEVEL = 'DEBUG';
 
+// Test run or live run switch
 if(isset($_REQUEST['DRY_RUN']) &&
 	$_REQUEST['DRY_RUN'] == "writeToLive") {
 		$shouldWritetoLive = "true";
@@ -109,12 +36,14 @@ echo "Writing to live tenancy?: $shouldWritetoLive";
 echo "</br>";
 echo "</br>";
 
+// Constants
 	$tokenURL = 'https://users.talis.com/oauth/tokens';
 	$content = "grant_type=client_credentials";
 	$date = date('Y-m-d\TH:i:s'); // "2015-12-21T15:44:36"
+	$LOG_LEVEL = 'DEBUG';
+	$COUNTERS=[];
 
-//*****************GRAB_INPUT_DATA**********
-
+// Pull in user file
 $uploaddir = '../uploads/';
 $uploadfile = $uploaddir . basename($_FILES['userfile']['name']);
 
@@ -129,11 +58,12 @@ print_r($uploadfile);
 echo "</br>";
 echo "</br>";
 
-	// Creating a report file...
+// Create a report file...
 $logfile = "../../report_files/urlcomplete_output.log";
 $myfile = fopen($logfile, "a") or die("Unable to open urlcomplete_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
 
+// Get an API token
 $ch = curl_init();
 
 	curl_setopt($ch, CURLOPT_URL, $tokenURL);
@@ -160,8 +90,7 @@ if (!empty($jsontoken->access_token)){
 	exit;
 }
 
-//***********READ**DATA******************
-
+// Read File
 $row = 1;
 if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 	while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
@@ -173,14 +102,15 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		$oldURL = trim($line[1]);
 		$newURL = trim($line[2]);
 
+		/*
 		echo $itemID . "\t";
 		echo $oldURL . "\t";
 		echo $newURL . "\t";
+		*/
 
 		// TODO check if the values are URLs.
 
-		// Build function-select logic here
-
+		// Function-select logic
 		if(empty($oldURL) && empty($newURL)){
 			// this is a problem
 			// TODO - add error message logging
@@ -190,15 +120,52 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		if (empty($oldURL)) {
 			//point at 'add url' function
 			add_url($itemID, $newURL, $shortCode, $TalisGUID, $token);
-		//	counter_add();
-		} elseif (empty($newURL)) {
+			
+			} elseif (empty($newURL)) {
 			// point at 'delete url' function
 			delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token);
+
 		} else {
-			// point at 'url swap' function
+			// point at 'url replace' function
 			replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token);
 		}
 	}
+}
+
+function echo_message_to_screen($log_level, $message){
+	// TODO Change this to use numerical comparison so can output all log messages of level and above
+	//DEBUG
+	if ($LOG_LEVEL == 'DEBUG' && $log_level == 'DEBUG') {
+		echo "DEBUG: $message";
+	}
+	//INFO
+	if ($LOG_LEVEL == 'INFO' && $log_level == 'INFO') {
+		echo "INFO: $message";
+	}
+	//WARNING
+	if ($LOG_LEVEL == 'WARNING' && $log_level == 'WARNING') {
+		echo "WARNING: $message";
+	}
+	//ERROR
+	if ($LOG_LEVEL == 'ERROR' && $log_level == 'ERROR') {
+		echo "ERROR: $message";
+	}
+}
+
+function increment_counter($counter_name) {
+	global $COUNTERS;
+		if (! isset($COUNTERS[$counter_name])) {
+        $COUNTERS[$counter_name] = 1;
+    } else {
+        $COUNTERS[$counter_name] += 1;
+	}
+}
+
+function counter_summary() {
+	global $COUNTERS;
+    foreach ($COUNTERS as $k => $v) {
+		echo "</br>$k $v";
+    }
 }
 
 function get_resource_id($resource_data) {
@@ -333,33 +300,11 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token){
 	// update the online resource
 	// if not a dry run - update
 }
-/*
-function echo_message_to_screen($log_level, $message){
-	// TODO Change this to use numerical comparison so can output all log messages of level and above
-	//DEBUG
-	if ($LOG_LEVEL == 'DEBUG' && $log_level == 'DEBUG') {
-		echo "DEBUG: $message";
-	}
-	//INFO
-	if ($LOG_LEVEL == 'INFO' && $log_level == 'INFO') {
-		echo "INFO: $message";
-	}
-	//WARNING
-	if ($LOG_LEVEL == 'WARNING' && $log_level == 'WARNING') {
-		echo "WARNING: $message";
-	}
-	//ERROR
-	if ($LOG_LEVEL == 'ERROR' && $log_level == 'ERROR') {
-		echo "ERROR: $message";
-	}
-}
-*/
-//************GET_RESOURCE_ID***************
 
 function get_item($shortCode, $itemID, $TalisGUID, $token) {
-$item_lookup = "https://rl.talis.com/3/" . $shortCode . "/draft_items/" . $itemID . "?include=resource";
+	$item_lookup = "https://rl.talis.com/3/" . $shortCode . "/draft_items/" . $itemID . "?include=resource";
 
-$ch1 = curl_init();
+	$ch1 = curl_init();
 		
 		curl_setopt($ch1, CURLOPT_URL, $item_lookup);
 		curl_setopt($ch1, CURLOPT_RETURNTRANSFER, 1);
@@ -373,6 +318,7 @@ $ch1 = curl_init();
 		$output = curl_exec($ch1);
 		$info1 = curl_getinfo($ch1, CURLINFO_HTTP_CODE);
 		$output_json = json_decode($output);
+	
 	curl_close($ch1);
 	
 
@@ -384,8 +330,6 @@ $ch1 = curl_init();
 	}
 
 }
-
-//************GET_URL_INFO***************
 
 function check_web_addresses($oldURL, $newURL, $web_address_array, $mode) {
 	global $myfile;
@@ -411,6 +355,58 @@ function check_online_resource($oldURL, $online_resource, $body) {
 	$body_decoded = json_decode($body, true);
 	unset($body_decoded['data']['attributes']['online_resource']);
 	return json_encode($body_decoded);	
+}
+
+function build_patch_body($resourceID, $web_addresses, $newURL) {
+
+	$template = '{
+				"data": {
+					"type": "resources",
+					"id": "' . $resourceID . '",
+					"attributes": {
+						"web_addresses": [],
+						"online_resource": {
+							"source": "uri",
+							"link": "' . $newURL . '"
+						}
+					} 
+				}
+			}';
+	$template_obj = json_decode($template, true);
+	$template_obj['data']['attributes']['web_addresses'] = $web_addresses;
+
+	return json_encode($template_obj);
+}
+
+function post_url($shortCode, $resourceID, $body, $TalisGUID, $token) {
+	global $myfile;
+
+	$patch_url = "https://rl.talis.com/3/" . $shortCode . "/resources/" . $resourceID;
+	$ch2 = curl_init();
+
+	curl_setopt($ch2, CURLOPT_URL, $patch_url);
+	curl_setopt($ch2, CURLOPT_CUSTOMREQUEST, 'PATCH');
+	curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch2, CURLOPT_HTTPHEADER, array(
+		
+		"X-Effective-User: $TalisGUID",
+		"Authorization: Bearer $token",
+		'Cache-Control: no-cache'
+	));
+
+	curl_setopt($ch2, CURLOPT_POSTFIELDS, $body);
+
+	$output2 = curl_exec($ch2);
+	$info2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
+	curl_close($ch2);
+	
+	if ($info2 !== 200){
+		echo "<p>ERROR: There was an error updating the URL:</p><pre>" . var_export($output2, true) . "</pre>";
+		fwrite($myfile, "ERROR: Resource URL Not Updated \t");
+	} else {
+		echo "Resource URL Updated Successfully</br>";
+		fwrite($myfile, "Resource URL Updated Successfully" . "\t");
+	}
 }
 
 counter_summary();
