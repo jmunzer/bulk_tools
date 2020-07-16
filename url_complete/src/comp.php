@@ -10,6 +10,28 @@ echo "<p>Starting...</p>";
 
 // Functions go here
 
+function counter_add() {
+	$filename = '/counter_add.txt';
+	$fp = fopen($filename,"r");
+	$counter = fread($fp, filesize($filename));
+	fclose($fp);
+
+	++$counter;
+	echo "$counter rows processed";
+
+	$fp = fopen($filename,"w");
+	$fwrite($fp, $counter);
+	fclose($fp);
+}
+
+function counter_del() {
+	
+}
+
+function counter_repl() {
+	
+}
+
 function modify_url($resourceID, $web_addresses, $newURL) {
 
 	$template = '{
@@ -170,7 +192,7 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		if (empty($oldURL)) {
 			//point at 'add url' function
 			add_url($itemID, $newURL, $shortCode, $TalisGUID, $token);
-
+			counter_add();
 		} elseif (empty($newURL)) {
 			// point at 'delete url' function
 			delete_url($itemID, $oldURL);
