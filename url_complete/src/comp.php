@@ -253,7 +253,7 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 		} else {
 			fwrite($myfile, "Resource URL Not Updated - Dry Run");
 		}
-		increment_counter('URLs added to existing items: ');
+		increment_counter('URLs added: ');
 	}
 }
 
@@ -267,42 +267,60 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token) {
 		// get the existing web addresses
 		$resource_id = get_resource_id($resource_data);
 		$web_address_array = get_webaddress_array($resource_data);
-		// add a new web addresses to the existing ones
-		$web_address_array = check_web_addresses($oldURL, "", $web_address_array, "delete");
-		// build the PATCH body
-		$body = build_patch_body($resource_id, $web_address_array, "");
 		
-		// check online resource
-		$online_resource = get_online_resource($resource_data);
-		$body = check_online_resource($oldURL, $online_resource, $body);
-		
-		// if not a dry run - update
-		if ($shouldWritetoLive == "true") {
-			post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
+		// if we do have web addresses that we can delete...
+		if ($web_address_array){
+
+			// add a new web addresses to the existing ones
+			$web_address_array = check_web_addresses($oldURL, "", $web_address_array, "delete");
+			// build the PATCH body
+			$body = build_patch_body($resource_id, $web_address_array, "");
+			
+			// check online resource
+			$online_resource = get_online_resource($resource_data);
+			$body = check_online_resource($oldURL, $online_resource, $body);
+			
+			// if not a dry run - update
+			if ($shouldWritetoLive == "true") {
+				post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
+			} else {
+				fwrite($myfile, "Resource URL Not Updated - Dry Run");
+			}
+			increment_counter('URLs deleted: ');
 		} else {
-			fwrite($myfile, "Resource URL Not Updated - Dry Run");
+			increment_counter('Delete operations with no web addresses on item: ');
 		}
-		increment_counter('URLs deleted from existing items: ');
 	}
-	// get the item
-	// get the existing web addresses
-	// check that the web address to remove is present
-	// remove it
-	// remove it from the online resource if set
-	// if not a dry run - update
 }
 
 function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token){
+	global $myfile;
+	global $shouldWritetoLive;
 	echo "replace</br>";
-	// get the item
-	// get the existing web addresses
-	// check that the web address to replace is present
-	// remove the old and the new
-	$web_address_array = check_web_addresses($oldURL, $newURL, $web_address_array, "replace");
-	$online_resource = get_online_resource($resource_data);	
-	//$web_addresses[$oldURL_index] = $newURL;  // update the found address
-	// update the online resource
-	// if not a dry run - update
+
+	$resource_data = get_item($shortCode, $itemID, $TalisGUID, $token);
+	if($resource_data) {
+		// get the existing web addresses
+		$resource_id = get_resource_id($resource_data);
+		$web_address_array = get_webaddress_array($resource_data);
+		
+		if ($web_address_array) {
+			// add a new web addresses to the existing ones
+			$web_address_array = check_web_addresses($oldURL, $newURL, $web_address_array, "replace");
+			// build the PATCH body
+			$body = build_patch_body($resource_id, $web_address_array, $newURL);
+			
+			// if not a dry run - update
+			if ($shouldWritetoLive == "true") {
+				post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
+			} else {
+				fwrite($myfile, "Resource URL Not Updated - Dry Run");
+			}
+			increment_counter('URLs replaced: ');
+		} else {
+			increment_counter('Replace operations with no web addresses on item: ');
+		}
+	}
 }
 /*
 function echo_message_to_screen($log_level, $message){
