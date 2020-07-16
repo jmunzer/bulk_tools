@@ -203,15 +203,48 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 	}
 }
 
+function get_resource_id($resource_data) {
+
+	if (! empty( $resource_data->included[0]->id )) {
+		$resource = $resource_data->included[0]->id;
+		echo "resource ID: $resource" . "</br>";
+		return $resource;	
+	} 
+	return false;
+}
+
+function get_webaddress_array($resource_data) {
+
+	if (! empty( $resource_data->included[0]->attributes->web_addresses )) {
+		$web_addresses = $resource_data->included[0]->attributes->web_addresses;
+		echo "web address array: ";
+		print_r($web_addresses); 
+		return $web_addresses;
+	} 
+	return false;
+}
+
+function get_online_resource($resource_data) {
+	if (! empty( $resource_data->included[0]->attributes->online_resource->link )) {
+		$online_resource = $resource_data->included[0]->attributes->online_resource->link;	
+	echo "view online button: $online_resource" . "</br>";
+	return $online_resource;
+	} 
+	return false;
+}
+
 function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 	echo "\t add_url activated </br></br>";
 
 	// get the resource
 	$resource_data = get_item($shortCode, $itemID, $TalisGUID, $token);
 	// get the existing web addresses
+	get_resource_id($resource_data);
+	get_webaddress_array($resource_data);
+	get_online_resource($resource_data);	
+		echo "</br>";
 
-
-/*
+		/*
 	$web_addresses = get_web_addresses($item);
 	// add a new web addresses to the existing ones
 	$web_addresses = array_push($web_addresses, $newURL);
@@ -289,15 +322,8 @@ $ch1 = curl_init();
 	
 	// TODO - remove this? 
 	// $self = $output_json->data->links->self;
-	$resource = $output_json->included[0]->id;
-	$online_resource = $output_json->included[0]->attributes->online_resource->link;
-	$web_addresses = $output_json->included[0]->attributes->web_addresses;
 
-	echo "resource ID: $resource" . "</br>";
-	echo "view online button: $online_resource" . "</br>";
-	echo "web address array: "; 
-	print_r($web_addresses); 
-	echo "</br>";
+
 	
 	if ($info1 !== 200){
 		echo "<p>ERROR: There was an error getting the resource ID:</p><pre>" . var_export($output, true) . "</pre>";
