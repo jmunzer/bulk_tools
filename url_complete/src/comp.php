@@ -202,7 +202,6 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 }
 
 function get_resource_id($resource_data) {
-
 	if (! empty( $resource_data->included[0]->id )) {
 		$resource = $resource_data->included[0]->id;
 	//	echo "resource ID: $resource" . "</br>";
@@ -212,7 +211,7 @@ function get_resource_id($resource_data) {
 }
 
 function get_webaddress_array($resource_data) {
-	echo "web address array: ";
+	//	echo "web address array: ";
 	if (! empty( $resource_data->included[0]->attributes->web_addresses )) {
 		$web_addresses = $resource_data->included[0]->attributes->web_addresses;		
 	//	print_r($web_addresses);
@@ -223,11 +222,11 @@ function get_webaddress_array($resource_data) {
 }
 
 function get_online_resource($resource_data) {
-	echo "view online button: ";
+	//	echo "view online button: ";
 	if (! empty( $resource_data->included[0]->attributes->online_resource->link )) {
 		$online_resource = $resource_data->included[0]->attributes->online_resource->link;	
-//	echo $online_resource . "</br>";
-	return $online_resource;
+	//	echo $online_resource;	
+		return $online_resource;
 	} 
 	return false;
 }
@@ -256,7 +255,7 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 		if ($shouldWritetoLive == "true") {
 			post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
 		} else {
-			fwrite($myfile, "Resource URL Not Updated - Dry Run");
+			fwrite($myfile, "Test Run");
 		}
 		increment_counter('URLs added: ');
 	}
@@ -288,7 +287,7 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token) {
 			if ($shouldWritetoLive == "true") {
 				post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
 			} else {
-				fwrite($myfile, "Resource URL Not Updated - Dry Run");
+				fwrite($myfile, "Test Run");
 			}
 			increment_counter('URLs deleted: ');
 		} else {
@@ -307,17 +306,20 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token){
 		// get the existing web addresses
 		$resource_id = get_resource_id($resource_data);
 		$web_address_array = get_webaddress_array($resource_data);
-		// add a new web addresses to the existing ones
-		$web_address_array = check_web_addresses($oldURL, $newURL, $web_address_array, "replace");
-		// build the PATCH body
-		$body = build_patch_body($resource_id, $web_address_array, $newURL);
-		/* don't think we need to check online resource for a replace
-		$online_resource = get_online_resource($resource_data);
-		$body = check_online_resource($oldURL, $online_resource, $body);
-		*/
-		// if not a dry run - update
-		if ($shouldWritetoLive == "true") {
-			post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
+		
+		if ($web_address_array) {
+			// add a new web addresses to the existing ones
+			$web_address_array = check_web_addresses($oldURL, $newURL, $web_address_array, "replace");
+			// build the PATCH body
+			$body = build_patch_body($resource_id, $web_address_array, $newURL);
+			
+			// if not a dry run - update
+			if ($shouldWritetoLive == "true") {
+				post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
+			} else {
+				fwrite($myfile, "Test Run");
+			}
+			increment_counter('URLs replaced: ');
 		} else {
 			fwrite($myfile, "Resource URL Not Updated - Dry Run");
 		}
@@ -373,6 +375,7 @@ $ch1 = curl_init();
 		$output_json = json_decode($output);
 	curl_close($ch1);
 	
+
 	if ($info1 !== 200){
 		echo "<p>ERROR: There was an error getting the resource ID:</p><pre>" . var_export($output, true) . "</pre>";
 		return false;
