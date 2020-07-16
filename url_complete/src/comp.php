@@ -21,7 +21,6 @@ echo "</br>";
 echo "User GUID to use: " . $TalisGUID;
 echo "</br>";
 
-
 // Test run or live run switch
 if(isset($_REQUEST['DRY_RUN']) &&
 	$_REQUEST['DRY_RUN'] == "writeToLive") {
@@ -61,7 +60,10 @@ echo "</br>";
 // Create a report file...
 $logfile = "../../report_files/urlcomplete_output.log";
 $myfile = fopen($logfile, "a") or die("Unable to open urlcomplete_output.log");
-fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
+// Write column headers
+fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
+fwrite($myfile, "Write To Live Tenancy?: $shouldWritetoLive | Upload File: $uploadfile \r\n\r\n");
+fwrite($myfile, "userGUID,item id,old URL, new URL, resource id,current web_address array,current online resource,transaction type,matching URL,match array,patch status\r\n");
 
 // Get an API token
 $ch = curl_init();
