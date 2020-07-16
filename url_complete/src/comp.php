@@ -235,7 +235,6 @@ function get_online_resource($resource_data) {
 function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 	global $myfile;
 	global $shouldWritetoLive;
-	echo "\t add_url</br>";
 
 	// get the resource
 	$resource_data = get_item($shortCode, $itemID, $TalisGUID, $token);
@@ -266,7 +265,6 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token) {
 	global $myfile;
 	global $shouldWritetoLive;
-	echo "delete</br>";
 
 	$resource_data = get_item($shortCode, $itemID, $TalisGUID, $token);
 	if($resource_data) {
@@ -303,7 +301,6 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token) {
 function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token){
 	global $myfile;
 	global $shouldWritetoLive;
-	echo "replace</br>";
 	
 	$resource_data = get_item($shortCode, $itemID, $TalisGUID, $token);
 	if($resource_data) {
@@ -375,11 +372,6 @@ $ch1 = curl_init();
 		$info1 = curl_getinfo($ch1, CURLINFO_HTTP_CODE);
 		$output_json = json_decode($output);
 	curl_close($ch1);
-	
-	// TODO - remove this? 
-	// $self = $output_json->data->links->self;
-
-
 	
 	if ($info1 !== 200){
 		echo "<p>ERROR: There was an error getting the resource ID:</p><pre>" . var_export($output, true) . "</pre>";
