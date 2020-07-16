@@ -28,7 +28,7 @@ function counter_summary() {
     }
 }
 
-function modify_url($resourceID, $web_addresses, $newURL) {
+function build_patch_body($resourceID, $web_addresses, $newURL) {
 
 	$template = '{
 				"data": {
@@ -38,7 +38,7 @@ function modify_url($resourceID, $web_addresses, $newURL) {
 						"web_addresses": [],
 						"online_resource": {
 							"source": "uri",
-							"link": "' . $newURL. '"
+							"link": "' . $newURL . '"
 						}
 					} 
 				}
@@ -193,10 +193,10 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		//	counter_add();
 		} elseif (empty($newURL)) {
 			// point at 'delete url' function
-			delete_url($itemID, $oldURL);
+			delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token);
 		} else {
 			// point at 'url swap' function
-			replace_url($itemID, $oldURL, $newURL);
+			replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token);
 		}
 	}
 }
@@ -247,7 +247,7 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 		// add a new web addresses to the existing ones
 		array_push($web_address_array, $newURL);
 		// build the PATCH body
-		$body = modify_url($resource_id, $web_address_array, $newURL);
+		$body = build_patch_body($resource_id, $web_address_array, $newURL);
 		// if not a dry run - update
 		if ($shouldWritetoLive == "true") {
 			post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
@@ -259,8 +259,31 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 	}
 }
 
-function delete_url($itemID, $oldURL) {
+function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token) {
+	global $myfile;
+	global $shouldWritetoLive;
 	echo "delete_url activated </br></br>";
+
+	$resource_data = get_item($shortCode, $itemID, $TalisGUID, $token);
+	if($resource_data) {
+		// get the existing web addresses
+		$resource_id = get_resource_id($resource_data);
+		$web_address_array = get_webaddress_array($resource_data);
+		// add a new web addresses to the existing ones
+		$web_address_array = check_web_addresses($oldURL, "", $web_address_array, "delete");
+		// build the PATCH body
+		$body = build_patch_body($resource_id, $web_address_array, $newURL);
+		// check online resource
+		check_online_resource($body);
+		// if not a dry run - update
+		if ($shouldWritetoLive == "true") {
+			post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
+		} else {
+			echo "Resource URL Not Updated - Dry Run";
+			fwrite($myfile, "Resource URL Not Updated - Dry Run");
+		}
+		increment_counter('URLs deleted from existing items: ');
+	}
 	// get the item
 	// get the existing web addresses
 	// check that the web address to remove is present
@@ -269,12 +292,13 @@ function delete_url($itemID, $oldURL) {
 	// if not a dry run - update
 }
 
-function replace_url($itemID, $oldURL, $newURL){
+function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token){
 	echo "replace_url activated </br></br>";
 	// get the item
 	// get the existing web addresses
 	// check that the web address to replace is present
 	// remove the old and the new
+	$web_address_array = check_web_addresses($oldURL, $newURL, $web_address_array, "replace");
 	$online_resource = get_online_resource($resource_data);	
 	//$web_addresses[$oldURL_index] = $newURL;  // update the found address
 	// update the online resource
@@ -338,27 +362,30 @@ $ch1 = curl_init();
 
 //************GET_URL_INFO***************
 
-function check_web_addresses($oldURL, $item) {
+function check_web_addresses($oldURL, $newURL, $web_address_array, $mode) {
 	global $myfile;
 	// TODO move this into either of the replace and delete functions
-	$oldURL_found = array_search($oldURL, $web_addresses);
+	$oldURL_found = array_search($oldURL, $web_address_array);
 	
 	if (isset($oldURL_found)) {
 		echo "Found Matching URL \t";
-		fwrite($myfile, "Found Matching URL at index: [$oldURL_found]");
-		$body = modify_url($resourceID, $web_addresses, $oldURL_found, $newURL);
-
-		if ($shouldWritetoLive == "true") {
-			post_url($shortCode, $resourceID, $body, $TalisGUID, $token);
-		} else {
-			echo "Resource URL Not Updated - Dry Run </br>";
-			fwrite($myfile, " - Resource URL Not Updated - Dry Run \r\n");
+		print_r($web_address_array);
+		if($mode == "delete") {
+			unset($web_address_array[$oldURL_found]);
+		} 
+		if($mode == "replace") {
+			$web_address_array[$oldURL_found] = $newURL;
 		}
-
+		print_r($web_address_array);
+		fwrite($myfile, "Found Matching URL at index: [$oldURL_found]");
 	} else {
 		echo "\t ERROR: no matching URL found in web address array. Moving onto next row...";
-		// removed Continue;
 	}
+	return $web_address_array;
+}
+
+function check_online_resource($oldURL) {
+
 }
 
 counter_summary();
