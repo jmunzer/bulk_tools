@@ -273,8 +273,11 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token) {
 		$web_address_array = check_web_addresses($oldURL, "", $web_address_array, "delete");
 		// build the PATCH body
 		$body = build_patch_body($resource_id, $web_address_array, $newURL);
+		
 		// check online resource
-		check_online_resource($body);
+		$online_resource = get_online_resource($resource);
+		$body = check_online_resource($oldURL, $online_resource, $body);
+		
 		// if not a dry run - update
 		if ($shouldWritetoLive == "true") {
 			post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
@@ -384,8 +387,21 @@ function check_web_addresses($oldURL, $newURL, $web_address_array, $mode) {
 	return $web_address_array;
 }
 
-function check_online_resource($oldURL) {
-
+function check_online_resource($oldURL, $online_resource, $body) {
+	$body_decoded = json_decode($body, true);
+	print_r($body_decoded);
+	// inspect the online resource as it is now.
+	if (!empty($online_resource->link)) {
+		$link = $online_resource->link;
+		if ($oldURL == $link){
+			// see if there is a match with the URL being changed
+			// make a change 
+			// and update the body
+			$body_decoded['data']['attributes']['online_resource'] = false;
+		}
+	}
+	print_r($body_decoded);
+	return json_encode($body_decoded);
 }
 
 counter_summary();
