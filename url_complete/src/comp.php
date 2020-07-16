@@ -240,21 +240,23 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 
 	// get the resource
 	$resource_data = get_item($shortCode, $itemID, $TalisGUID, $token);
-	// get the existing web addresses
-	$resource_id = get_resource_id($resource_data);
-	$web_address_array = get_webaddress_array($resource_data);
-	// add a new web addresses to the existing ones
-	array_push($web_address_array, $newURL);
-	// build the PATCH body
-	$body = modify_url($resource_id, $web_address_array, $newURL);
-	// if not a dry run - update
-	if ($shouldWritetoLive == "true") {
-		post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
-	} else {
-		echo "Resource URL Not Updated - Dry Run";
-		fwrite($myfile, "Resource URL Not Updated - Dry Run");
+	if($resource_data) {
+		// get the existing web addresses
+		$resource_id = get_resource_id($resource_data);
+		$web_address_array = get_webaddress_array($resource_data);
+		// add a new web addresses to the existing ones
+		array_push($web_address_array, $newURL);
+		// build the PATCH body
+		$body = modify_url($resource_id, $web_address_array, $newURL);
+		// if not a dry run - update
+		if ($shouldWritetoLive == "true") {
+			post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
+		} else {
+			echo "Resource URL Not Updated - Dry Run";
+			fwrite($myfile, "Resource URL Not Updated - Dry Run");
+		}
+		increment_counter('URLs added to existing items: ');
 	}
-	increment_counter('URLs added to existing items: ');
 }
 
 function delete_url($itemID, $oldURL) {
@@ -327,7 +329,7 @@ $ch1 = curl_init();
 	
 	if ($info1 !== 200){
 		echo "<p>ERROR: There was an error getting the resource ID:</p><pre>" . var_export($output, true) . "</pre>";
-		// continue removed... need to figure out where to put it..
+		return false;
 	} else {
 		return $output_json;
 	}
