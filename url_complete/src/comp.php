@@ -48,10 +48,9 @@ const WARNING = 2;
 const ERROR = 1;
 
 $LOG_LEVEL = DEBUG;
-echo $LOG_LEVEL;
+
 // Error reporting User select
 $LOG_LEVEL = $_REQUEST['loglvl'];
-echo $LOG_LEVEL;
 
 // Pull in user file
 $uploaddir = '../uploads/';
@@ -61,7 +60,7 @@ echo '<pre>';
 if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile)) {
 	echo_message_to_screen(INFO, "File is valid, and was successfully uploaded.");
 } else {
-    echo_message_to_screen(ERROR, "File is invalid, and failed to upload - Please try again. -");
+	exit("File is invalid and failed to upload - Please click back and try again.");
 }
 echo "</br>";
 print_r($uploadfile);
@@ -140,7 +139,6 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		// Function-select logic
 		if(empty($oldURL) && empty($newURL)){
 			// this is a problem
-			// TODO - add error message logging
 			echo_message_to_screen(ERROR, "This row does not appear to have either an old URL or a new URL. Moving onto next item.");
 			continue;
 		}
