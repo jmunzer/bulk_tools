@@ -33,7 +33,6 @@ if(isset($_REQUEST['DRY_RUN']) &&
 
 echo "Writing to live tenancy?: $shouldWritetoLive";
 echo "</br>";
-echo "</br>";
 
 // Constants
 $tokenURL = 'https://users.talis.com/oauth/tokens';
@@ -51,6 +50,8 @@ $LOG_LEVEL = DEBUG;
 
 // Error reporting User select
 $LOG_LEVEL = $_REQUEST['loglvl'];
+echo "Logging Level Selected: $LOG_LEVEL";
+echo "</br></br>";
 
 // Pull in user file
 $uploaddir = '../uploads/';
