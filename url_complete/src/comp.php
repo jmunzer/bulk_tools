@@ -49,7 +49,7 @@ const ERROR = 1;
 // Error reporting User select
 // This currently defaults to ERROR as the first select in url.html
 $LOG_LEVEL = $_REQUEST['loglvl'];
-echo "Logging Level Selected: $LOG_LEVEL </br>";
+echo "Logging Level Selected: " . get_friendly_log_level_name($LOG_LEVEL) . "</br>";
 
 // Pull in user file
 $uploaddir = '../uploads/';
@@ -138,42 +138,40 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		if(empty($oldURL) && empty($newURL)){
 			// this is a problem
 			echo_message_to_screen(ERROR, "Row " . $row . " does not appear to have either an old URL or a new URL. Moving onto next item.");
-			$row++;
 			continue;
 		}
 
 		if (empty($oldURL)) {
 			//point at 'add url' function
 			add_url($itemID, $newURL, $shortCode, $TalisGUID, $token);
-			$row++;
 			} elseif (empty($newURL)) {
 			// point at 'delete url' function
 			delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token);
-			$row++;
 		} else {
 			// point at 'url replace' function
 			replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token);
-			$row++;
 		}
-		
+		$row++;
 	}
 }
 
 function echo_message_to_screen($log_level, $message){
-	global $LOG_LEVEL;
-
-	// map log levels to friendly names for humans
-	$log_level_map = [
-		4 => "DEBUG",
-		3 => "INFO",
-		2 => "WARN",
-		1 => "ERROR"
-	];
-
-	// echo the log message if the log level says we should.
-	if ($LOG_LEVEL >= $log_level) {
-		echo "<p><strong>{$log_level_map[$log_level]}</strong>: $message</p>";
-	}
+    global $LOG_LEVEL;
+    // echo the log message if the log level says we should.
+    if ($LOG_LEVEL >= $log_level) {
+        $friendly_name = get_friendly_log_level_name($log_level);
+        echo "<p><strong>{$friendly_name}</strong>: $message</p>";
+    }
+}
+function get_friendly_log_level_name($log_level) {
+        // map log levels to friendly names for humans
+        $log_level_map = [
+            4 => "DEBUG",
+            3 => "INFO",
+            2 => "WARN",
+            1 => "ERROR"
+        ];
+        return $log_level_map[$log_level];
 }
 
 function increment_counter($counter_name) {
@@ -211,7 +209,7 @@ function get_webaddress_array($resource_data) {
 	if (! empty( $resource_data->included[0]->attributes->web_addresses )) {
 		$web_addresses = $resource_data->included[0]->attributes->web_addresses;		
 		echo_message_to_screen(INFO, print_r($web_addresses, TRUE));
-		$web_address_string = implode(' | ', array($web_addresses));
+		$web_address_string = join(' | ', $web_addresses);
 		fwrite($myfile, $web_address_string) . ",";
 		return $web_addresses;
 	} 
