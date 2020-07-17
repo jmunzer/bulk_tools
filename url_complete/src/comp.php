@@ -433,7 +433,7 @@ function build_patch_body($resourceID, $web_addresses, $newURL) {
 	return json_encode($template_obj);
 }
 
-function post_url($shortCode, $resourceID, $body, $TalisGUID, $token, $row) {
+function post_url($shortCode, $resourceID, $body, $TalisGUID, $token) {
 	global $myfile;
 
 	$patch_url = "https://rl.talis.com/3/" . $shortCode . "/resources/" . $resourceID;
