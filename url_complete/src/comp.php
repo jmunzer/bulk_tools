@@ -4,7 +4,7 @@ print("</br><a href='url.html'>Back to url tool</a>");
 
 // ini_set('display_errors', 1);
 // ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// error_reporting(E_ALL);
 
 echo "<p>Starting...</p>";
 
@@ -108,8 +108,7 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 	while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 
 		$num = count($line);
-		$row++;
-
+		
 		$itemID = trim($line[0]);
 		$oldURL = filter_var(trim($line[1]), FILTER_VALIDATE_URL);
 		$newURL = filter_var(trim($line[2]), FILTER_VALIDATE_URL);
@@ -138,22 +137,25 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		// Function-select logic
 		if(empty($oldURL) && empty($newURL)){
 			// this is a problem
-			echo_message_to_screen(ERROR, "Row " . --$row . " does not appear to have either an old URL or a new URL. Moving onto next item.");
+			echo_message_to_screen(ERROR, "Row " . $row . " does not appear to have either an old URL or a new URL. Moving onto next item.");
+			$row++;
 			continue;
 		}
 
 		if (empty($oldURL)) {
 			//point at 'add url' function
 			add_url($itemID, $newURL, $shortCode, $TalisGUID, $token);
-			
+			$row++;
 			} elseif (empty($newURL)) {
 			// point at 'delete url' function
 			delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token);
-
+			$row++;
 		} else {
 			// point at 'url replace' function
 			replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token);
+			$row++;
 		}
+		
 	}
 }
 
