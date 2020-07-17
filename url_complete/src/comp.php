@@ -46,9 +46,8 @@ const INFO = 3;
 const WARNING = 2;
 const ERROR = 1;
 
-$LOG_LEVEL = DEBUG;
-
 // Error reporting User select
+// This currently defaults to ERROR as the first select in url.html
 $LOG_LEVEL = $_REQUEST['loglvl'];
 echo "Logging Level Selected: $LOG_LEVEL";
 echo "</br></br>";
@@ -74,7 +73,7 @@ $myfile = fopen($logfile, "a") or die("Unable to open urlcomplete_output.log");
 // Write column headers
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 fwrite($myfile, "Write To Live Tenancy?: $shouldWritetoLive | User GUID: $TalisGUID \r\n\r\n");
-fwrite($myfile, "item id,old URL, new URL, resource id,current web_address array,current online resource,transaction type,match array,patch status\r\n");
+fwrite($myfile, "item id,old URL,new URL,transaction type,resource id,current web_address array,current online resource,match array,patch status\r\n");
 
 // Get an API token
 $ch = curl_init();
@@ -210,7 +209,7 @@ function get_webaddress_array($resource_data) {
 
 	if (! empty( $resource_data->included[0]->attributes->web_addresses )) {
 		$web_addresses = $resource_data->included[0]->attributes->web_addresses;		
-		echo_message_to_screen(INFO, $web_addresses);
+		echo_message_to_screen(INFO, print_r($web_addresses, TRUE));
 	//	fwrite($myfile,print_r($web_addresses, TRUE) . ",");
 		return $web_addresses;
 	} 
