@@ -68,8 +68,8 @@ echo "</br>";
 echo "</br>";
 
 // Create a report file...
-$logfile = "../../report_files/urlcomplete_output.log";
-$myfile = fopen($logfile, "a") or die("Unable to open urlcomplete_output.log");
+$logfile = "../../report_files/url_output.log";
+$myfile = fopen($logfile, "a") or die("Unable to open url_output.log");
 // Write column headers
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 fwrite($myfile, "Write To Live Tenancy?: $shouldWritetoLive | User GUID: $TalisGUID \r\n\r\n");
