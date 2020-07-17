@@ -211,7 +211,8 @@ function get_webaddress_array($resource_data) {
 	if (! empty( $resource_data->included[0]->attributes->web_addresses )) {
 		$web_addresses = $resource_data->included[0]->attributes->web_addresses;		
 		echo_message_to_screen(INFO, print_r($web_addresses, TRUE));
-	//	fwrite($myfile,print_r($web_addresses, TRUE) . ",");
+		$web_address_string = implode(' | ', array($web_addresses));
+		fwrite($myfile, $web_address_string) . ",";
 		return $web_addresses;
 	} 
 	echo_message_to_screen(INFO, "Web Address Array is empty\t");
@@ -246,7 +247,7 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 		// get the existing web addresses
 		$resource_id = get_resource_id($resource_data);
 		$web_address_array = get_webaddress_array($resource_data);
-		
+		$online_resource = get_online_resource($resource_data);
 		// if there is no existing web addresses it is OK to proceed to add some.
 		// but we need to make sure that the array is present to add to.
 		if ($web_address_array === false) {
@@ -318,7 +319,8 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token){
 		// get the existing web addresses
 		$resource_id = get_resource_id($resource_data);
 		$web_address_array = get_webaddress_array($resource_data);
-		
+		$online_resource = get_online_resource($resource_data);
+
 		if ($web_address_array) {
 			// add a new web addresses to the existing ones
 			$web_address_array = check_web_addresses($oldURL, $newURL, $web_address_array, "replace");
