@@ -2,8 +2,8 @@
 
 print("</br><a href='url.html'>Back to url tool</a>");
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 echo "<p>Starting...</p>";
@@ -49,20 +49,19 @@ const ERROR = 1;
 // Error reporting User select
 // This currently defaults to ERROR as the first select in url.html
 $LOG_LEVEL = $_REQUEST['loglvl'];
-echo "Logging Level Selected: $LOG_LEVEL";
-echo "</br></br>";
+echo "Logging Level Selected: $LOG_LEVEL </br>";
 
 // Pull in user file
 $uploaddir = '../uploads/';
 $uploadfile = $uploaddir . basename($_FILES['userfile']['name']);
 
-echo '<pre>';
+echo 'File uploaded: ';
 if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile)) {
 	echo_message_to_screen(INFO, "File is valid, and was successfully uploaded.");
 } else {
 	exit("File is invalid and failed to upload - Please click back and try again.");
 }
-echo "</br>";
+
 print_r($uploadfile);
 echo "</br>";
 echo "</br>";
@@ -139,7 +138,7 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		// Function-select logic
 		if(empty($oldURL) && empty($newURL)){
 			// this is a problem
-			echo_message_to_screen(ERROR, "This row does not appear to have either an old URL or a new URL. Moving onto next item.");
+			echo_message_to_screen(ERROR, "Row " . --$row . " does not appear to have either an old URL or a new URL. Moving onto next item.");
 			continue;
 		}
 
