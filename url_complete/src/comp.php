@@ -461,5 +461,5 @@ fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d
 fclose($file_handle);
 fclose($myfile);
 
-print("</br><a href=$logfile>Click Here to download your output.log file.</a>");
+print("</br></br><a href=$logfile>Click Here to download your output.log file.</a>");
 ?>
