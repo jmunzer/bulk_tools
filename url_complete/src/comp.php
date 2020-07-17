@@ -58,7 +58,7 @@ $uploadfile = $uploaddir . basename($_FILES['userfile']['name']);
 
 echo 'File uploaded: ';
 if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile)) {
-	echo_message_to_screen(INFO, "File is valid, and was successfully uploaded.");
+	echo_message_to_screen(INFO, "File is valid, and was successfully uploaded."); //undecided
 } else {
 	exit("File is invalid and failed to upload - Please click back and try again.");
 }
@@ -116,21 +116,21 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		$newURL = filter_var(trim($line[2]), FILTER_VALIDATE_URL);
 
 		if (!empty ($itemID)) {
-			echo_message_to_screen(INFO, $itemID);
+			echo_message_to_screen(DEBUG, $itemID);
 			fwrite($myfile,$itemID . ",");
 		} else {
 			fwrite($myfile,",");
 		}
 
 		if (!empty ($oldURL)) {
-		echo_message_to_screen(INFO, $oldURL);
+		echo_message_to_screen(DEBUG, $oldURL);
 		fwrite($myfile,$oldURL . ",");
 		} else {
 			fwrite($myfile,",");
 		}
 
 		if (!empty ($newURL)) {
-		echo_message_to_screen(INFO, $newURL);
+		echo_message_to_screen(DEBUG, $newURL);
 		fwrite($myfile,$newURL . ",");
 		} else {
 			fwrite($myfile,",");
@@ -139,7 +139,7 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		// Function-select logic
 		if(empty($oldURL) && empty($newURL)){
 			// this is a problem
-			echo_message_to_screen(ERROR, "Row " . $row . " does not appear to have either an old URL or a new URL. Moving onto next item.");
+			echo_message_to_screen(WARNING, "WARNING: Row " . $row . " does not appear to have either an old URL or a new URL. Moving onto next item...");
 			fwrite($myfile, "\r\n");
 			continue;
 		}
@@ -156,10 +156,9 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		}
 				
         if($row <= 10 || $row % 10 == 0 ){
-		   // echo_message_to_screen(INFO, "Processed $row rows");
-		    echo "Processed $row rows </br>";
+		   echo_message_to_screen(INFO, "Processed $row rows");
+		// echo "Processed $row rows </br>";
 		}
-		ob_flush();
 	}
 }
 
@@ -203,7 +202,7 @@ function get_resource_id($resource_data) {
 
 	if (! empty( $resource_data->included[0]->id )) {
 		$resource = $resource_data->included[0]->id;
-		echo_message_to_screen(INFO, "Resource ID: $resource\t");
+		echo_message_to_screen(DEBUG, "Resource ID: $resource\t");
 		fwrite($myfile,$resource . ",");
 		return $resource;	
 	} 
@@ -216,7 +215,7 @@ function get_webaddress_array($resource_data) {
 
 	if (! empty( $resource_data->included[0]->attributes->web_addresses )) {
 		$web_addresses = $resource_data->included[0]->attributes->web_addresses;		
-		echo_message_to_screen(INFO, print_r($web_addresses, TRUE));
+		echo_message_to_screen(DEBUG, print_r($web_addresses, TRUE));
 		$web_address_string = join(' | ', $web_addresses);
 		fwrite($myfile, $web_address_string) . ",";
 		return $web_addresses;
@@ -231,7 +230,7 @@ function get_online_resource($resource_data) {
 
 	if (! empty( $resource_data->included[0]->attributes->online_resource->link )) {
 		$online_resource = $resource_data->included[0]->attributes->online_resource->link;	
-		echo_message_to_screen(INFO, $online_resource);
+		echo_message_to_screen(DEBUG, $online_resource);
 		fwrite($myfile,"," . $online_resource . ",");
 		return $online_resource;
 	} 
@@ -377,7 +376,7 @@ function get_item($shortCode, $itemID, $TalisGUID, $token) {
 	
 
 	if ($info1 !== 200){
-		echo_message_to_screen(ERROR, "ERROR: Unable to retrieve the resource data: <pre>" . var_export($output, true) . "</pre>");
+		echo_message_to_screen(WARNING, "WARNING: Unable to retrieve the resource data: <pre>" . var_export($output, true) . "</pre>");
 		return false;
 	} else {
 		echo_message_to_screen(DEBUG, "Successfully retrieved the resource data: <pre>" . var_export($output, true) . "</pre>");
@@ -401,7 +400,7 @@ function check_web_addresses($oldURL, $newURL, $web_address_array, $mode) {
 		echo_message_to_screen(INFO, "Found Matching URL at index: [$oldURL_found] \t");
 		fwrite($myfile,$oldURL_found . ",");
 	} else {
-		echo_message_to_screen(ERROR, "ERROR: no matching URL found in web address array. Moving onto next row...\t");
+		echo_message_to_screen(WARNING, "WARNING: no matching URL found in web address array. Moving onto next row...\t");
 		fwrite($myfile,"No matching URL found" . ",");
 	}
 	return $web_address_array;
@@ -434,7 +433,7 @@ function build_patch_body($resourceID, $web_addresses, $newURL) {
 	return json_encode($template_obj);
 }
 
-function post_url($shortCode, $resourceID, $body, $TalisGUID, $token) {
+function post_url($shortCode, $resourceID, $body, $TalisGUID, $token, $row) {
 	global $myfile;
 
 	$patch_url = "https://rl.talis.com/3/" . $shortCode . "/resources/" . $resourceID;
@@ -457,10 +456,10 @@ function post_url($shortCode, $resourceID, $body, $TalisGUID, $token) {
 	curl_close($ch2);
 	
 	if ($info2 !== 200){
-		echo_message_to_screen(ERROR, "ERROR: Resource URL Not Updated: <pre>" . var_export($output2, true) . "</pre>");
+		echo_message_to_screen(WARNING, "WARNING: Resource URL Not Updated: <pre>" . var_export($output2, true) . "</pre>");
 		fwrite($myfile,"Resource URL Not Updated\r\n");
 	} else {
-		echo_message_to_screen(INFO, "Resource URL Updated Successfully</br>");
+		echo_message_to_screen(DEBUG, "Resource URL Updated Successfully</br>");
 		fwrite($myfile,"Resource URL Updated Successfully\r\n");
 	}
 }
