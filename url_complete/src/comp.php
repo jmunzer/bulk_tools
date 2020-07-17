@@ -4,6 +4,7 @@ print("</br><a href='url.html'>Back to url tool</a>");
 
 // ini_set('display_errors', 1);
 // ini_set('display_startup_errors', 1);
+ini_set('max_execution_time', '600');
 // error_reporting(E_ALL);
 
 echo "<p>Starting...</p>";
@@ -103,10 +104,11 @@ if (!empty($jsontoken->access_token)){
 }
 
 // Read File
-$row = 1;
+$row = 0;
 if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 	while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 
+		$row++;
 		$num = count($line);
 		
 		$itemID = trim($line[0]);
@@ -138,6 +140,7 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		if(empty($oldURL) && empty($newURL)){
 			// this is a problem
 			echo_message_to_screen(ERROR, "Row " . $row . " does not appear to have either an old URL or a new URL. Moving onto next item.");
+			fwrite($myfile, "\r\n");
 			continue;
 		}
 
@@ -151,7 +154,12 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 			// point at 'url replace' function
 			replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token);
 		}
-		$row++;
+				
+        if($row <= 10 || $row % 10 == 0 ){
+		   // echo_message_to_screen(INFO, "Processed $row rows");
+		    echo "Processed $row rows </br>";
+		}
+		ob_flush();
 	}
 }
 
@@ -224,11 +232,11 @@ function get_online_resource($resource_data) {
 	if (! empty( $resource_data->included[0]->attributes->online_resource->link )) {
 		$online_resource = $resource_data->included[0]->attributes->online_resource->link;	
 		echo_message_to_screen(INFO, $online_resource);
-		fwrite($myfile,$online_resource . ",");
+		fwrite($myfile,"," . $online_resource . ",");
 		return $online_resource;
 	} 
 	echo_message_to_screen(INFO, "Online Resource is not set\t");
-	fwrite($myfile,"Online Resource is not set" . ",");
+	fwrite($myfile,",Online Resource is not set,");
 	return false;
 }
 
@@ -245,7 +253,9 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 		// get the existing web addresses
 		$resource_id = get_resource_id($resource_data);
 		$web_address_array = get_webaddress_array($resource_data);
+		// for reporting purposes only ->
 		$online_resource = get_online_resource($resource_data);
+		fwrite($myfile, ",");
 		// if there is no existing web addresses it is OK to proceed to add some.
 		// but we need to make sure that the array is present to add to.
 		if ($web_address_array === false) {
@@ -260,7 +270,7 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 		if ($shouldWritetoLive == "true") {
 			post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
 		} else {
-			fwrite($myfile, "Test Run");
+			fwrite($myfile, "Test Run\r\n");
 		}
 		increment_counter('URLs added: ');
 	}
@@ -278,7 +288,7 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token) {
 		// get the existing web addresses
 		$resource_id = get_resource_id($resource_data);
 		$web_address_array = get_webaddress_array($resource_data);
-		
+		$online_resource = get_online_resource($resource_data);
 		// if we do have web addresses that we can delete...
 		if ($web_address_array){
 
@@ -288,14 +298,13 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token) {
 			$body = build_patch_body($resource_id, $web_address_array, "");
 			
 			// check online resource
-			$online_resource = get_online_resource($resource_data);
 			$body = check_online_resource($oldURL, $online_resource, $body);
 			echo_message_to_screen(DEBUG, $body);
 			// if not a dry run - update
 			if ($shouldWritetoLive == "true") {
 				post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
 			} else {
-				fwrite($myfile, "Test Run");
+				fwrite($myfile, "Test Run\r\n");
 			}
 			increment_counter('URLs deleted: ');
 		} else {
@@ -329,7 +338,7 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token){
 			if ($shouldWritetoLive == "true") {
 				post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
 			} else {
-				fwrite($myfile, "Test Run");
+				fwrite($myfile, "Test Run\r\n");
 			}
 			increment_counter('URLs replaced: ');
 		} else {
