@@ -8,8 +8,8 @@ This guide will instruct you how to get these bulk tools working on a personal/w
 
 - First download & run XAMPP.
 
-        This can be found at [ApacheFriends](https://www.apachefriends.org/)
-         - Download the latest version for your operating system of choice.
+  This can be found at https://www.apachefriends.org/
+  - Download the latest version for your operating system of choice.
 
 - Once in the installer you will be prompted to 'Select Components'.
 
