@@ -115,22 +115,24 @@ if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
 		$oldURL = filter_var(trim($line[1]), FILTER_VALIDATE_URL);
 		$newURL = filter_var(trim($line[2]), FILTER_VALIDATE_URL);
 
+		echo_message_to_screen(INFO, "</br> ---- ---- ---- ---- ---- ---- </br>");
+
 		if (!empty ($itemID)) {
-			echo_message_to_screen(DEBUG, $itemID);
+			echo_message_to_screen(DEBUG, "Item ID: $itemID \t");
 			fwrite($myfile,$itemID . ",");
 		} else {
 			fwrite($myfile,",");
 		}
 
 		if (!empty ($oldURL)) {
-		echo_message_to_screen(DEBUG, $oldURL);
+		echo_message_to_screen(DEBUG, "Old URL: $oldURL \t");
 		fwrite($myfile,$oldURL . ",");
 		} else {
 			fwrite($myfile,",");
 		}
 
 		if (!empty ($newURL)) {
-		echo_message_to_screen(DEBUG, $newURL);
+		echo_message_to_screen(DEBUG, "New URL: $newURL \t");
 		fwrite($myfile,$newURL . ",");
 		} else {
 			fwrite($myfile,",");
@@ -167,7 +169,7 @@ function echo_message_to_screen($log_level, $message){
     // echo the log message if the log level says we should.
     if ($LOG_LEVEL >= $log_level) {
         $friendly_name = get_friendly_log_level_name($log_level);
-        echo "<p><strong>{$friendly_name}</strong>: $message</p>";
+        echo "</br><strong>{$friendly_name}</strong>: $message";
     }
 }
 function get_friendly_log_level_name($log_level) {
@@ -202,7 +204,7 @@ function get_resource_id($resource_data) {
 
 	if (! empty( $resource_data->included[0]->id )) {
 		$resource = $resource_data->included[0]->id;
-		echo_message_to_screen(DEBUG, "Resource ID: $resource\t");
+		echo_message_to_screen(DEBUG, "Resource ID: $resource \t");
 		fwrite($myfile,$resource . ",");
 		return $resource;	
 	} 
@@ -221,7 +223,7 @@ function get_webaddress_array($resource_data) {
 		return $web_addresses;
 	} 
 	echo_message_to_screen(INFO, "Web Address Array is empty\t");
-	fwrite($myfile,"Web Address Array is empty" . ",");
+	fwrite($myfile,"Web Address Array is empty,");
 	return false;
 }
 
@@ -230,12 +232,12 @@ function get_online_resource($resource_data) {
 
 	if (! empty( $resource_data->included[0]->attributes->online_resource->link )) {
 		$online_resource = $resource_data->included[0]->attributes->online_resource->link;	
-		echo_message_to_screen(DEBUG, $online_resource);
-		fwrite($myfile,"," . $online_resource . ",");
+		echo_message_to_screen(DEBUG, "Online resource currently set: $online_resource \t");
+		fwrite($myfile, $online_resource . ",");
 		return $online_resource;
 	} 
 	echo_message_to_screen(INFO, "Online Resource is not set\t");
-	fwrite($myfile,",Online Resource is not set,");
+	fwrite($myfile,"Online Resource is not set,");
 	return false;
 }
 
@@ -264,7 +266,7 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 		array_push($web_address_array, $newURL);
 		// build the PATCH body
 		$body = build_patch_body($resource_id, $web_address_array, $newURL);
-		echo_message_to_screen(DEBUG, $body);
+		echo_message_to_screen(DEBUG, "add_url patch request body: $body");
 		// if not a dry run - update
 		if ($shouldWritetoLive == "true") {
 			post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
@@ -279,7 +281,7 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token) {
 	global $myfile;
 	global $shouldWritetoLive;
 
-	echo_message_to_screen(INFO, "delete\t");
+	echo_message_to_screen(INFO, "delete \t");
 	fwrite($myfile,"delete" . ",");
 
 	$resource_data = get_item($shortCode, $itemID, $TalisGUID, $token);
@@ -298,7 +300,7 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token) {
 			
 			// check online resource
 			$body = check_online_resource($oldURL, $online_resource, $body);
-			echo_message_to_screen(DEBUG, $body);
+			echo_message_to_screen(DEBUG, "delete_url patch request body: $body");
 			// if not a dry run - update
 			if ($shouldWritetoLive == "true") {
 				post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
@@ -332,7 +334,7 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token){
 			$web_address_array = check_web_addresses($oldURL, $newURL, $web_address_array, "replace");
 			// build the PATCH body
 			$body = build_patch_body($resource_id, $web_address_array, $newURL);
-			echo_message_to_screen(DEBUG, $body);
+			echo_message_to_screen(DEBUG, "replace_url patch request body: $body");
 			// if not a dry run - update
 			if ($shouldWritetoLive == "true") {
 				post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
@@ -400,7 +402,7 @@ function check_web_addresses($oldURL, $newURL, $web_address_array, $mode) {
 		echo_message_to_screen(INFO, "Found Matching URL at index: [$oldURL_found] \t");
 		fwrite($myfile,$oldURL_found . ",");
 	} else {
-		echo_message_to_screen(WARNING, "WARNING: no matching URL found in web address array. Moving onto next row...\t");
+		echo_message_to_screen(WARNING, "WARNING: no matching URL found in web address array. Moving onto next row... \t");
 		fwrite($myfile,"No matching URL found" . ",");
 	}
 	return $web_address_array;
