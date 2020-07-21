@@ -8,7 +8,7 @@ This guide will instruct you how to get these bulk tools working on a personal/w
 
 - First download & run XAMPP.
 
-        This can be found at https://www.apachefriends.org/
+        This can be found at [ApacheFriends](https://www.apachefriends.org/)
          - Download the latest version for your operating system of choice.
 
 - Once in the installer you will be prompted to 'Select Components'.
@@ -56,7 +56,7 @@ This guide will instruct you how to get these bulk tools working on a personal/w
   - Enter your Shortcode,
   - Client ID,
   - Client Secret
-  - and talis_guid user guid (you can find this from the final column of the 'All User Profiles' report).
+  - and talis_guid user guid (this value can be found in the final column of the exported report: All User Profiles)
   - Check with Talis Support if you don't know what any of these values should be
 - click on: http://localhost/bulk_tools-master/index.html
 - Follow steps on webform.
@@ -123,4 +123,4 @@ If you forget to make the change on the last operation, don't worry, as you can 
 ## Report Files
 
 - Report files are under the root folder of ./report_files and are separated by function.
-- If you extracted the tool to the suggested location in the above steps, this will be: c:\xampp\htdocs\bulk_tools-master\report_files\
+- If you extracted the tool to the suggested location in the above steps, this will be: c:\xampp\htdocs\bulk_tools-master\report_files\. Alternatively, you can find quick links to the report files from the index page > Output Logs > Output Directory
