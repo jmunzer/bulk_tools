@@ -219,7 +219,7 @@ function get_webaddress_array($resource_data) {
 		$web_addresses = $resource_data->included[0]->attributes->web_addresses;		
 		echo_message_to_screen(DEBUG, print_r($web_addresses, TRUE));
 		$web_address_string = join(' | ', $web_addresses);
-		fwrite($myfile, $web_address_string) . ",";
+		fwrite($myfile, $web_address_string . ",");
 		return $web_addresses;
 	} 
 	echo_message_to_screen(INFO, "Web Address Array is empty\t");
