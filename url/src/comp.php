@@ -25,11 +25,11 @@ echo "</br>";
 // Test run or live run switch
 if(isset($_REQUEST['DRY_RUN']) &&
 	$_REQUEST['DRY_RUN'] == "writeToLive") {
-		$shouldWritetoLive = "true";
+		$shouldWritetoLive = true;
 	}
 	else
 	{
-		$shouldWritetoLive = "false";
+		$shouldWritetoLive = false;
 	}
 
 echo "Writing to live tenancy?: $shouldWritetoLive";
@@ -268,7 +268,7 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 		$body = build_patch_body($resource_id, $web_address_array, $newURL);
 		echo_message_to_screen(DEBUG, "add_url patch request body: $body");
 		// if not a dry run - update
-		if ($shouldWritetoLive == "true") {
+		if ($shouldWritetoLive = true) {
 			post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
 		} else {
 			fwrite($myfile, "Test Run\r\n");
@@ -302,7 +302,7 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token) {
 			$body = check_online_resource($oldURL, $online_resource, $body);
 			echo_message_to_screen(DEBUG, "delete_url patch request body: $body");
 			// if not a dry run - update
-			if ($shouldWritetoLive == "true") {
+			if ($shouldWritetoLive = true) {
 				post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
 			} else {
 				fwrite($myfile, "Test Run\r\n");
@@ -336,7 +336,7 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token){
 			$body = build_patch_body($resource_id, $web_address_array, $newURL);
 			echo_message_to_screen(DEBUG, "replace_url patch request body: $body");
 			// if not a dry run - update
-			if ($shouldWritetoLive == "true") {
+			if ($shouldWritetoLive = true) {
 				post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
 			} else {
 				fwrite($myfile, "Test Run\r\n");
