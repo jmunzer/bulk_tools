@@ -269,7 +269,7 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 		fwrite($myfile, ",");
 		// if there is no existing web addresses it is OK to proceed to add some.
 		// but we need to make sure that the array is present to add to.
-		if ($web_address_array === false) {
+		if (!is_array($web_address_array)) {
 			$web_address_array = [];
 		}
 		// add a new web addresses to the existing ones
