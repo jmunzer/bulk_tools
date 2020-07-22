@@ -48,7 +48,7 @@ const WARNING = 2;
 const ERROR = 1;
 
 // Error reporting User select
-// This currently defaults to ERROR as the first select in url.html
+// This currently defaults to WARNING as the first select in url.html
 $LOG_LEVEL = $_REQUEST['loglvl'];
 echo "Logging Level Selected: " . get_friendly_log_level_name($LOG_LEVEL) . "</br>";
 
@@ -360,13 +360,7 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token){
 			fwrite($myfile, "Resource URL Not Updated - Dry Run\r\n");
 		}
 	}
-	// get the item
-	// get the existing web addresses
-	// check that the web address to replace is present
-	// remove the old and the new
-	//$web_addresses[$oldURL_index] = $newURL;  // update the found address
-	// update the online resource
-	// if not a dry run - update
+
 }
 
 function get_item($shortCode, $itemID, $TalisGUID, $token) {
