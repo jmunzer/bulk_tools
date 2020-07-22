@@ -89,6 +89,7 @@ $ch = curl_init();
 		
 	if ($info !== 200){
 		echo_message_to_screen(ERROR, "Unable to retrieve an API token: <pre>" . var_export($return, true) . "</pre>");
+		exit;
 	} 
 
 curl_close($ch);
