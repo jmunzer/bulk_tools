@@ -126,6 +126,11 @@ while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 		exit;
 	}
 
+	// if this is the first row, detect and remove BOMs from UTF8 files.
+	if ($row === 1) {
+		trim($line[0], "\\xef\\xbb\\xbf");
+	}
+
 	$itemID = trim($line[0]);
 	$oldURL = filter_var(trim($line[1]), FILTER_VALIDATE_URL);
 	$newURL = filter_var(trim($line[2]), FILTER_VALIDATE_URL);
