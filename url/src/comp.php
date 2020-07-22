@@ -183,19 +183,19 @@ function echo_message_to_screen($log_level, $message){
     }
 }
 function get_friendly_log_level_name($log_level) {
-        // map log levels to friendly names for humans
-        $log_level_map = [
-            4 => "DEBUG",
-            3 => "INFO",
-            2 => "WARN",
-            1 => "ERROR"
-        ];
-        return $log_level_map[$log_level];
+    // map log levels to friendly names for humans
+    $log_level_map = [
+        4 => "DEBUG",
+        3 => "INFO",
+        2 => "WARN",
+        1 => "ERROR"
+    ];
+return $log_level_map[$log_level];
 }
 
 function increment_counter($counter_name) {
 	global $COUNTERS;
-		if (! isset($COUNTERS[$counter_name])) {
+	if (! isset($COUNTERS[$counter_name])) {
         $COUNTERS[$counter_name] = 1;
     } else {
         $COUNTERS[$counter_name] += 1;
@@ -399,7 +399,6 @@ function get_item($shortCode, $itemID, $TalisGUID, $token) {
 
 function check_web_addresses($oldURL, $newURL, $web_address_array, $mode) {
 	global $myfile;
-	// TODO move this into either of the replace and delete functions
 	$oldURL_found = array_search($oldURL, $web_address_array);
 	
 	if (isset($oldURL_found)) {
