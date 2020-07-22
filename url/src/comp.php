@@ -24,7 +24,7 @@ echo "</br>";
 
 // Test run or live run switch
 if(isset($_REQUEST['DRY_RUN']) &&
-	$_REQUEST['DRY_RUN'] == "writeToLive") {
+	$_REQUEST['DRY_RUN'] === "writeToLive") {
 		$shouldWritetoLive = true;
 	}
 	else
