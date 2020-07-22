@@ -357,7 +357,7 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token){
 			}
 			increment_counter('URLs replaced: ');
 		} else {
-			fwrite($myfile, "Resource URL Not Updated - Dry Run");
+			fwrite($myfile, "Resource URL Not Updated - Dry Run\r\n");
 		}
 	}
 	// get the item
