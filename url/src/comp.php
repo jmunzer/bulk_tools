@@ -58,7 +58,7 @@ $uploadfile = $uploaddir . basename($_FILES['userfile']['name']);
 
 echo 'File uploaded: ';
 if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile)) {
-	echo_message_to_screen(INFO, "File is valid, and was successfully uploaded."); //undecided
+	echo_message_to_screen(INFO, "File is valid, and was successfully uploaded.");
 } else {
 	exit("File is invalid and failed to upload - Please click back and try again.");
 }
