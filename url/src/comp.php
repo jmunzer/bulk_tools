@@ -110,17 +110,22 @@ if ($jsontoken === null ) {
 	}
 
 // Read File
-$row = 0;
 $file_handle = fopen($uploadfile, "r");
 if ($file_handle == FALSE) {
 	echo_message_to_screen(ERROR, "Could not open csv file - Process Stopped.");
     exit;
 }
+
+$row = 0;
 while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 
 	$row++;
-	$num = count($line);
-		
+
+	if ( count($line) !== 3) {
+		echo_message_to_screen(ERROR, "Number of columns in your CSV file should be 3");
+		exit;
+	}
+
 	$itemID = trim($line[0]);
 	$oldURL = filter_var(trim($line[1]), FILTER_VALIDATE_URL);
 	$newURL = filter_var(trim($line[2]), FILTER_VALIDATE_URL);
@@ -321,7 +326,6 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token) {
 		} else {
 			increment_counter('Delete operations with no web addresses on item: ');
 		}
-		increment_counter('URLs deleted: ');
 	}
 }
 
@@ -355,7 +359,6 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token){
 		} else {
 			fwrite($myfile, "Resource URL Not Updated - Dry Run");
 		}
-		increment_counter('URLs replaced: ');
 	}
 	// get the item
 	// get the existing web addresses
