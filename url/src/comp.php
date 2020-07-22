@@ -128,7 +128,7 @@ while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 
 	// if this is the first row, detect and remove BOMs from UTF8 files.
 	if ($row === 1) {
-		trim($lines[0], "\\xef\\xbb\\xbf");
+		trim($line[0], "\\xef\\xbb\\xbf");
 	}
 
 	$itemID = trim($line[0]);
