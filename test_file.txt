@@ -1,4 +1,0 @@
-36CBFA60-C957-5207-DF82-2A9B7F293383,https://dawsonera.com/isbn/9781,
-29D4F66E-4378-EF4C-E09B-CABFED8CC6D3,https://dawsonera.com/isbn/9782,
-ECE86381-2840-FB27-AE6F-457DB08F50D1,https://dawsonera.com/isbn/9783,
-137A7D11-94AC-586C-FB5F-294AAB5EBC9E,https://dawsonera.com/isbn/9784,
