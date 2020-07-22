@@ -278,7 +278,7 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 		$body = build_patch_body($resource_id, $web_address_array, $newURL);
 		echo_message_to_screen(DEBUG, "add_url patch request body: $body");
 		// if not a dry run - update
-		if ($shouldWritetoLive = true) {
+		if ($shouldWritetoLive === true) {
 			post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
 		} else {
 			fwrite($myfile, "Test Run\r\n");
