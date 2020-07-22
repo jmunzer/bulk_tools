@@ -88,7 +88,7 @@ $ch = curl_init();
 	$info = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 		
 	if ($info !== 200){
-		echo_message_to_screen(ERROR, "Unable to retrieve an API token: <pre>" . var_export($return, true) . "</pre>");
+		echo_message_to_screen(ERROR, "Unable to retrieve an API token: <pre>" . var_export($return, true) . "</pre> - Process Stopped.");
 		exit;
 	} 
 
@@ -96,13 +96,18 @@ curl_close($ch);
 
 $jsontoken = json_decode($return);
 
-if (!empty($jsontoken->access_token)){
-	$token = $jsontoken->access_token;
-	echo_message_to_screen(DEBUG, "Successfully retrieved an API token: $token");
-} else {
-	echo_message_to_screen(ERROR, "API token was retrieved but is empty");
+if ($jsontoken === null ) {
+	echo_message_to_screen(ERROR, "API token response was empty (NULL returned) - Process Stopped.")
 	exit;
-}
+} else {
+	if (!empty($jsontoken->access_token)){
+			$token = $jsontoken->access_token;
+			echo_message_to_screen(DEBUG, "Successfully retrieved an API token: $token");
+		} else {
+			echo_message_to_screen(ERROR, "API access_token was retrieved but is empty - Process Stopped.");
+			exit;
+		}
+	}
 
 // Read File
 $row = 0;
