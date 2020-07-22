@@ -190,7 +190,7 @@ function get_friendly_log_level_name($log_level) {
         2 => "WARN",
         1 => "ERROR"
     ];
-return $log_level_map[$log_level];
+    return $log_level_map[$log_level];
 }
 
 function increment_counter($counter_name) {
