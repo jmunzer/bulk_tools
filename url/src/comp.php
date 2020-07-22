@@ -111,64 +111,68 @@ if ($jsontoken === null ) {
 
 // Read File
 $row = 0;
-if (($file_handle = fopen($uploadfile, "r")) !== FALSE) {
-	while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
+$file_handle = fopen($uploadfile, "r")
+if ($file_handle == FALSE) {
+	echo_message_to_screen(ERROR, "Could not open csv file - Process Stopped.");
+    exit;
+}
+while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 
-		$row++;
-		$num = count($line);
+	$row++;
+	$num = count($line);
 		
-		$itemID = trim($line[0]);
-		$oldURL = filter_var(trim($line[1]), FILTER_VALIDATE_URL);
-		$newURL = filter_var(trim($line[2]), FILTER_VALIDATE_URL);
+	$itemID = trim($line[0]);
+	$oldURL = filter_var(trim($line[1]), FILTER_VALIDATE_URL);
+	$newURL = filter_var(trim($line[2]), FILTER_VALIDATE_URL);
 
-		echo_message_to_screen(INFO, "</br> ---- ---- ---- ---- ---- ---- </br>");
+	echo_message_to_screen(INFO, "</br> ---- ---- ---- ---- ---- ---- </br>");
 
-		if (!empty ($itemID)) {
-			echo_message_to_screen(DEBUG, "Item ID: $itemID \t");
-			fwrite($myfile,$itemID . ",");
-		} else {
-			fwrite($myfile,",");
-		}
+	if (!empty ($itemID)) {
+		echo_message_to_screen(DEBUG, "Item ID: $itemID \t");
+		fwrite($myfile,$itemID . ",");
+	} else {
+		fwrite($myfile,",");
+	}
 
-		if (!empty ($oldURL)) {
+	if (!empty ($oldURL)) {
 		echo_message_to_screen(DEBUG, "Old URL: $oldURL \t");
 		fwrite($myfile,$oldURL . ",");
-		} else {
+	} else {
 			fwrite($myfile,",");
-		}
+	}
 
-		if (!empty ($newURL)) {
+	if (!empty ($newURL)) {
 		echo_message_to_screen(DEBUG, "New URL: $newURL \t");
 		fwrite($myfile,$newURL . ",");
-		} else {
-			fwrite($myfile,",");
-		}
+	} else {
+		fwrite($myfile,",");
+	}
 
 		// Function-select logic
-		if(empty($oldURL) && empty($newURL)){
-			// this is a problem
-			echo_message_to_screen(WARNING, "WARNING: Row " . $row . " does not appear to have either an old URL or a new URL. Moving onto next item...");
-			fwrite($myfile, "\r\n");
-			continue;
-		}
+	if(empty($oldURL) && empty($newURL)){
+		// this is a problem
+		echo_message_to_screen(WARNING, "WARNING: Row " . $row . " does not appear to have either an old URL or a new URL. Moving onto next item...");
+		fwrite($myfile, "\r\n");
+		continue;
+	}
 
-		if (empty($oldURL)) {
-			//point at 'add url' function
-			add_url($itemID, $newURL, $shortCode, $TalisGUID, $token);
-			} elseif (empty($newURL)) {
-			// point at 'delete url' function
-			delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token);
-		} else {
-			// point at 'url replace' function
-			replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token);
-		}
+	if (empty($oldURL)) {
+		//point at 'add url' function
+		add_url($itemID, $newURL, $shortCode, $TalisGUID, $token);
+	} elseif (empty($newURL)) {
+		// point at 'delete url' function
+		delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token);
+	} else {
+		// point at 'url replace' function
+		replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token);
+	}
 				
-        if($row <= 10 || $row % 10 == 0 ){
-		   echo_message_to_screen(INFO, "Processed $row rows");
-		// echo "Processed $row rows </br>";
-		}
+    if($row <= 10 || $row % 10 == 0 ){
+	   echo_message_to_screen(INFO, "Processed $row rows");
+	// echo "Processed $row rows </br>";
 	}
 }
+
 
 function echo_message_to_screen($log_level, $message){
     global $LOG_LEVEL;
