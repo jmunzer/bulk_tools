@@ -312,7 +312,7 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token) {
 			$body = check_online_resource($oldURL, $online_resource, $body);
 			echo_message_to_screen(DEBUG, "delete_url patch request body: $body");
 			// if not a dry run - update
-			if ($shouldWritetoLive = true) {
+			if ($shouldWritetoLive === true) {
 				post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
 			} else {
 				fwrite($myfile, "Test Run\r\n");
