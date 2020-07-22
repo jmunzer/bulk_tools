@@ -97,7 +97,7 @@ curl_close($ch);
 $jsontoken = json_decode($return);
 
 if ($jsontoken === null ) {
-	echo_message_to_screen(ERROR, "API token response was empty (NULL returned) - Process Stopped.")
+	echo_message_to_screen(ERROR, "API token response was empty (NULL returned) - Process Stopped.");
 	exit;
 } else {
 	if (!empty($jsontoken->access_token)){
@@ -111,7 +111,7 @@ if ($jsontoken === null ) {
 
 // Read File
 $row = 0;
-$file_handle = fopen($uploadfile, "r")
+$file_handle = fopen($uploadfile, "r");
 if ($file_handle == FALSE) {
 	echo_message_to_screen(ERROR, "Could not open csv file - Process Stopped.");
     exit;
