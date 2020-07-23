@@ -1,5 +1,33 @@
 # TARL Bulk Tools
 
+This guide will demonstrate two methods of running this tool locally - Docker and XAMPP.
+
+## Running with Docker
+
+If you already have [Docker](https://docs.docker.com/get-docker/) installed/running on your machine then run the following command from the root directory of this project to start this tool:
+
+```
+docker run -d -p 80:80 -v "$PWD":/var/www/html php:7.2-apache
+```
+
+_This will mount your current directory into the docker image, so any changes will be reflected both-ways._
+The first run will spend a few moments downloading the php-apache image.  
+
+After it has completed simply navigate to "localhost" in your browser, and skip to [Running the tool](#running-the-tool) in the documentation below.
+
+If this is your first time running the tool (and not yet downloaded this repo) then the full set of commands to download and run would be:
+
+```
+git clone git@github.com:jmunzer/bulk_tools.git
+docker run -d -p 80:80 -v "$PWD":/var/www/html php:7.2-apache
+```
+
+Or alternatively, if you do not have git installed, follow the instructions below from [Putting the tool in the right place](#putting-the-tool-in-the-right-place).
+
+At the time of writing, Docker appears to work on all modern Operating Systems with the exception of Windows 10 Home Edition (they are hoping you will upgrade to 'Windows Pro')
+
+Alternatively...
+
 ## Running with XAMPP
 
 This guide will instruct you how to get these bulk tools working on a personal/work computer providing you have administrative rights enabled.
