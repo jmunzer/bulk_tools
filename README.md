@@ -4,6 +4,8 @@ This guide will demonstrate two methods of running this tool locally - Docker an
 
 ## Running with Docker
 
+_At the time of writing, Docker appears to work on all modern Operating Systems with the exception of Windows 10 Home Edition (they are hoping you will upgrade to 'Windows Pro').  Update: It seems it may be possible now to run Docker in Windows Home using WSL, according to the offical Docker instructions [here](https://docs.docker.com/docker-for-windows/install-windows-home/). However we have not tested this route ourselves, so your mileage may vary._
+
 If you already have [Docker](https://docs.docker.com/get-docker/) installed/running on your machine then run the following command from the root directory of this project to start this tool:
 
 ```
@@ -23,8 +25,6 @@ docker run -d -p 80:80 -v "$PWD":/var/www/html php:7.2-apache
 ```
 
 Or alternatively, if you do not have git installed, follow the instructions below from [Putting the tool in the right place](#putting-the-tool-in-the-right-place).
-
-At the time of writing, Docker appears to work on all modern Operating Systems with the exception of Windows 10 Home Edition (they are hoping you will upgrade to 'Windows Pro')
 
 Alternatively...
 
