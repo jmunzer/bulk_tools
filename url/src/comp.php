@@ -222,8 +222,8 @@ function counter_summary() {
 function get_resource_id($resource_data) {
 	global $myfile;
 
-	if (! empty( $resource_data->included[0]->id )) {
-		$resource = $resource_data->included[0]->id;
+	if (! empty( $resource_data->id )) {
+		$resource = $resource_data->id;
 		echo_message_to_screen(DEBUG, "Resource ID: $resource \t");
 		fwrite($myfile,$resource . ",");
 		return $resource;	
@@ -235,29 +235,25 @@ function get_resource_id($resource_data) {
 function get_webaddress_array($resource_data) {
 	global $myfile;
 
-	if (! empty( $resource_data->included[0]->attributes->web_addresses )) {
-		$web_addresses = $resource_data->included[0]->attributes->web_addresses;		
+	if (! empty( $resource_data->attributes->web_addresses )) {
+		$web_addresses = $resource_data->attributes->web_addresses;
 		echo_message_to_screen(DEBUG, print_r($web_addresses, TRUE));
 		$web_address_string = join(' | ', $web_addresses);
 		fwrite($myfile, $web_address_string . ",");
 		return $web_addresses;
-	} 
-	echo_message_to_screen(INFO, "Web Address Array is empty\t");
-	fwrite($myfile,"Web Address Array is empty,");
+	}
 	return false;
 }
 
 function get_online_resource($resource_data) {
 	global $myfile;
 
-	if (! empty( $resource_data->included[0]->attributes->online_resource->link )) {
-		$online_resource = $resource_data->included[0]->attributes->online_resource->link;	
+	if (! empty( $resource_data->attributes->online_resource->link )) {
+		$online_resource = $resource_data->attributes->online_resource->link;
 		echo_message_to_screen(DEBUG, "Online resource currently set: $online_resource \t");
 		fwrite($myfile, $online_resource . ",");
 		return $online_resource;
-	} 
-	echo_message_to_screen(INFO, "Online Resource is not set\t");
-	fwrite($myfile,"Online Resource is not set,");
+	}
 	return false;
 }
 
@@ -341,35 +337,88 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token){
 	echo_message_to_screen(INFO, "replace\t");
 	fwrite($myfile,"replace" . ",");
 
-	$resource_data = get_item($shortCode, $itemID, $TalisGUID, $token);
-	if($resource_data) {
-		// get the existing web addresses
-		$resource_id = get_resource_id($resource_data);
-		$web_address_array = get_webaddress_array($resource_data);
-		$online_resource = get_online_resource($resource_data);
+	$item_data = get_item($shortCode, $itemID, $TalisGUID, $token);
+	if($item_data) {
+		$resources = get_resources_from_item($item_data);
+		$resource_updated = false;
+		$web_address_found = false;
+		$online_resource_found = false;
+		foreach ($resources as $r) {
+			// get the existing web addresses
+			$resource_id = get_resource_id($r);
+			$web_address_array = get_webaddress_array($r);
+			$online_resource = get_online_resource($r);
 
-		if ($web_address_array) {
-			// add a new web addresses to the existing ones
-			$web_address_array = check_web_addresses($oldURL, $newURL, $web_address_array, "replace");
-			// build the PATCH body
-			$body = build_patch_body($resource_id, $web_address_array, $newURL);
-			echo_message_to_screen(DEBUG, "replace_url patch request body: $body");
-			// if not a dry run - update
-			if ($shouldWritetoLive === "true") {
-				post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
-			} else {
-				fwrite($myfile, "Test Run\r\n");
+			if ($online_resource !== false){
+				$online_resource_found = true;
 			}
-			increment_counter('URLs replaced: ');
-		} else {
+
+			if ($web_address_array) {
+				$web_address_found = true;
+				$resource_updated = true;
+				// add a new web addresses to the existing ones
+				$new_web_address_array = check_web_addresses($oldURL, $newURL, $web_address_array, "replace");
+				// If the online resource url matches the old url then change
+				$new_online_resource = ($online_resource === $oldURL) ? $newURL : $online_resource;
+				// Nothing further to do if there are no changes to make
+				if($web_address_array === $new_web_address_array && $online_resource === $new_online_resource){
+					echo_message_to_screen(DEBUG, "Nothing to update with this resource</br>");
+					fwrite($myfile,"Nothing to update with this resource\r\n");
+					continue;
+				}
+				// build the PATCH body
+				$body = build_patch_body($resource_id, $new_web_address_array, $new_online_resource);
+				echo_message_to_screen(DEBUG, "replace_url patch request body: $body");
+				// if not a dry run - update
+				if ($shouldWritetoLive === "true") {
+					post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
+				} else {
+					fwrite($myfile, "Test Run\r\n");
+				}
+				increment_counter('URLs replaced: ');
+			}
+		}
+		// We only want to flag these warnings if they do not happen for any resource in this item
+		if ($web_address_found === false){
+			echo_message_to_screen(INFO, "Web Address Array is empty\t");
+			fwrite($myfile,"Web Address Array is empty,");
+		}
+		if ($online_resource_found === false){
+			echo_message_to_screen(INFO, "Online Resource is not set\t");
+			fwrite($myfile,"Online Resource is not set,");
+		}
+		if ($resource_updated === false){
 			fwrite($myfile, "Resource URL Not Updated - Dry Run\r\n");
 		}
 	}
 
 }
 
+/**
+ * Extract all resources from the item data returned from the API
+ * There may be 0 or more resources found
+ *
+ * @param array $itemData
+ * @return array
+ */
+function get_resources_from_item(stdClass $itemData){
+	$resources = [];
+	if (!isset($itemData->included)){
+		return $resources;
+	}
+	foreach ($itemData->included as $v){
+		if(!isset($v->type)){
+			continue;
+		}
+		if($v->type == "resources"){
+			$resources[] = $v;
+		}
+	}
+	return $resources;
+}
+
 function get_item($shortCode, $itemID, $TalisGUID, $token) {
-	$item_lookup = "https://rl.talis.com/3/" . $shortCode . "/draft_items/" . $itemID . "?include=resource";
+	$item_lookup = "https://rl.talis.com/3/" . $shortCode . "/draft_items/" . $itemID . "?include=resource,resource.part_of";
 
 	$ch1 = curl_init();
 		
@@ -425,7 +474,7 @@ function check_online_resource($oldURL, $online_resource, $body) {
 	return json_encode($body_decoded);	
 }
 
-function build_patch_body($resourceID, $web_addresses, $newURL) {
+function build_patch_body($resourceID, $web_addresses, $new_online_resource_url) {
 
 	$template = '{
 				"data": {
@@ -435,7 +484,7 @@ function build_patch_body($resourceID, $web_addresses, $newURL) {
 						"web_addresses": [],
 						"online_resource": {
 							"source": "uri",
-							"link": "' . $newURL . '"
+							"link": "' . $new_online_resource_url . '"
 						}
 					} 
 				}
