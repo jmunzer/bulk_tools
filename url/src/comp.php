@@ -73,7 +73,8 @@ $myfile = fopen($logfile, "a") or die("Unable to open url_output.csv");
 // Write column headers
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 fwrite($myfile, "Write To Live Tenancy?: $shouldWritetoLive | User GUID: $TalisGUID \r\n\r\n");
-fwrite($myfile, "item id,old URL,new URL,transaction type,resource id,current web_address array,current online resource,match array,patch status\r\n");
+$r = new ReportRow();
+fwrite($myfile, $r->getCsvHeader()."\r\n");
 
 // Get an API token
 $ch = curl_init();
@@ -137,32 +138,29 @@ while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 
 	echo_message_to_screen(INFO, "</br> ---- ---- ---- ---- ---- ---- </br>");
 
+	$itemReport = new ReportRow();
+
 	if (!empty ($itemID)) {
 		echo_message_to_screen(DEBUG, "Item ID: $itemID \t");
-		fwrite($myfile,$itemID . ",");
-	} else {
-		fwrite($myfile,",");
+		$itemReport->itemID = $itemID;
 	}
 
 	if (!empty ($oldURL)) {
 		echo_message_to_screen(DEBUG, "Old URL: $oldURL \t");
-		fwrite($myfile,$oldURL . ",");
-	} else {
-			fwrite($myfile,",");
+		$itemReport->oldURL = $oldURL;
 	}
 
 	if (!empty ($newURL)) {
 		echo_message_to_screen(DEBUG, "New URL: $newURL \t");
-		fwrite($myfile,$newURL . ",");
-	} else {
-		fwrite($myfile,",");
+		$itemReport->newURL = $newURL;
 	}
 
 		// Function-select logic
 	if(empty($oldURL) && empty($newURL)){
 		// this is a problem
 		echo_message_to_screen(WARNING, "WARNING: Row " . $row . " does not appear to have either an old URL or a new URL. Moving onto next item...");
-		fwrite($myfile, "\r\n");
+		$row = $itemReport->getCsvRow();
+		fwrite($myfile, "$row\r\n");
 		continue;
 	}
 
@@ -174,12 +172,165 @@ while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 		delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token);
 	} else {
 		// point at 'url replace' function
-		replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token);
+		replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, $itemReport);
 	}
-				
+
+	$row = $itemReport->getCsvRow();
+	fwrite($myfile, "$row\r\n");
+	foreach($itemReport->getResourceReports() as $r){
+		$row = $r->getCsvRow();
+		fwrite($myfile, "$row\r\n");
+	}
     if($row <= 10 || $row % 10 == 0 ){
 	   echo_message_to_screen(INFO, "Processed $row rows");
 	// echo "Processed $row rows </br>";
+	}
+}
+
+class ReportRow {
+
+	public $itemID = "";
+	public $oldURL = "";
+	public $newURL = "";
+	public $transactionType = "";
+	public $resourceID = "";
+	public $currentWebAddressArray = "";
+	public $currentOnlineResource = "";
+	public $matchArray = "";
+	public $patchStatus = "";
+	public $failure = false;
+	public $updated = false;
+	private $resourceReports = [];
+
+
+	private function getFields()
+	{
+		return [
+			"item id" => $this->itemID,
+			"resource id" => $this->resourceID,
+			"old URL" => $this->oldURL,
+			"new URL" => $this->newURL,
+			"transaction type" => $this->transactionType,
+			"current web_address array" => $this->currentWebAddressArray,
+			"current online resource" => $this->currentOnlineResource,
+			"match array" => $this->matchArray,
+			"patch status" => $this->patchStatus,
+			"Updated" => $this->getUpdatedResponse(),
+			"failure" => $this->getFailureResponse(),
+			"Success" => $this->getSuccessResponse()
+		];
+	}
+
+	/**
+	 * Will decide the text to report for the "success" column.
+	 * It will not report a response if this is not an item.
+	 */
+	private function getSuccessResponse(){
+		if($this->itemID == ""){
+			return "";
+		}
+		else {
+			return $this->getSuccess() ? "Success" : "Failure";
+		}
+	}
+
+	/**
+	 * Will decide the text to report for the "updated" column.
+	 * It will not report a response if this is not a resource.
+	 */
+	private function getUpdatedResponse(){
+		if($this->resourceID == ""){
+			return "";
+		}
+		else {
+			return $this->updated ? "Updated" : "Not Updated";
+		}
+	}
+
+	/**
+	 * Will decide the text to report for the "updated" column.
+	 * It will not report a response if this is not a resource.
+	 */
+	private function getFailureResponse(){
+		if($this->resourceID == ""){
+			return "";
+		}
+		else {
+			return $this->failure ? "Failure" : "No Failure";
+		}
+	}
+
+	/**
+	 * This will examaine itself and all attached resource reports.
+	 *
+	 * It will report success only if none of them have been marked
+	 * as "failure", and at least one of them is marked a "updated".
+	 *
+	 * @return bool false if failure, true if success
+	 */
+	public function getSuccess(){
+		if (!$this->getFailure() && $this->getUpdated()){
+			return true;
+		}
+		return false;
+	}
+
+	public function getFailure(){
+		if ($this->failure == true) {
+			return true;
+		}
+		foreach($this->getResourceReports() as $r){
+			if ($r->getFailure()){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public function getUpdated(){
+		if ($this->updated == true) {
+			return true;
+		}
+		foreach($this->getResourceReports() as $r){
+			if ($r->getUpdated()){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Get the headers as a CSV row
+	 * @return string
+	 */
+	public function getCsvHeader(){
+		$headerArr = array_keys($this->getFields());
+		return join(",", $headerArr);
+	}
+
+	/**
+	 * Get the values as a CSV row
+	 * @return string
+	 */
+	public function getCsvRow(){
+		$rowArr = array_values($this->getFields());
+		return join(",", $rowArr);
+	}
+
+	/**
+	 * Add a resource report
+	 * @param $r ReportRow
+	 */
+	public function addResourceReport(ReportRow $r){
+		$this->resourceReports[] = $r;
+	}
+
+	/**
+	 * Get all resource reports
+	 * @return array
+	 */
+	public function getResourceReports(){
+		return $this->resourceReports;
 	}
 }
 
@@ -220,41 +371,30 @@ function counter_summary() {
 }
 
 function get_resource_id($resource_data) {
-	global $myfile;
-
 	if (! empty( $resource_data->id )) {
 		$resource = $resource_data->id;
 		echo_message_to_screen(DEBUG, "Resource ID: $resource \t");
-		fwrite($myfile,$resource . ",");
-		return $resource;	
+		return $resource;
 	} 
-	fwrite($myfile,",");
-	return false;
+	return "";
 }
 
 function get_webaddress_array($resource_data) {
-	global $myfile;
-
 	if (! empty( $resource_data->attributes->web_addresses )) {
 		$web_addresses = $resource_data->attributes->web_addresses;
 		echo_message_to_screen(DEBUG, print_r($web_addresses, TRUE));
-		$web_address_string = join(' | ', $web_addresses);
-		fwrite($myfile, $web_address_string . ",");
 		return $web_addresses;
 	}
-	return false;
+	return [];
 }
 
 function get_online_resource($resource_data) {
-	global $myfile;
-
 	if (! empty( $resource_data->attributes->online_resource->link )) {
 		$online_resource = $resource_data->attributes->online_resource->link;
 		echo_message_to_screen(DEBUG, "Online resource currently set: $online_resource \t");
-		fwrite($myfile, $online_resource . ",");
 		return $online_resource;
 	}
-	return false;
+	return "";
 }
 
 function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
@@ -330,12 +470,9 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token) {
 	}
 }
 
-function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token){
-	global $myfile;
+function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, ReportRow $itemReport){
 	global $shouldWritetoLive;
-	
 	echo_message_to_screen(INFO, "replace\t");
-	fwrite($myfile,"replace" . ",");
 
 	$item_data = get_item($shortCode, $itemID, $TalisGUID, $token);
 	if($item_data) {
@@ -344,10 +481,19 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token){
 		$web_address_found = false;
 		$online_resource_found = false;
 		foreach ($resources as $r) {
+			$report = new ReportRow();
+			$itemReport->addResourceReport($report);
+
+			$report->transactionType = "replace";
 			// get the existing web addresses
 			$resource_id = get_resource_id($r);
 			$web_address_array = get_webaddress_array($r);
 			$online_resource = get_online_resource($r);
+			$report->resourceID = $resource_id;
+			$report->currentWebAddressArray = empty($web_address_array) ? join(' | ', $web_address_array) : "Web address array is empty";
+			$report->currentOnlineResource = $online_resource;
+			$report->oldURL = $oldURL;
+			$report->newURL = $newURL;
 
 			if ($online_resource !== false){
 				$online_resource_found = true;
@@ -358,12 +504,15 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token){
 				$resource_updated = true;
 				// add a new web addresses to the existing ones
 				$new_web_address_array = check_web_addresses($oldURL, $newURL, $web_address_array, "replace");
+				if (empty(array_diff($new_web_address_array, $web_address_array))){
+					$report->matchArray = "No matching URL found";
+				}
 				// If the online resource url matches the old url then change
 				$new_online_resource = ($online_resource === $oldURL) ? $newURL : $online_resource;
 				// Nothing further to do if there are no changes to make
 				if($web_address_array === $new_web_address_array && $online_resource === $new_online_resource){
 					echo_message_to_screen(DEBUG, "Nothing to update with this resource</br>");
-					fwrite($myfile,"Nothing to update with this resource\r\n");
+					$report->patchStatus = "Nothing to update with this resource";
 					continue;
 				}
 				// build the PATCH body
@@ -371,27 +520,36 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token){
 				echo_message_to_screen(DEBUG, "replace_url patch request body: $body");
 				// if not a dry run - update
 				if ($shouldWritetoLive === "true") {
-					post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
+					$result = post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
+					if ($result) {
+						$report->patchStatus = "Resource URL Updated Successfully";
+					} else {
+						$report->patchStatus = "Resource URL Not Updated";
+						$report->failure = true;
+					}
 				} else {
-					fwrite($myfile, "Test Run\r\n");
+					$report->patchStatus = "Test Run";
 				}
 				increment_counter('URLs replaced: ');
+				$report->updated = true;
+			} else{
+				$report->currentWebAddressArray = "No web addresses found in resource";
 			}
 		}
 		// We only want to flag these warnings if they do not happen for any resource in this item
 		if ($web_address_found === false){
-			echo_message_to_screen(INFO, "Web Address Array is empty\t");
-			fwrite($myfile,"Web Address Array is empty,");
+			echo_message_to_screen(INFO, "Web Address not found in any resource\t");
+			$itemReport->currentWebAddressArray = "Web Address not found in any resource";
 		}
 		if ($online_resource_found === false){
 			echo_message_to_screen(INFO, "Online Resource is not set\t");
-			fwrite($myfile,"Online Resource is not set,");
+			$itemReport->currentOnlineResource = "Online Resource is not set";
 		}
 		if ($resource_updated === false){
-			fwrite($myfile, "Resource URL Not Updated - Dry Run\r\n");
+			$itemReport->matchArray = "Resource URL Not Updated - Dry Run";
 		}
 	}
-
+	return $itemReport;
 }
 
 /**
@@ -449,7 +607,6 @@ function get_item($shortCode, $itemID, $TalisGUID, $token) {
 }
 
 function check_web_addresses($oldURL, $newURL, $web_address_array, $mode) {
-	global $myfile;
 	$oldURL_found = array_search($oldURL, $web_address_array);
 	
 	if (isset($oldURL_found)) {
@@ -460,10 +617,8 @@ function check_web_addresses($oldURL, $newURL, $web_address_array, $mode) {
 			$web_address_array[$oldURL_found] = $newURL;
 		}
 		echo_message_to_screen(INFO, "Found Matching URL at index: [$oldURL_found] \t");
-		fwrite($myfile,$oldURL_found . ",");
 	} else {
 		echo_message_to_screen(WARNING, "WARNING: no matching URL found in web address array. Moving onto next row... \t");
-		fwrite($myfile,"No matching URL found" . ",");
 	}
 	return $web_address_array;
 }
@@ -496,8 +651,6 @@ function build_patch_body($resourceID, $web_addresses, $new_online_resource_url)
 }
 
 function post_url($shortCode, $resourceID, $body, $TalisGUID, $token) {
-	global $myfile;
-
 	$patch_url = "https://rl.talis.com/3/" . $shortCode . "/resources/" . $resourceID;
 	$ch2 = curl_init();
 
@@ -519,10 +672,10 @@ function post_url($shortCode, $resourceID, $body, $TalisGUID, $token) {
 	
 	if ($info2 !== 200){
 		echo_message_to_screen(WARNING, "WARNING: Resource URL Not Updated: <pre>" . var_export($output2, true) . "</pre>");
-		fwrite($myfile,"Resource URL Not Updated\r\n");
+		return false;
 	} else {
 		echo_message_to_screen(DEBUG, "Resource URL Updated Successfully</br>");
-		fwrite($myfile,"Resource URL Updated Successfully\r\n");
+		return true;
 	}
 }
 
