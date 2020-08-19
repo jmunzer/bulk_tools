@@ -166,10 +166,10 @@ while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 
 	if (empty($oldURL)) {
 		//point at 'add url' function
-		add_url($itemID, $newURL, $shortCode, $TalisGUID, $token);
+		add_url($itemID, $newURL, $shortCode, $TalisGUID, $token, $itemReport);
 	} elseif (empty($newURL)) {
 		// point at 'delete url' function
-		delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token);
+		delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token, $itemReport);
 	} else {
 		// point at 'url replace' function
 		replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, $itemReport);
@@ -183,7 +183,6 @@ while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 	}
     if($row <= 10 || $row % 10 == 0 ){
 	   echo_message_to_screen(INFO, "Processed $row rows");
-	// echo "Processed $row rows </br>";
 	}
 }
 
@@ -397,22 +396,36 @@ function get_online_resource($resource_data) {
 	return "";
 }
 
-function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
+function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token, ReportRow $itemReport) {
 	global $myfile;
 	global $shouldWritetoLive;
 
 	echo_message_to_screen(INFO, "add\t");
-	fwrite($myfile,"add" . ",");
 
-	// get the resource
-	$resource_data = get_item($shortCode, $itemID, $TalisGUID, $token);
-	if($resource_data) {
+	// get the resource (but we only add the URL to the primary resource)
+	$item_data = get_item($shortCode, $itemID, $TalisGUID, $token, false);
+	if($item_data) {
+		$resources = get_resources_from_item($item_data);
+		$resource_updated = false;
+
+		$report = new ReportRow();
+		$itemReport->addResourceReport($report);
+		$report->transactionType = "Add";
+
+		// get the primary resource.
+		$resource_data = $resources[0];
+
 		// get the existing web addresses
 		$resource_id = get_resource_id($resource_data);
 		$web_address_array = get_webaddress_array($resource_data);
 		// for reporting purposes only ->
 		$online_resource = get_online_resource($resource_data);
-		fwrite($myfile, ",");
+
+		$report->resourceID = $resource_id;
+		$report->currentWebAddressArray = empty($web_address_array) ? join(' | ', $web_address_array) : "Web address array is empty";
+		$report->currentOnlineResource = $online_resource;
+		$report->newURL = $newURL;
+
 		// if there is no existing web addresses it is OK to proceed to add some.
 		// but we need to make sure that the array is present to add to.
 		if (!is_array($web_address_array)) {
@@ -425,48 +438,99 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token) {
 		echo_message_to_screen(DEBUG, "add_url patch request body: $body");
 		// if not a dry run - update
 		if ($shouldWritetoLive === "true") {
-			post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
+			$result = post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
+			if ($result) {
+				$report->patchStatus = "Resource URL Updated Successfully";
+				$resource_updated = true;
+			} else {
+				$report->patchStatus = "Resource URL Not Updated";
+				$report->failure = true;
+				$resource_updated = false;
+			}
 		} else {
-			fwrite($myfile, "Test Run\r\n");
+			$report->patchStatus = "Test Run";
 		}
 		increment_counter('URLs added: ');
+		$report->updated = true;
+
+		if ($resource_updated === false){
+			$itemReport->matchArray = "Resource URL Not Updated - Dry Run";
+		}	
 	}
 }
 
-function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token) {
+function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token, ReportRow $itemReport) {
 	global $myfile;
 	global $shouldWritetoLive;
 
 	echo_message_to_screen(INFO, "delete \t");
-	fwrite($myfile,"delete" . ",");
 
-	$resource_data = get_item($shortCode, $itemID, $TalisGUID, $token);
-	if($resource_data) {
-		// get the existing web addresses
-		$resource_id = get_resource_id($resource_data);
-		$web_address_array = get_webaddress_array($resource_data);
-		$online_resource = get_online_resource($resource_data);
-		// if we do have web addresses that we can delete...
-		if ($web_address_array){
+	$item_data = get_item($shortCode, $itemID, $TalisGUID, $token);
+	if($item_data) {
+		$resources = get_resources_from_item($item_data);
 
-			// add a new web addresses to the existing ones
-			$web_address_array = check_web_addresses($oldURL, "", $web_address_array, "delete");
-			// build the PATCH body
-			$body = build_patch_body($resource_id, $web_address_array, "");
+		$resource_updated = false;
+		$web_address_found = false;
+		$online_resource_found = false;
+
+		foreach ($resources as $r){
+			$report = new ReportRow();
+			$itemReport->addResourceReport($report);
+			$report->transactionType = "delete";
 			
-			// check online resource
-			$body = check_online_resource($oldURL, $online_resource, $body);
-			echo_message_to_screen(DEBUG, "delete_url patch request body: $body");
-			// if not a dry run - update
-			if ($shouldWritetoLive === "true") {
-				post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
+			// get the existing web addresses
+			$resource_id = get_resource_id($r);
+			$web_address_array = get_webaddress_array($r);
+			$online_resource = get_online_resource($r);
+
+			$report->resourceID = $resource_id;
+			$report->currentWebAddressArray = empty($web_address_array) ? join(' | ', $web_address_array) : "Web address array is empty";
+			$report->currentOnlineResource = $online_resource;
+			$report->oldURL = $oldURL;
+
+			// if we do have web addresses that we can delete...
+			if ($web_address_array){
+				$web_address_found = true;
+				$web_address_array = check_web_addresses($oldURL, "", $web_address_array, "delete");
+				// build the PATCH body
+				$body = build_patch_body($resource_id, $web_address_array, "");
+				
+				// check online resource
+				$body = check_online_resource($oldURL, $online_resource, $body);
+				echo_message_to_screen(DEBUG, "delete_url patch request body: $body");
+				// if not a dry run - update
+				if ($shouldWritetoLive === "true") {
+					$result = post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
+					if ($result) {
+						$report->patchStatus = "Resource URL Deleted Successfully";
+					} else {
+						$report->patchStatus = "Resource URL Not Deleted";
+						$report->failure = true;
+					}
+				} else {
+					$report->patchStatus = "Test Run";
+				}
+				increment_counter('URLs deleted: ');
+				$report->updated = true;
 			} else {
-				fwrite($myfile, "Test Run\r\n");
+				$report->currentWebAddressArray = "No we addresses found in resource";
+				increment_counter('Delete operations with no web addresses on item: ');
 			}
-			increment_counter('URLs deleted: ');
-		} else {
-			increment_counter('Delete operations with no web addresses on item: ');
 		}
+
+		// We only want to flag these warnings if they do not happen for any resource in this item
+		if ($web_address_found === false){
+			echo_message_to_screen(INFO, "Web Address not found in any resource\t");
+			$itemReport->currentWebAddressArray = "Web Address not found in any resource";
+		}
+		if ($online_resource_found === false){
+			echo_message_to_screen(INFO, "Online Resource is not set\t");
+			$itemReport->currentOnlineResource = "Online Resource is not set";
+		}
+		if ($resource_updated === false){
+			$itemReport->matchArray = "Resource URL Not Updated - Dry Run";
+		}	
+
 	}
 }
 
@@ -501,7 +565,6 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, 
 
 			if ($web_address_array) {
 				$web_address_found = true;
-				$resource_updated = true;
 				// add a new web addresses to the existing ones
 				$new_web_address_array = check_web_addresses($oldURL, $newURL, $web_address_array, "replace");
 				if (empty(array_diff($new_web_address_array, $web_address_array))){
@@ -523,9 +586,11 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, 
 					$result = post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
 					if ($result) {
 						$report->patchStatus = "Resource URL Updated Successfully";
+						$resource_updated = true;
 					} else {
 						$report->patchStatus = "Resource URL Not Updated";
 						$report->failure = true;
+						$resource_updated = false;
 					}
 				} else {
 					$report->patchStatus = "Test Run";
@@ -575,8 +640,12 @@ function get_resources_from_item(stdClass $itemData){
 	return $resources;
 }
 
-function get_item($shortCode, $itemID, $TalisGUID, $token) {
-	$item_lookup = "https://rl.talis.com/3/" . $shortCode . "/draft_items/" . $itemID . "?include=resource,resource.part_of";
+function get_item($shortCode, $itemID, $TalisGUID, $token, $includePartOf=true) {
+	$partOf = "";
+	if ($includePartOf === true) {
+		$partOf = ",resource.part_of";
+	}
+	$item_lookup = "https://rl.talis.com/3/" . $shortCode . "/draft_items/" . $itemID . "?include=resource" . $partOf;
 
 	$ch1 = curl_init();
 		
