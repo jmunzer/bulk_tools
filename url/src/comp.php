@@ -278,7 +278,7 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token, ReportRow $it
 		$online_resource = get_online_resource($resource_data);
 
 		$report->resourceID = $resource_id;
-		$report->currentWebAddressArray = ! empty($web_address_array) ? join(' | ', $web_address_array) : "Web address array is empty";
+		$report->currentWebAddressArray = $web_address_array;
 		$report->currentOnlineResource = $online_resource;
 		$report->newURL = $newURL;
 
@@ -560,7 +560,8 @@ function check_web_addresses($oldURL, $newURL, $web_address_array, $mode) {
 	$oldURL_found = array_search($oldURL, $web_address_array);
 	echo_message_to_screen(DEBUG, "Array Search Result = {$oldURL_found}");
 
-	if (isset($oldURL_found) && $oldURL_found > -1) {
+	// array_search returns a false value if it did not find a match
+	if ( $oldURL_found !== false) {
 		if($mode == "delete") {
 			unset($web_address_array[$oldURL_found]);
 		} 
