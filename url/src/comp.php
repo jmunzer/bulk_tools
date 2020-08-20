@@ -298,17 +298,17 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token, ReportRow $it
 		if ($shouldWritetoLive === "true") {
 			$result = post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
 			if ($result) {
-				$report->actionMessage = "Resource URL Updated Successfully";
+				$report->actionMessage = "URL added Successfully";
 				$any_resource_updated = true;
 				$report->updated = true;
 			} else {
-				$report->actionMessage = "Resource URL Not Updated";
+				$report->actionMessage = "URL not added";
 				$report->failure = true;
 			}
 		} else {
 			$report->updated = true;
 			$itemReport->actionMessage = "Dry Run";
-			$report->actionMessage = "would be updated";
+			$report->actionMessage = "Would be updated";
 		}
 		increment_counter('URLs added: ');
 
@@ -371,6 +371,7 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token, ReportRow 
 				if ($shouldWritetoLive === "true") {
 					$result = post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
 					if ($result) {
+						$any_resource_updated = true;
 						$report->updated = true;
 						$report->actionMessage = "URL Deleted Successfully";
 					} else {
@@ -378,20 +379,19 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token, ReportRow 
 						$report->failure = true;
 					}
 				} else {
-					$itemReport->actionMessage = "Test Run";
+					$itemReport->actionMessage = "Dry Run";
 					$report->updated = true;
 					$report->actionMessage = "Would remove web address";
 				}
 				increment_counter('URLs deleted: ');
-			} else {
-				increment_counter('Delete operations with no web addresses on item: ');
-			}
+			} 
 		}
 
 		// We only want to flag these warnings if they do not happen for any resource in this item
 		if ($web_address_found === false){
 			echo_message_to_screen(INFO, "Web Address not found in any resource\t");
 			$itemReport->currentWebAddressArray = "Web Address not found in any resource";
+			increment_counter('Delete operations with no web addresses on item: ');
 		}
 		if ($online_resource_found === false){
 			echo_message_to_screen(INFO, "Online Resource is not set\t");
@@ -457,11 +457,11 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, 
 				if ($shouldWritetoLive === "true") {
 					$result = post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
 					if ($result) {
-						$report->actionMessage = "Resource URL Updated Successfully";
+						$report->actionMessage = "URL replaced successfully";
 						$report->updated = true;
 						$any_resource_updated = true;
 					} else {
-						$report->actionMessage = "Resource URL Not Updated";
+						$report->actionMessage = "URL not replaced";
 						$report->failure = true;
 						$any_resource_updated = false;
 					}
