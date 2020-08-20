@@ -384,7 +384,9 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token, ReportRow 
 					$report->actionMessage = "Would remove web address";
 				}
 				increment_counter('URLs deleted: ');
-			} 
+			} else {
+				$report->actionMessage = "Nothing to do";
+			}
 		}
 
 		// We only want to flag these warnings if they do not happen for any resource in this item
@@ -471,15 +473,15 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, 
 					$report->updated = true;
 				}
 				increment_counter('URLs replaced: ');
-			} else{
+			} else {
 				$report->actionMessage = "Nothing to do";
+				$report->updated = true;
 			}
 		}
 		// We only want to flag these if they do not happen for any resource in this item
 		if ($web_address_found === false){
 			echo_message_to_screen(INFO, "Web Address not found in any resource\t");
 			$itemReport->currentWebAddressArray = "Web Address not found in any resource";
-
 		}
 
 		if ($online_resource_found === false){
@@ -489,7 +491,9 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, 
 
 		if ($any_resource_updated === true){
 			$itemReport->actionMessage = "Item updated";
-		}	
+		} else {
+			$itemReport->actionMessage = "Item not updated";
+		}
 	}
 	return $itemReport;
 }
