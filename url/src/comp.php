@@ -444,14 +444,15 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, 
 				$new_web_address_array = check_web_addresses($oldURL, $newURL, $web_address_array, "replace");
 				$report->newWebAddressArray = $new_web_address_array;
 
-				$new_online_resource = $newURL;
-
 				// Nothing further to do if there are no changes to make
-				if($web_address_array === $new_web_address_array && $online_resource === $new_online_resource){
+				if($web_address_array === $new_web_address_array){
 					echo_message_to_screen(DEBUG, "Nothing to update with this resource</br>");
 					$report->actionMessage = "Nothing to do";
 					continue;
 				}
+
+				$new_online_resource = $newURL;
+
 				// build the PATCH body
 				$body = build_patch_body($resource_id, $new_web_address_array, $new_online_resource);
 				echo_message_to_screen(DEBUG, "replace_url patch request body: $body");
@@ -558,7 +559,7 @@ function get_item($shortCode, $itemID, $TalisGUID, $token, $includePartOf=true) 
 
 function check_web_addresses($oldURL, $newURL, $web_address_array, $mode) {
 	$oldURL_found = array_search($oldURL, $web_address_array);
-	echo_message_to_screen(DEBUG, "Array Search Result = {$oldURL_found}");
+	echo_message_to_screen(DEBUG, "Array Search Result = " . var_export($oldURL_found, true));
 
 	// array_search returns a false value if it did not find a match
 	if ( $oldURL_found !== false) {
