@@ -266,7 +266,7 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token, ReportRow $it
 
 		$report = new ReportRow();
 		$itemReport->addResourceReport($report);
-		$report->transactionType = "Add";
+		$report->transactionType = "add";
 
 		// get the primary resource.
 		$resource_data = $resources[0];
@@ -490,11 +490,10 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, 
 			$itemReport->currentOnlineResource = "Online Resource is not set";
 		}
 
-		if ($any_resource_updated === true && $shouldWritetoLive !== "true"){
+		if ($any_resource_updated === true){
 			$itemReport->actionMessage = "Item updated";
-		} else {
-			$itemReport->actionMessage = "Item not updated";
-		}
+		} 
+		
 	}
 	return $itemReport;
 }
