@@ -490,7 +490,7 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, 
 			$itemReport->currentOnlineResource = "Online Resource is not set";
 		}
 
-		if ($any_resource_updated === true){
+		if ($any_resource_updated === true && $shouldWritetoLive !== "true"){
 			$itemReport->actionMessage = "Item updated";
 		} else {
 			$itemReport->actionMessage = "Item not updated";
@@ -571,7 +571,7 @@ function check_web_addresses($oldURL, $newURL, $web_address_array, $mode) {
 		}
 		echo_message_to_screen(INFO, "Found Matching URL at index: [$oldURL_found] \t");
 	} else {
-		echo_message_to_screen(WARNING, "WARNING: no matching URL found in web address array. Moving onto next row... \t");
+		echo_message_to_screen(INFO, "No matching URL found in web address array. Moving onto next resource... \t");
 	}
 	return $web_address_array;
 }
