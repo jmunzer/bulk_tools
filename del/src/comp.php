@@ -155,7 +155,8 @@ while (!feof($file_handle) )  {
 		fwrite($myfile, $barc . "\t");
 
 		// writing list ID to array for bulk publish POST
-		$publishListArray[] = $assoc_listid;
+		$forListArray = ['type' => 'draft_lists', 'id' => $assoc_listid];
+		array_push($publishListArray, $forListArray);
 
 	if ($shouldWritetoLive == "true") {
 
@@ -226,34 +227,26 @@ while (!feof($file_handle) )  {
 	}
 }
 
-print_r($publishListArray);
+//print_r($publishListArray);
+//json_encode list array to prepare for API submisson
+$publishListArray_encoded = json_encode($publishListArray);
 
+//var_export($publishListArray_encoded);
 
 if ($shouldPublishLists === TRUE) {
 	//**************PUBLISH**LIST***************
-	$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $assoc_listid . '/publish_actions'; // change my endpoint
+	$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/bulk_list_publish_actions'; // change my endpoint
 	$input2 = '{
 				"data": {
 					"type": "bulk_list_publish_actions",
 					"relationships": {
 						"draft_lists": {
-							"data": ['
-
-							foreach($publishListArray as $v) {
-								'{
-									"type": "draft_lists",
-									"id": "' . $v . '"
-								},'
-							}
-							
-							']
+							"data": ' . $publishListArray_encoded . '
 						}
 					}
 				}	
 			}';
-		} // delete me after testing
-	print_r($input2);
-/*
+
 	//**************PUBLISH POST*****************
 	$ch3 = curl_init();
 
@@ -286,7 +279,6 @@ if ($shouldPublishLists === TRUE) {
 	echo "End of Record.";
 	echo "---------------------------------------------------</br></br>";
 }
-*/
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 
