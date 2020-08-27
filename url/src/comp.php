@@ -414,6 +414,8 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, 
 	$item_data = get_item($shortCode, $itemID, $TalisGUID, $token);
 	if($item_data) {
 		$resources = get_resources_from_item($item_data);
+		$primary_resource = get_primary_resource_from_item($item_data);
+
 		$any_resource_updated = false;
 		$web_address_found = false;
 		$online_resource_found = false;
@@ -451,11 +453,17 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, 
 					continue;
 				}
 
-				$new_online_resource = $newURL;
+				// If we are replacing the URL on the secondary (whole work, e.g. book, journal), don't update online resource
+				if ($resource_id === $primary_resource) {
+					$new_online_resource = $newURL;
+				} else {
+					$new_online_resource = "";
+				}
 
 				// build the PATCH body
 				$body = build_patch_body($resource_id, $new_web_address_array, $new_online_resource);
 				echo_message_to_screen(DEBUG, "replace_url patch request body: $body");
+
 				// if not a dry run - update
 				if ($shouldWritetoLive === "true") {
 					$result = post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
@@ -554,6 +562,18 @@ function get_item($shortCode, $itemID, $TalisGUID, $token, $includePartOf=true) 
 		return $output_json;
 	}
 
+}
+
+/**
+ * Determine which resource is primary 
+ */
+function get_primary_resource_from_item (array $item_data) {
+	// If there is a relationship, this is a part
+	if(!empty($item_data->relationships->resource->data->id)) {
+		return $item_data->relationships->resource->data->id;
+	}
+	echo_message_to_screen(WARNING, "Item had no relationship to a resource - it could be a paragraph?");
+	return false;
 }
 
 function check_web_addresses($oldURL, $newURL, $web_address_array, $mode) {
