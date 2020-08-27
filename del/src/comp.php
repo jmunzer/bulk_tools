@@ -228,21 +228,32 @@ while (!feof($file_handle) )  {
 
 print_r($publishListArray);
 
-/*
+
 if ($shouldPublishLists === TRUE) {
 	//**************PUBLISH**LIST***************
-	$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $assoc_listid . '/publish_actions';
+	$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $assoc_listid . '/publish_actions'; // change my endpoint
 	$input2 = '{
 				"data": {
-					"type": "list_publish_actions"
-				},
-				"meta": {
-					"has_unpublished_changes": "true",
-					"list_etag": "' . $etag2 . '",
-					"list_id": "' . $assoc_listid . '"
-				}
-			}';
+					"type": "bulk_list_publish_actions",
+					"relationships": {
+						"draft_lists": {
+							"data": ['
 
+							foreach($publishListArray as $v) {
+								'{
+									"type": "draft_lists",
+									"id": "' . $v . '"
+								},'
+							}
+							
+							']
+						}
+					}
+				}	
+			}';
+		} // delete me after testing
+	print_r($input2);
+/*
 	//**************PUBLISH POST*****************
 	$ch3 = curl_init();
 
