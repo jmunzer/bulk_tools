@@ -46,6 +46,7 @@ echo "User GUID to use: " . $TalisGUID;
 echo "</br>";
 
 $shouldPublishLists = filter_var($_REQUEST['PUBLISH_LISTS'], FILTER_VALIDATE_BOOLEAN) || FALSE;
+$publishListArray = array();
 
 echo "Should publish lists?: " . var_export($shouldPublishLists, true);
 echo "</br>";
@@ -153,6 +154,9 @@ while (!feof($file_handle) )  {
 		fwrite($myfile, $title . "\t");
 		fwrite($myfile, $barc . "\t");
 
+		// writing list ID to array for bulk publish POST
+		$publishListArray[] = $assoc_listid;
+
 	if ($shouldWritetoLive == "true") {
 
 	//**************DELETE_ITEM***************
@@ -219,56 +223,59 @@ while (!feof($file_handle) )  {
 	echo "    Updated ETag: " . $etag2 . "</br>";
 	echo "    ---------------------------------------------------";
 	echo "</br>";
-
-	if ($shouldPublishLists === TRUE) {
-		//**************PUBLISH**LIST***************
-		$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $assoc_listid . '/publish_actions';
-		$input2 = '{
-					"data": {
-						"type": "list_publish_actions"
-					},
-					"meta": {
-						"has_unpublished_changes": "true",
-						"list_etag": "' . $etag2 . '",
-						"list_id": "' . $assoc_listid . '"
-					}
-				}';
-
-		//**************PUBLISH POST*****************
-
-		$ch3 = curl_init();
-
-		curl_setopt($ch3, CURLOPT_URL, $patch_url2);
-		curl_setopt($ch3, CURLOPT_CUSTOMREQUEST, 'POST');
-		curl_setopt($ch3, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch3, CURLOPT_HTTPHEADER, array(
-
-			"X-Effective-User: $TalisGUID",
-			"Authorization: Bearer $token",
-			'Cache-Control: no-cache'
-		));
-
-		curl_setopt($ch3, CURLOPT_POSTFIELDS, $input2);
-
-
-		$output3 = curl_exec($ch3);
-		$info3 = curl_getinfo($ch3, CURLINFO_HTTP_CODE);
-		curl_close($ch3);
-		if ($info3 !== 202){
-			echo "<p>ERROR: There was an error publishing the list:</p><pre>" . var_export($output3, true) . "</pre>";
-			fwrite($myfile, "Publish failed" . "\t");
-			continue;
-		} else {
-			echo "    Published changes to $assoc_listid </br>";
-			fwrite($myfile, "Published successfully" . "\t");
-		}
 	}
+}
+
+print_r($publishListArray);
+
+/*
+if ($shouldPublishLists === TRUE) {
+	//**************PUBLISH**LIST***************
+	$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $assoc_listid . '/publish_actions';
+	$input2 = '{
+				"data": {
+					"type": "list_publish_actions"
+				},
+				"meta": {
+					"has_unpublished_changes": "true",
+					"list_etag": "' . $etag2 . '",
+					"list_id": "' . $assoc_listid . '"
+				}
+			}';
+
+	//**************PUBLISH POST*****************
+	$ch3 = curl_init();
+
+	curl_setopt($ch3, CURLOPT_URL, $patch_url2);
+	curl_setopt($ch3, CURLOPT_CUSTOMREQUEST, 'POST');
+	curl_setopt($ch3, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch3, CURLOPT_HTTPHEADER, array(
+
+		"X-Effective-User: $TalisGUID",
+		"Authorization: Bearer $token",
+		'Cache-Control: no-cache'
+	));
+
+	curl_setopt($ch3, CURLOPT_POSTFIELDS, $input2);
+
+	$output3 = curl_exec($ch3);
+	$info3 = curl_getinfo($ch3, CURLINFO_HTTP_CODE);
+	curl_close($ch3);
+	if ($info3 !== 202){
+		echo "<p>ERROR: There was an error publishing the list:</p><pre>" . var_export($output3, true) . "</pre>";
+		fwrite($myfile, "Publish failed" . "\t");
+		exit;
+	} else {
+		echo "    Published changes to $assoc_listid </br>";
+		fwrite($myfile, "Published successfully" . "\t");
 	}
+
 
 	fwrite($myfile, "\n");
 	echo "End of Record.";
 	echo "---------------------------------------------------</br></br>";
 }
+*/
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 
