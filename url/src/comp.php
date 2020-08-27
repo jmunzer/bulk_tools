@@ -77,7 +77,7 @@ $myfile = fopen($logfile, "a") or die("Unable to open url_output.csv");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 fwrite($myfile, "Write To Live Tenancy?: $shouldWritetoLive | User GUID: $TalisGUID \r\n\r\n");
 $r = new ReportRow();
-fwrite($myfile, $r->getCsvHeader()."\r\n");
+fwrite($myfile, "CSV Row,".$r->getCsvHeader()."\r\n");
 
 // Get an API token
 $ch = curl_init();
@@ -142,7 +142,7 @@ while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 	echo_message_to_screen(INFO, "</br> ---- ---- ---- ---- ---- ---- </br>");
 
 	$itemReport = new ReportRow();
-
+	
 	if (!empty ($itemID)) {
 		echo_message_to_screen(DEBUG, "Item ID: $itemID \t");
 		$itemReport->itemID = $itemID;
@@ -162,8 +162,8 @@ while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 	if(empty($oldURL) && empty($newURL)){
 		// this is a problem
 		echo_message_to_screen(WARNING, "WARNING: Row " . $row . " does not appear to have either an old URL or a new URL. Moving onto next item...");
-		$row = $itemReport->getCsvRow();
-		fwrite($myfile, "$row\r\n");
+		$reportRow = $itemReport->getCsvRow();
+		fwrite($myfile, "$row,$reportRow\r\n");
 		continue;
 	}
 
@@ -178,11 +178,11 @@ while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 		replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, $itemReport);
 	}
 
-	$row = $itemReport->getCsvRow();
-	fwrite($myfile, "$row\r\n");
+	$reportRow = $itemReport->getCsvRow();
+	fwrite($myfile, "$row,$reportRow\r\n");
 	foreach($itemReport->getResourceReports() as $r){
-		$row = $r->getCsvRow();
-		fwrite($myfile, "$row\r\n");
+		$reportRow = $r->getCsvRow();
+		fwrite($myfile, "$row,$reportRow\r\n");
 	}
     if($row <= 10 || $row % 10 == 0 ){
 	   echo_message_to_screen(INFO, "Processed $row rows");
