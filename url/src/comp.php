@@ -262,6 +262,7 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token, ReportRow $it
 	$item_data = get_item($shortCode, $itemID, $TalisGUID, $token, $getPartOf);
 	if($item_data) {
 		$resources = get_resources_from_item($item_data);
+		$primary_resource = get_primary_resource_from_item($item_data);
 		$any_resource_updated = false;
 
 		$report = new ReportRow();
@@ -277,7 +278,8 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token, ReportRow $it
 		// for reporting purposes only ->
 		$online_resource = get_online_resource($resource_data);
 
-		$report->resourceID = $resource_id;
+		$primary_or_secondary = ($resource_id === $primary_resource) ? ':primary' : ':secondary';
+		$report->resourceID = $resource_id . $primary_or_secondary;
 		$report->currentWebAddressArray = $web_address_array;
 		$report->currentOnlineResource = $online_resource;
 		$report->newURL = $newURL;
@@ -327,6 +329,7 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token, ReportRow 
 	$item_data = get_item($shortCode, $itemID, $TalisGUID, $token);
 	if($item_data) {
 		$resources = get_resources_from_item($item_data);
+		$primary_resource = get_primary_resource_from_item($item_data);
 
 		$any_resource_updated = false;
 		$web_address_found = false;
@@ -342,10 +345,15 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token, ReportRow 
 			$web_address_array = get_web_address_array($r);
 			$online_resource = get_online_resource($r);
 
-			$report->resourceID = $resource_id;
+			$primary_or_secondary = ($resource_id === $primary_resource) ? ':primary' : ':secondary';
+			$report->resourceID = $resource_id . $primary_or_secondary;
 			$report->currentWebAddressArray = $web_address_array;
 			$report->currentOnlineResource = $online_resource;
 			$report->oldURL = $oldURL;
+
+			if ($online_resource !== false){
+				$online_resource_found = true;
+			}
 
 			// if we do have web addresses that we can delete...
 			if ($web_address_array){
@@ -364,8 +372,11 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token, ReportRow 
 				// build the PATCH body
 				$body = build_patch_body($resource_id, $new_web_address_array, "");
 				
-				// check online resource
-				$body = check_online_resource($oldURL, $online_resource, $body);
+				// remove online resource if it is the current online resource or is already empty.
+				if ($online_resource === $oldURL || empty($online_resource)) {
+					$body = remove_online_resource($body);
+				}
+
 				echo_message_to_screen(DEBUG, "delete_url patch request body: $body");
 				// if not a dry run - update
 				if ($shouldWritetoLive === "true") {
@@ -429,7 +440,9 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, 
 			$resource_id = get_resource_id($r);
 			$web_address_array = get_web_address_array($r);
 			$online_resource = get_online_resource($r);
-			$report->resourceID = $resource_id;
+
+			$primary_or_secondary = ($resource_id === $primary_resource) ? ':primary' : ':secondary';
+			$report->resourceID = $resource_id . $primary_or_secondary;
 			$report->currentWebAddressArray = $web_address_array;
 			$report->currentOnlineResource = $online_resource;
 			$report->oldURL = $oldURL;
@@ -452,16 +465,17 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, 
 					$report->actionMessage = "Nothing to do";
 					continue;
 				}
-
-				// If we are replacing the URL on the secondary (whole work, e.g. book, journal), don't update online resource
-				if ($resource_id === $primary_resource) {
-					$new_online_resource = $newURL;
-				} else {
-					$new_online_resource = "";
-				}
-
+				$new_online_resource = $newURL;
+				
 				// build the PATCH body
 				$body = build_patch_body($resource_id, $new_web_address_array, $new_online_resource);
+				
+				// If we are replacing the URL on the secondary (whole work, e.g. book, journal), don't update online resource
+				// this will also result in the online resource being unset if it has been set in error.
+				if ($resource_id !== $primary_resource) {
+					$body = remove_online_resource($body);
+				}
+
 				echo_message_to_screen(DEBUG, "replace_url patch request body: $body");
 
 				// if not a dry run - update
@@ -567,10 +581,10 @@ function get_item($shortCode, $itemID, $TalisGUID, $token, $includePartOf=true) 
 /**
  * Determine which resource is primary 
  */
-function get_primary_resource_from_item (array $item_data) {
+function get_primary_resource_from_item ($item_data) {
 	// If there is a relationship, this is a part
-	if(!empty($item_data->relationships->resource->data->id)) {
-		return $item_data->relationships->resource->data->id;
+	if(!empty($item_data->data->relationships->resource->data->id)) {
+		return $item_data->data->relationships->resource->data->id;
 	}
 	echo_message_to_screen(WARNING, "Item had no relationship to a resource - it could be a paragraph?");
 	return false;
@@ -595,12 +609,18 @@ function check_web_addresses($oldURL, $newURL, $web_address_array, $mode) {
 	return $web_address_array;
 }
 
-function check_online_resource($oldURL, $online_resource, $body) {
+/** 
+ * Edit the patch body to remove the online resource
+ */
+function remove_online_resource($body) {
 	$body_decoded = json_decode($body, true);
 	$body_decoded['data']['attributes']['online_resource'] = null;
 	return json_encode($body_decoded);	
 }
 
+/**
+ * Build patch body to update the resource web addresses AND online resource.
+ */
 function build_patch_body($resourceID, $web_addresses, $new_online_resource_url) {
 
 	$template = '{
