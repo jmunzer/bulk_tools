@@ -248,7 +248,7 @@ function get_online_resource($resource_data) {
 		echo_message_to_screen(DEBUG, "Online resource currently set: $online_resource \t");
 		return $online_resource;
 	}
-	return "";
+	return false;
 }
 
 function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token, ReportRow $itemReport) {
@@ -294,8 +294,12 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token, ReportRow $it
 		$report->newWebAddressArray = $web_address_array;
 
 		// build the PATCH body
-		$body = build_patch_body($resource_id, $web_address_array, $newURL);
-		echo_message_to_screen(DEBUG, "add_url patch request body: $body");
+		$body = get_patch_template($resource_id);
+		$body = patch_web_addresses($body, $web_address_array);		
+		$body = patch_online_resource($body, $newURL);
+
+		echo_message_to_screen(DEBUG, "add_url patch request body: ". var_export($body, true));
+
 		// if not a dry run - update
 		if ($shouldWritetoLive === "true") {
 			$result = post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
@@ -355,29 +359,35 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token, ReportRow 
 				$online_resource_found = true;
 			}
 
-			// if we do have web addresses that we can delete...
+			// if we do have web addresses that we can work with...
 			if ($web_address_array){
 				$web_address_found = true;
 				$new_web_address_array = check_web_addresses($oldURL, "", $web_address_array, "delete");
 				$report->newWebAddressArray = $new_web_address_array;
 
-				// Nothing further to do if there are no changes to make
-				if($web_address_array === $new_web_address_array){
+				$body = get_patch_template($resource_id);
+
+				// update the web addresses if they have changed
+				if($web_address_array !== $new_web_address_array){
+					$body = patch_web_addresses($body, $new_web_address_array);
+				}
+
+				// remove online resource if it matches the URL to remove.
+				// If this is the secondary - we never want to have an online resource set there
+				if ($online_resource === $oldURL || $primary_resource !== $resource_id) {
+					$body = patch_online_resource($body, null);
+				}
+
+				// if no changes have been made to the template then there is nothing to do.
+				if ($body === get_patch_template($resource_id)) {
 					echo_message_to_screen(DEBUG, "Nothing to update with this resource</br>");
 					$report->actionMessage = "Nothing to do";
 					$report->updated = true;
 					continue;
 				}
 
-				// build the PATCH body
-				$body = build_patch_body($resource_id, $new_web_address_array, "");
-				
-				// remove online resource if it is the current online resource or is already empty.
-				if ($online_resource === $oldURL || empty($online_resource)) {
-					$body = remove_online_resource($body);
-				}
+				echo_message_to_screen(DEBUG, "delete_url patch request body: " . var_export($body, true));
 
-				echo_message_to_screen(DEBUG, "delete_url patch request body: $body");
 				// if not a dry run - update
 				if ($shouldWritetoLive === "true") {
 					$result = post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
@@ -448,6 +458,8 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, 
 			$report->oldURL = $oldURL;
 			$report->newURL = $newURL;
 
+			$successful_update_message = [];
+
 			if ($online_resource !== false){
 				$online_resource_found = true;
 			}
@@ -459,30 +471,44 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, 
 				$new_web_address_array = check_web_addresses($oldURL, $newURL, $web_address_array, "replace");
 				$report->newWebAddressArray = $new_web_address_array;
 
-				// Nothing further to do if there are no changes to make
-				if($web_address_array === $new_web_address_array){
-					echo_message_to_screen(DEBUG, "Nothing to update with this resource</br>");
-					$report->actionMessage = "Nothing to do";
-					continue;
-				}
 				$new_online_resource = $newURL;
-				
+
 				// build the PATCH body
-				$body = build_patch_body($resource_id, $new_web_address_array, $new_online_resource);
-				
-				// If we are replacing the URL on the secondary (whole work, e.g. book, journal), don't update online resource
-				// this will also result in the online resource being unset if it has been set in error.
-				if ($resource_id !== $primary_resource) {
-					$body = remove_online_resource($body);
+				$body = get_patch_template($resource_id);
+
+				// update the web addresses if they have changed
+				if($web_address_array !== $new_web_address_array){
+					$body = patch_web_addresses($body, $new_web_address_array);
+					$successful_update_message[] = 'Updated Web Address';
 				}
 
-				echo_message_to_screen(DEBUG, "replace_url patch request body: $body");
+				// Make sure the online resource is set to the new URL.
+				$body = patch_online_resource($body, $new_online_resource);
+
+				// But if this is the secondary - we never want to have an online resource set
+				// OR if the new online resource does not appear in the resource web address array, then API won't let us change it.
+				if ($primary_resource !== $resource_id || ! in_array($new_online_resource, $new_web_address_array)) {
+					if ($online_resource_found === true){
+						$successful_update_message[] = 'Had to remove online resource';
+					}
+					$body = patch_online_resource($body, null);
+				}
+
+				// if no changes have been made to the template then there is nothing to do.
+				if ($body === get_patch_template($resource_id)) {
+					echo_message_to_screen(DEBUG, "Nothing to update with this resource</br>");
+					$report->actionMessage = "Nothing to do";
+					$report->updated = true;
+					continue;
+				}
+
+				echo_message_to_screen(DEBUG, "replace_url patch request body:" . var_export($body, true));
 
 				// if not a dry run - update
 				if ($shouldWritetoLive === "true") {
 					$result = post_url($shortCode, $resource_id, $body, $TalisGUID, $token);
 					if ($result) {
-						$report->actionMessage = "URL replaced successfully";
+						$report->actionMessage = join(' | ', $successful_update_message);
 						$report->updated = true;
 						$any_resource_updated = true;
 					} else {
@@ -566,7 +592,6 @@ function get_item($shortCode, $itemID, $TalisGUID, $token, $includePartOf=true) 
 		$output_json = json_decode($output);
 	
 	curl_close($ch1);
-	
 
 	if ($info1 !== 200){
 		echo_message_to_screen(WARNING, "WARNING: Unable to retrieve the resource data: <pre>" . var_export($output, true) . "</pre>");
@@ -609,37 +634,49 @@ function check_web_addresses($oldURL, $newURL, $web_address_array, $mode) {
 	return $web_address_array;
 }
 
-/** 
- * Edit the patch body to remove the online resource
- */
-function remove_online_resource($body) {
-	$body_decoded = json_decode($body, true);
-	$body_decoded['data']['attributes']['online_resource'] = null;
-	return json_encode($body_decoded);	
-}
-
 /**
- * Build patch body to update the resource web addresses AND online resource.
+ * Get a basic patch template
  */
-function build_patch_body($resourceID, $web_addresses, $new_online_resource_url) {
-
+function get_patch_template($resource_id){
 	$template = '{
 				"data": {
 					"type": "resources",
-					"id": "' . $resourceID . '",
+					"id": "' . $resource_id . '",
 					"attributes": {
-						"web_addresses": [],
-						"online_resource": {
-							"source": "uri",
-							"link": "' . $new_online_resource_url . '"
-						}
 					} 
 				}
 			}';
-	$template_obj = json_decode($template, true);
-	$template_obj['data']['attributes']['web_addresses'] = $web_addresses;
+	$templateArr = json_decode($template, true);
+	return $templateArr;
+}
 
-	return json_encode($template_obj);
+/**
+ * Update the template with web address info
+ */
+function patch_web_addresses(array $templateArr, $web_addresses) {
+	$templateArr['data']['attributes']['web_addresses'] = $web_addresses;
+	return $templateArr;
+}
+
+/**
+ * Update the template with online resource info
+ */
+function patch_online_resource(array $templateArr, $online_resource){
+	if ($online_resource === false) {
+		// we are not going to include the online_resource field in the patch at all
+		return $templateArr;
+	}
+
+	if ($online_resource === null) {
+		// we are going to remove the online resource completely
+		$templateArr['data']['attributes']['online_resource'] = null;
+	} else {
+		$templateArr['data']['attributes']['online_resource'] = [
+			"source" => "uri",
+			"link" => $online_resource
+		];
+	}
+	return $templateArr;
 }
 
 function post_url($shortCode, $resourceID, $body, $TalisGUID, $token) {
@@ -656,7 +693,7 @@ function post_url($shortCode, $resourceID, $body, $TalisGUID, $token) {
 		'Cache-Control: no-cache'
 	));
 
-	curl_setopt($ch2, CURLOPT_POSTFIELDS, $body);
+	curl_setopt($ch2, CURLOPT_POSTFIELDS, json_encode($body));
 
 	$output2 = curl_exec($ch2);
 	$info2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
