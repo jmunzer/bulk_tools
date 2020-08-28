@@ -265,6 +265,7 @@ while (!feof($file_handle) )  {
 	echo "    Updated ETag: " . $etag2 . "</br>";
 	echo "    ---------------------------------------------------";
 	echo "</br>";
+}
 
 	//print_r($publishListArray);
 	//json_encode list array to prepare for API submisson
@@ -309,7 +310,7 @@ while (!feof($file_handle) )  {
 		if ($info3 !== 202){
 			echo "<p>ERROR: There was an error publishing the list:</p><pre>" . var_export($output3, true) . "</pre>";
 			fwrite($myfile, "Publish failed" . "\t");
-			continue;
+			exit;
 		} else {
 			echo "    Published changes to $listID</br>";
 			fwrite($myfile, "Published successfully" . "\t");
@@ -319,7 +320,6 @@ while (!feof($file_handle) )  {
 	fwrite($myfile, "\n");
 	echo "End of Record.";
 	echo "---------------------------------------------------</br></br>";
-}
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 
