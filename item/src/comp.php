@@ -278,7 +278,7 @@ while (!feof($file_handle) )  {
 	$publishListArray_encoded = json_encode($publishListArray);
 
 	//var_export($publishListArray_encoded);
-
+}
 	if ($shouldPublishLists === TRUE) {
 		//**************PUBLISH**LIST***************
 		$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/bulk_list_publish_actions'; // change my endpoint
@@ -316,7 +316,7 @@ while (!feof($file_handle) )  {
 		if ($info3 !== 202){
 			echo "<p>ERROR: There was an error publishing the list:</p><pre>" . var_export($output3, true) . "</pre>";
 			fwrite($myfile, "Publish failed" . "\t");
-			continue;
+			exit;
 		} else {
 			echo "    Published changes to $listID</br>";
 			fwrite($myfile, "Published successfully" . "\t");
@@ -326,7 +326,6 @@ while (!feof($file_handle) )  {
 	fwrite($myfile, "\n");
 	echo "End of Record.";
 	echo "---------------------------------------------------</br></br>";
-}
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 
