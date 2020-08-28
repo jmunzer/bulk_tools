@@ -235,7 +235,7 @@ $publishListArray_encoded = json_encode($publishListArray);
 
 if ($shouldPublishLists === TRUE) {
 	//**************PUBLISH**LIST***************
-	$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/bulk_list_publish_actions'; // change my endpoint
+	$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/bulk_list_publish_actions';
 	$input2 = '{
 				"data": {
 					"type": "bulk_list_publish_actions",
