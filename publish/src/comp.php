@@ -38,6 +38,8 @@ echo "</br>";
 echo "User GUID to use: " . $TalisGUID;
 echo "</br>";
 
+$publishListArray = array();
+
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
 $myfile = fopen("../../report_files/publish_output.log", "a") or die("Unable to open publish_output.log");
@@ -92,7 +94,6 @@ if (!empty($jsontoken->access_token)){
 	exit;
 }
 
-
 //***********READ**DATA******************
 
 $file_handle = fopen($uploadfile, "rb");
@@ -104,88 +105,66 @@ while (!feof($file_handle) )  {
 	
 	//************GRAB**AN**ETAG***************
 
-	$barc = trim($parts[0]);
+	$listID = trim($parts[0]);
 
-	$item_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $barc;
-	$ch1 = curl_init();
-	
-	curl_setopt($ch1, CURLOPT_URL, $item_lookup);
-	curl_setopt($ch1, CURLOPT_RETURNTRANSFER, 1);
-	curl_setopt($ch1, CURLOPT_HTTPHEADER, array(
-		
+	// writing list ID to array for bulk publish POST
+	$forListArray = ['type' => 'draft_lists', 'id' => $listID]; //check this $listID value
+	array_push($publishListArray, $forListArray);
+
+}
+
+	//print_r($publishListArray);
+	//json_encode list array to prepare for API submisson
+	$publishListArray_encoded = json_encode($publishListArray);
+
+	//var_export($publishListArray_encoded);
+
+	//**************PUBLISH**LIST***************
+	$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/bulk_list_publish_actions';
+	$input2 = '{
+				"data": {
+					"type": "bulk_list_publish_actions",
+					"relationships": {
+						"draft_lists": {
+							"data": ' . $publishListArray_encoded . '
+						}
+					}
+				}	
+			}';
+
+	//**************PUBLISH POST*****************
+
+	$ch3 = curl_init();
+
+	curl_setopt($ch3, CURLOPT_URL, $patch_url2);
+	curl_setopt($ch3, CURLOPT_CUSTOMREQUEST, 'POST');
+	curl_setopt($ch3, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch3, CURLOPT_HTTPHEADER, array(
+
 		"X-Effective-User: $TalisGUID",
 		"Authorization: Bearer $token",
 		'Cache-Control: no-cache'
-
 	));
-	$output = curl_exec($ch1);
-	$info1 = curl_getinfo($ch1, CURLINFO_HTTP_CODE);
-	$output_json = json_decode($output);
-	curl_close($ch1);
-	if ($info1 !== 200){
-		echo "<p>ERROR: There was an error getting the draft list:</p><pre>" . var_export($output, true) . "</pre>";
-		continue;
+
+	curl_setopt($ch3, CURLOPT_POSTFIELDS, $input2);
+
+
+	$output3 = curl_exec($ch3);
+	$info3 = curl_getinfo($ch3, CURLINFO_HTTP_CODE);
+	curl_close($ch3);
+	if ($info3 !== 202){
+		echo "<p>ERROR: There was an error publishing the list:</p><pre>" . var_export($output3, true) . "</pre>";
+		fwrite($myfile, "Publish failed" . "\t");
+		exit;
 	} else {
-		echo "    Got draft for list </br>";
+		echo "    Published changes to $listID</br>";
+		fwrite($myfile, "Published successfully" . "\t");
 	}
 
-	$title = $output_json->data->attributes->title;
-	$listID = $output_json->data->id;
-	$etag = $output_json->data->meta->list_etag;
-
-	echo "    Title: " . $title . "</br>";
-	fwrite($myfile, $title ."\t");
-	echo "    List ID: " . $listID . "</br>";
-	fwrite($myfile, $listID ."\t");
-	echo "    ETag: " . $etag . "</br>";
-			
-	//**************PUBLISH**LIST***************
-		$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $listID . '/publish_actions';
-		$input2 = '{
-					"data": {
-						"type": "list_publish_actions"
-					},
-					"meta": {
-						"has_unpublished_changes": "true",
-						"list_etag": "' . $etag . '",
-						"list_id": "' . $listID . '"
-					}
-				}';
-
-		//**************PUBLISH POST*****************
-
-		$ch3 = curl_init();
-
-		curl_setopt($ch3, CURLOPT_URL, $patch_url2);
-		curl_setopt($ch3, CURLOPT_CUSTOMREQUEST, 'POST');
-		curl_setopt($ch3, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch3, CURLOPT_HTTPHEADER, array(
-
-			"X-Effective-User: $TalisGUID",
-			"Authorization: Bearer $token",
-			'Cache-Control: no-cache'
-		));
-
-		curl_setopt($ch3, CURLOPT_POSTFIELDS, $input2);
-
-
-		$output3 = curl_exec($ch3);
-		$info3 = curl_getinfo($ch3, CURLINFO_HTTP_CODE);
-		curl_close($ch3);
-		if ($info3 !== 202){
-			echo "<p>ERROR: There was an error publishing the list:</p><pre>" . var_export($output3, true) . "</pre>";
-			fwrite($myfile, "Publish failed" . "\t");
-			continue;
-		} else {
-			echo "    Published changes to $listID</br>";
-			fwrite($myfile, "Published successfully" . "\t");
-		}
-	
-	
 	fwrite($myfile, "\n");
 	echo "End of Record.";
 	echo "---------------------------------------------------</br></br>";
-}
+
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 

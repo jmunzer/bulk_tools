@@ -78,7 +78,7 @@ echo "Should publish lists?: " . var_export($shouldPublishLists, true);
 echo "</br>";
 echo "</br>";
 
-
+$publishListArray = array();
 $uuidGen = new UUIDGenerator();
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
@@ -184,6 +184,11 @@ while (!feof($file_handle) )  {
 	echo "    ETag: " . $etag . "</br>";
 	echo "    UUID: " . $uuid . "</br>";
 	fwrite($myfile, $uuid ."\t");
+
+	// writing list ID to array for bulk publish POST
+	$forListArray = ['type' => 'draft_lists', 'id' => $listID]; //check this $listID value
+	array_push($publishListArray, $forListArray);
+
 	//**************ADD_ITEM***************
 	$patch_url = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/';
 
@@ -268,19 +273,24 @@ while (!feof($file_handle) )  {
 	echo "    ---------------------------------------------------";
 	echo "</br>";
 
+	//print_r($publishListArray);
+	//json_encode list array to prepare for API submisson
+	$publishListArray_encoded = json_encode($publishListArray);
+
+	//var_export($publishListArray_encoded);
 
 	if ($shouldPublishLists === TRUE) {
 		//**************PUBLISH**LIST***************
-		$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $listID . '/publish_actions';
+		$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/bulk_list_publish_actions'; // change my endpoint
 		$input2 = '{
 					"data": {
-						"type": "list_publish_actions"
-					},
-					"meta": {
-						"has_unpublished_changes": "true",
-						"list_etag": "' . $etag2 . '",
-						"list_id": "' . $listID . '"
-					}
+						"type": "bulk_list_publish_actions",
+						"relationships": {
+							"draft_lists": {
+								"data": ' . $publishListArray_encoded . '
+							}
+						}
+					}	
 				}';
 
 		//**************PUBLISH POST*****************
