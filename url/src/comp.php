@@ -372,7 +372,7 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token, ReportRow 
 				// update the web addresses if they have changed
 				if($web_address_array !== $new_web_address_array){
 					$body = patch_web_addresses($body, $new_web_address_array);
-					$actionMessagePart[] = 'URL Deleted';
+					$actionMessagePart[] = 'URL Deleted Successfully';
 				}
 
 				// remove online resource if it matches the URL to remove.
@@ -398,9 +398,9 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token, ReportRow 
 					if ($result) {
 						$any_resource_updated = true;
 						$report->updated = true;
-						$report->actionMessage = join(' | ', $actionMessagePart) . " Successfully";
+						$report->actionMessage = join(' | ', $actionMessagePart);
 					} else {
-						$report->actionMessage = join(' | ', $actionMessagePart) . " Failed";
+						$report->actionMessage = join(' | ', $actionMessagePart) . "| Actions Failed";
 						$report->failure = true;
 					}
 				} else {
