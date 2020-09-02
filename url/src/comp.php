@@ -339,10 +339,12 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token, ReportRow 
 		$web_address_found = false;
 		$online_resource_found = false;
 
+		
 		foreach ($resources as $r){
 			$report = new ReportRow();
 			$itemReport->addResourceReport($report);
 			$report->transactionType = "delete";
+			$actionMessagePart = [];
 			
 			// get the existing web addresses
 			$resource_id = get_resource_id($r);
@@ -370,12 +372,14 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token, ReportRow 
 				// update the web addresses if they have changed
 				if($web_address_array !== $new_web_address_array){
 					$body = patch_web_addresses($body, $new_web_address_array);
+					$actionMessagePart[] = 'URL Deleted';
 				}
 
 				// remove online resource if it matches the URL to remove.
 				// If this is the secondary - we never want to have an online resource set there
-				if ($online_resource === $oldURL || $primary_resource !== $resource_id) {
+				if ($online_resource === $oldURL || ($primary_resource !== $resource_id && $online_resource_found === true)) {
 					$body = patch_online_resource($body, null);
+					$actionMessagePart[] = 'Had to remove online resource';
 				}
 
 				// if no changes have been made to the template then there is nothing to do.
@@ -394,9 +398,9 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token, ReportRow 
 					if ($result) {
 						$any_resource_updated = true;
 						$report->updated = true;
-						$report->actionMessage = "URL Deleted Successfully";
+						$report->actionMessage = join(' | ', $actionMessagePart) . " Successfully";
 					} else {
-						$report->actionMessage = "URL Not Deleted";
+						$report->actionMessage = join(' | ', $actionMessagePart) . " Failed";
 						$report->failure = true;
 					}
 				} else {
