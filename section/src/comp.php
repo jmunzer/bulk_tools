@@ -233,19 +233,22 @@ while (!feof($file_handle) )  {
 
 	$section_patch = 'https://rl.talis.com/3/' . $shortCode . '/draft_sections';
 	
-	// EDIT THE BELOW JSON STRINGS
+	// EDIT THE BELOW PLACEHOLDER VALUES TO SET SECTION TITLE AND DESCRIPTION
 	// 
-	// Line 247: "description": "insert desired section description"
-	// Line 248: "title": "insert desired section title"
+	// Insert desired section title
+	$section_title = "replace me with section title text";
+	// Insert desired section description
+	$section_description = "Replace me with section description's text";
 	//
+	// DO NOT EDIT BELOW THIS LINE
 	
 	$inp = '{
 		"data": {
 		  "id": "' . $uuid . '",
 		  "type": "sections",
 		  "attributes": {
-			"description": "If you have a disability and an item on this module reading list isn\'t accessible to you in its current format (and you\'re registered with the Library\'s Accessibility Support Service), you can find accessible formats of books on RNIB Bookshare, or if they are not available through there, request accessible scans of items using the Document Scanning Request form.",
-			"title": "Library Accessibility Support Service for disabled students"
+			"description": "' . $section_description . '",
+			"title": "' . $section_title . '"
 		  },
 		  "links": {},
 		  "meta": {},
