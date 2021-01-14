@@ -8,33 +8,20 @@ error_reporting(E_ALL);
 
 echo "<p>Starting</p>";
 
-//classes
+function guidv4($data = null) {
 
-	//uuid classes
-	class UUIDGenerator {
-		private $uuids = [];
-		private $preFetch;
-	
-		/**
-		 * @param int $preFetch The number of uuids to cache-ahead when generating
-		 **/
-		public function __construct($preFetch = 100){
-			$this->preFetch = $preFetch;
-		}
-		
-		private function refreshUUIDS(){
-			$response = file_get_contents("https://www.uuidgenerator.net/api/version4/$this->preFetch");
-			$this->uuids = explode("\n", $response);
-			array_pop($this->uuids);
-		}
-	
-		public function getUUID(){
-			if(count($this->uuids) == 0){
-			  $this->refreshUUIDS();
-			}
-			return trim(array_pop($this->uuids));
-		}
-	}
+    // Generate 16 bytes (128 bits) of random data or use the data passed into the function.
+    $data = $data ?? random_bytes(16);
+    assert(strlen($data) == 16);
+
+    // Set version to 0100
+    $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+    // Set bits 6-7 to 10
+    $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+
+    // Output the 36 character UUID.
+    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+}
 
 //*****************GRAB_INPUT_DATA**********
 
@@ -79,7 +66,6 @@ echo "</br>";
 echo "</br>";
 
 $publishListArray = array();
-$uuidGen = new UUIDGenerator();
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
@@ -142,7 +128,7 @@ $file_handle = fopen($uploadfile, "rb");
 
 while (!feof($file_handle) )  {
 
-	$uuid = $uuidGen->getUUID();
+	$uuid = guidv4();
 	$line_of_text = fgets($file_handle);
 	$parts = explode(" ", $line_of_text);
 	
