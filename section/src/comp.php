@@ -233,6 +233,12 @@ while (!feof($file_handle) )  {
 
 	$section_patch = 'https://rl.talis.com/3/' . $shortCode . '/draft_sections';
 	
+	// EDIT THE BELOW JSON STRINGS
+	// 
+	// Line 247: "description": "insert desired section description"
+	// Line 248: "title": "insert desired section title"
+	//
+	
 	$inp = '{
 		"data": {
 		  "id": "' . $uuid . '",
@@ -300,7 +306,7 @@ while (!feof($file_handle) )  {
 	}
 
 
-// COPY, PASTE OR DELETE BLOCKS BELOW TO BUILD DESIRED STRUCTURE
+// START OF STRUCTURE-BUILDING AREA - COPY, PASTE OR DELETE BLOCKS BELOW TO BUILD DESIRED STRUCTURE
 
 	//**************ITEM_1*****************
 	$uuid = guidv4();
