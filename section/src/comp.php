@@ -26,33 +26,6 @@ function guidv4($data = null) {
     return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
 
-function grab_etag($shortCode, $barc, $TalisGUID, $token) {
-	
-	$item_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $barc;
-	$ch_etag = curl_init();
-
-	curl_setopt($ch_etag, CURLOPT_URL, $item_lookup);
-	curl_setopt($ch_etag, CURLOPT_RETURNTRANSFER, 1);
-	curl_setopt($ch_etag, CURLOPT_HTTPHEADER, array(
-
-		"X-Effective-User: $TalisGUID",
-		"Authorization: Bearer $token",
-		'Cache-Control: no-cache'
-
-	));
-	$output_etag = curl_exec($ch_etag);
-	$info4 = curl_getinfo($ch_etag, CURLINFO_HTTP_CODE);
-	$output_json_etag = json_decode($output_etag);
-	curl_close($ch_etag);
-
-	$etag = $output_json_etag->data->meta->list_etag;
-	echo "    Updated ETag: " . $etag . "</br>";
-	echo "    ---------------------------------------------------";
-	echo "</br>";
-
-	return $etag;
-}
-
 function itemPost($shortCode, $TalisGUID, $token, $input, $myfile, $uuid, $uuid_section) {
 	$item_patch = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/';
 	$ch_item = curl_init();
@@ -73,6 +46,9 @@ function itemPost($shortCode, $TalisGUID, $token, $input, $myfile, $uuid, $uuid_
 	$output = curl_exec($ch_item);
 	$info = curl_getinfo($ch_item, CURLINFO_HTTP_CODE);
 
+	$output_json_etag = json_decode($output);
+	$etag = $output_json_etag->meta->list_etag;
+
 	curl_close($ch_item);
 	if ($info !== 201){
 		echo "<p>ERROR: There was an error adding the item:</p><pre>" . var_export($output, true) . "</pre>";
@@ -81,6 +57,7 @@ function itemPost($shortCode, $TalisGUID, $token, $input, $myfile, $uuid, $uuid_
 		echo "    Added item $uuid to section $uuid_section</br>";
 		fwrite($myfile, "Item $uuid added successfully" . "\t");
 	}
+	return $etag;
 }
 
 function itemBody($etag, $listID, $uuid, $uuid_section, $resource) {
@@ -308,7 +285,10 @@ while (!feof($file_handle) )  {
 	
 	$output_section = curl_exec($ch_section);
 	$info_section = curl_getinfo($ch_section, CURLINFO_HTTP_CODE);
-
+	
+	$output_json_section = json_decode($output_section);
+	$etag = $output_json_section->meta->list_etag;
+	
 	curl_close($ch_section);
 	if ($info_section !== 201){
 		echo "<p>ERROR: There was an error adding the section:</p><pre>" . var_export($output_section, true) . "</pre>";
@@ -320,37 +300,31 @@ while (!feof($file_handle) )  {
 	}
 
 
+// COPY, PASTE OR DELETE BLOCKS BELOW TO BUILD DESIRED STRUCTURE
 
 	//**************ITEM_1*****************
-	// Grab another eTag & UUID
-	$etag = grab_etag($shortCode, $barc, $TalisGUID, $token);
 	$uuid = guidv4();
-
-	$resource = "61074635-D0EE-C0B5-DC9F-C0A684820DA4";
+	$resource = "61074635-D0EE-C0B5-DC9F-C0A684820DA4"; //GET THIS RESOURCE ID FROM TARL - EDIT RESOURCE URL
 	$input = itemBody($etag, $listID, $uuid, $uuid_section, $resource);
-	itemPost($shortCode, $TalisGUID, $token, $input, $myfile, $uuid, $uuid_section);
+	$etag = itemPost($shortCode, $TalisGUID, $token, $input, $myfile, $uuid, $uuid_section);
+	//**************************************
 
-	//**************ITEM_2*****************
-	// Grab another eTag & UUID
-	$etag = grab_etag($shortCode, $barc, $TalisGUID, $token);
+	//**************ITEM_2******************
 	$uuid = guidv4();
-	
 	$resource = "9F64F566-3C07-9EF1-A6E3-77D4D694EBA6";
 	$input = itemBody($etag, $listID, $uuid, $uuid_section, $resource);
-	itemPost($shortCode, $TalisGUID, $token, $input, $myfile, $uuid, $uuid_section);
+	$etag = itemPost($shortCode, $TalisGUID, $token, $input, $myfile, $uuid, $uuid_section);
+	//**************************************
 
 	//**************ITEM_3*****************
-	// Grab another eTag & UUID
-	$etag = grab_etag($shortCode, $barc, $TalisGUID, $token);
 	$uuid = guidv4();
-	
 	$resource = "B986A749-F293-3976-40D4-5F616CEAB683";
 	$input = itemBody($etag, $listID, $uuid, $uuid_section, $resource);
-	itemPost($shortCode, $TalisGUID, $token, $input, $myfile, $uuid, $uuid_section);
-	
-	
-	
-	
+	$etag = itemPost($shortCode, $TalisGUID, $token, $input, $myfile, $uuid, $uuid_section);	
+	//**************************************
+
+// END OF STRUCTURE-BUILDING AREA - DO NOT EDIT DATA BELOW THIS LINE (UNLESS YOU KNOW WHAT YOU ARE DOING) :)
+
 	//print_r($publishListArray);
 	//json_encode list array to prepare for API submisson
 	$publishListArray_encoded = json_encode($publishListArray);
