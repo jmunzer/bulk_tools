@@ -112,8 +112,8 @@ while (!feof($file_handle) )  {
 
 	$line_of_text = fgets($file_handle);
 	$parts = explode(" ", $line_of_text);
-	$barc = trim($parts[0]);
-	$section_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_sections/' . $barc . '?include=list';
+	$section_guid = trim($parts[0]);
+	$section_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_sections/' . $section_guid . '?include=list';
 
 	//************GRAB**LIST**DETAILS*************
 
@@ -151,12 +151,12 @@ while (!feof($file_handle) )  {
 		fwrite($myfile, $title . "\t");
 		fwrite($myfile, $assoc_listid . "\t");
 		fwrite($myfile, $title . "\t");
-		fwrite($myfile, $barc . "\t");
+		fwrite($myfile, $section_guid . "\t");
 
 	if ($shouldWritetoLive == "true") {
 
 	//**************DELETE_SECTION***************
-	$section_to_delete = 'https://rl.talis.com/3/' . $shortCode . '/draft_sections/' . $barc;
+	$section_to_delete = 'https://rl.talis.com/3/' . $shortCode . '/draft_sections/' . $section_guid;
 
 	$input = '	{
 					"meta": {
@@ -191,7 +191,7 @@ while (!feof($file_handle) )  {
 		fwrite($myfile, "Section not deleted - failed" . "\t");
 		continue;
 	} else {
-		echo "    Deleted section $barc from list $assoc_listid</br>";
+		echo "    Deleted section $section_guid from list $assoc_listid</br>";
 		fwrite($myfile, "Section deleted successfully" . "\t");
 	}
 
