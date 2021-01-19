@@ -225,8 +225,8 @@ while (!feof($file_handle) )  {
 		$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/bulk_list_publish_actions';
 		$input2 = '{
 			"data": {
-			  "id": "' . $listID . '",
-			  "type": "list",
+			  "id": "' . $assoc_listid . '",
+			  "type": "bulk_list_publish_actions",
 			  "attributes": {},
 			  "links": {},
 			  "meta": {},
@@ -234,7 +234,7 @@ while (!feof($file_handle) )  {
 				"draft_lists": {
 				  "data": [
 					{
-					  "id": "' . $listID . '",
+					  "id": "' . $assoc_listid . '",
 					  "type": "list"
 					}
 				  ]
