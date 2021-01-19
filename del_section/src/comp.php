@@ -159,7 +159,7 @@ while (!feof($file_handle) )  {
 	if ($shouldWritetoLive == "true") {
 
 	// writing list ID to array for bulk publish POST
-	$forListArray = ['type' => 'draft_lists', 'id' => $listID]; //check this $listID value
+	$forListArray = ['type' => 'draft_lists', 'id' => $assoc_listid]; //check this $listID value
 	array_push($publishListArray, $forListArray);
 
 	//**************DELETE_SECTION***************
