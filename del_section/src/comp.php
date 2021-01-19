@@ -247,7 +247,7 @@ while (!feof($file_handle) )  {
 			fwrite($myfile, "Publish failed" . "\t");
 			exit;
 		} else {
-			echo "    Published changes to $listID</br>";
+			echo "    Published changes to $assoc_listid</br>";
 			fwrite($myfile, "Published successfully" . "\t");
 		}
 	}
