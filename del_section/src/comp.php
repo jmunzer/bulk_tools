@@ -156,7 +156,7 @@ while (!feof($file_handle) )  {
 	if ($shouldWritetoLive == "true") {
 
 	//**************DELETE_SECTION***************
-	$patch_url = 'https://rl.talis.com/3/' . $shortCode . '/draft_sections/' . $barc;
+	$section_to_delete = 'https://rl.talis.com/3/' . $shortCode . '/draft_sections/' . $barc;
 
 	$input = '	{
 					"meta": {
