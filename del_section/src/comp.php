@@ -222,17 +222,26 @@ while (!feof($file_handle) )  {
 
 	if ($shouldPublishLists === TRUE) {
 		//**************PUBLISH**LIST***************
-		$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $assoc_listid . '/publish_actions';
+		$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/bulk_list_publish_actions';
 		$input2 = '{
-					"data": {
-						"type": "list_publish_actions"
-					},
-					"meta": {
-						"has_unpublished_changes": "true",
-						"list_etag": "' . $etag2 . '",
-						"list_id": "' . $assoc_listid . '"
+			"data": {
+			  "id": "' . $listID . '",
+			  "type": "list",
+			  "attributes": {},
+			  "links": {},
+			  "meta": {},
+			  "relationships": {
+				"draft_lists": {
+				  "data": [
+					{
+					  "id": "' . $listID . '",
+					  "type": "list"
 					}
-				}';
+				  ]
+				}
+			  }
+			}
+		  }';
 
 		//**************PUBLISH POST*****************
 
