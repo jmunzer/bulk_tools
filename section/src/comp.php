@@ -1,12 +1,15 @@
 <?php
 
-print("</br><a href='para.html'>Back to Paragraph tool</a>");
+print("</br><a href='section.html'>Back to Section tool</a>");
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 echo "<p>Starting</p>";
+
+//classes
+//functions
 
 function guidv4($data = null) {
 
@@ -22,6 +25,72 @@ function guidv4($data = null) {
     // Output the 36 character UUID.
     return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
+
+function itemPost($shortCode, $TalisGUID, $token, $input, $myfile, $uuid, $uuid_section) {
+	$item_patch = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/';
+	$ch_item = curl_init();
+
+	curl_setopt($ch_item, CURLOPT_URL, $item_patch);
+	curl_setopt($ch_item, CURLOPT_CUSTOMREQUEST, 'POST');
+	curl_setopt($ch_item, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch_item, CURLOPT_HTTPHEADER, array(
+		
+		"X-Effective-User: $TalisGUID",
+		"Authorization: Bearer $token",
+		'Cache-Control: no-cache'
+	));
+
+	curl_setopt($ch_item, CURLOPT_POSTFIELDS, $input);
+
+	
+	$output = curl_exec($ch_item);
+	$info = curl_getinfo($ch_item, CURLINFO_HTTP_CODE);
+
+	$output_json_etag = json_decode($output);
+	$etag = $output_json_etag->meta->list_etag;
+
+	curl_close($ch_item);
+	if ($info !== 201){
+		echo "<p>ERROR: There was an error adding the item:</p><pre>" . var_export($output, true) . "</pre>";
+		fwrite($myfile, "Item $uuid not added - failed" . "\t");
+	} else {
+		echo "    Added item $uuid to section $uuid_section</br>";
+		fwrite($myfile, "Item $uuid added successfully" . "\t");
+	}
+	return $etag;
+}
+
+function itemBody($etag, $listID, $uuid, $uuid_section, $resource) {
+	
+	$input = '{
+				"meta": {
+					"list_etag": "' . $etag . '",
+					"list_id": "' . $listID . '"
+				},
+				"data": {
+					"id": "' . $uuid . '",
+					"type": "items",
+					"relationships": {
+						"container": {
+							"data": {
+								"id": "' . $uuid_section . '",
+								"type": "sections"
+							},
+							"meta": {
+								"index": 0
+							}
+						},
+						"resource": {
+							"data": {
+								"id": "' . $resource . '",
+								"type": "resources"
+							}
+						}
+					}
+				}
+			}';
+		return $input;
+};
 
 //*****************GRAB_INPUT_DATA**********
 
@@ -53,11 +122,6 @@ echo "</br>";
 echo "User GUID to use: " . $TalisGUID;
 echo "</br>";
 
-$NEW_VALUE = $_REQUEST['NEW_VALUE'];
-
-echo "Paragraph text to use: " . $NEW_VALUE;
-echo "</br>";
-
 $shouldPublishLists = filter_var($_REQUEST['PUBLISH_LISTS'], FILTER_VALIDATE_BOOLEAN) || FALSE;
 
 echo "Should publish lists?: " . var_export($shouldPublishLists, true);
@@ -68,18 +132,9 @@ $publishListArray = array();
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
-$myfile = fopen("../../report_files/para_output.log", "a") or die("Unable to open para_output.log");
+$myfile = fopen("../../report_files/section_output.log", "a") or die("Unable to open section_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Item UUID" . "\t" . "Paragraph added" . "\t" . "List Published" . "\r\n");
-
-//************SET_VARIABLES***********
-//uncomment if you want to set these permanently.. good idea tbh!
-/*
-	$shortCode = "";
-	$clientID = "";
-	$secret = "";
-	$TalisGUID = "";
-*/
+fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Section Status" . "\t" . "Item Status" . "\t" . "Item Status" . "\t" . "Item Status" . "\t" . "List Published" . "\r\n");
 
 $tokenURL = 'https://users.talis.com/oauth/tokens';
 $content = "grant_type=client_credentials";
@@ -127,13 +182,14 @@ $file_handle = fopen($uploadfile, "rb");
 while (!feof($file_handle) )  {
 
 	$uuid = guidv4();
+	$uuid_section = $uuid;
 	$line_of_text = fgets($file_handle);
 	$parts = explode(" ", $line_of_text);
 	
-	//************GRAB**AN**ETAG***************
+	//************GRAB**LIST**DATA***************
 
 	$barc = trim($parts[0]);
-
+	
 	$item_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $barc;
 	$ch1 = curl_init();
 	
@@ -167,93 +223,116 @@ while (!feof($file_handle) )  {
 	fwrite($myfile, $listID ."\t");
 	echo "    ETag: " . $etag . "</br>";
 	echo "    UUID: " . $uuid . "</br>";
-	fwrite($myfile, $uuid ."\t");
+//	fwrite($myfile, $uuid ."\t");
 
 	// writing list ID to array for bulk publish POST
 	$forListArray = ['type' => 'draft_lists', 'id' => $listID]; //check this $listID value
 	array_push($publishListArray, $forListArray);
 
-	//**************ADD_PARAGRAPH***************
-	$patch_url = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/';
+	//**************ADD_SECTION************
 
-	$input = '{
-				"meta": {
-					"list_etag": "' . $etag . '",
-					"list_id": "' . $listID . '"
-				},
-				"data": {
-					"id": "' . $uuid . '",
-					"type": "items",
-					"attributes": {
-						"student_note": "' . $NEW_VALUE . '"
-					},
-					"relationships": {
-						"container": {
-							"data": {
-								"id": "' . $listID . '",
-								"type": "lists"
-							},
-							"meta": {
-								"index": 0
-							}
-						}
-					}
-				}
-			}';
+	$section_patch = 'https://rl.talis.com/3/' . $shortCode . '/draft_sections';
+	
+	// EDIT THE BELOW PLACEHOLDER VALUES TO SET SECTION TITLE AND DESCRIPTION
+	// 
+	// Insert desired section title
+	$section_title = "replace me with section title text";
+	// Insert desired section description
+	$section_description = "Replace me with section description's text";
+	//
+	// DO NOT EDIT BELOW THIS LINE
+	
+	$inp = '{
+		"data": {
+		  "id": "' . $uuid . '",
+		  "type": "sections",
+		  "attributes": {
+			"description": "' . $section_description . '",
+			"title": "' . $section_title . '"
+		  },
+		  "links": {},
+		  "meta": {},
+		  "relationships": {
+			"container": {
+			  "data": {
+				"id": "' . $listID . '",
+				"type": "lists"
+			  },
+			  "links": {
+				"self": "string",
+				"related": "string"
+			  },
+			  "meta": {
+				"index": 0
+			  }
+			}
+		  }
+		},
+		"meta": {
+		  "has_unpublished_changes": true,
+		  "list_etag": "' . $etag . '",
+		  "list_id": "' . $listID . '"
+		}
+	  }';
 
-	//**************PARAGRAPH POST*****************
+	//**************SECTION POST*****************
 
-	$ch2 = curl_init();
+	$ch_section = curl_init();
 
-	curl_setopt($ch2, CURLOPT_URL, $patch_url);
-	curl_setopt($ch2, CURLOPT_CUSTOMREQUEST, 'POST');
-	curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch2, CURLOPT_HTTPHEADER, array(
+	curl_setopt($ch_section, CURLOPT_URL, $section_patch);
+	curl_setopt($ch_section, CURLOPT_CUSTOMREQUEST, 'POST');
+	curl_setopt($ch_section, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch_section, CURLOPT_HTTPHEADER, array(
 		
 		"X-Effective-User: $TalisGUID",
 		"Authorization: Bearer $token",
 		'Cache-Control: no-cache'
 	));
 
-	curl_setopt($ch2, CURLOPT_POSTFIELDS, $input);
+	curl_setopt($ch_section, CURLOPT_POSTFIELDS, $inp);
 
 	
-	$output2 = curl_exec($ch2);
-	$info2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
-
-	curl_close($ch2);
-	if ($info2 !== 201){
-		echo "<p>ERROR: There was an error adding the paragraph:</p><pre>" . var_export($output2, true) . "</pre>";
-		fwrite($myfile, "Paragraph not added - failed" . "\t");
+	$output_section = curl_exec($ch_section);
+	$info_section = curl_getinfo($ch_section, CURLINFO_HTTP_CODE);
+	
+	$output_json_section = json_decode($output_section);
+	$etag = $output_json_section->meta->list_etag;
+	
+	curl_close($ch_section);
+	if ($info_section !== 201){
+		echo "<p>ERROR: There was an error adding the section:</p><pre>" . var_export($output_section, true) . "</pre>";
+		fwrite($myfile, "Section $uuid not added - failed" . "\t");
 		continue;
 	} else {
-		echo "    Added paragraph $uuid to list $listID</br>";
-		fwrite($myfile, "Paragraph added successfully" . "\t");
+		echo "    Added section $uuid to list $listID</br>";
+		fwrite($myfile, "Section $uuid added successfully" . "\t");
 	}
 
-	//************GRAB**AN**ETAG**AGAIN*************
 
-	$ch4 = curl_init();
+// START OF STRUCTURE-BUILDING AREA - COPY, PASTE OR DELETE BLOCKS BELOW TO BUILD DESIRED STRUCTURE
 
-	curl_setopt($ch4, CURLOPT_URL, $item_lookup);
-	curl_setopt($ch4, CURLOPT_RETURNTRANSFER, 1);
-	curl_setopt($ch4, CURLOPT_HTTPHEADER, array(
+	//**************ITEM_1*****************
+	$uuid = guidv4();
+	$resource = "61074635-D0EE-C0B5-DC9F-C0A684820DA4"; //GET THIS RESOURCE ID FROM TARL - EDIT RESOURCE URL
+	$input = itemBody($etag, $listID, $uuid, $uuid_section, $resource);
+	$etag = itemPost($shortCode, $TalisGUID, $token, $input, $myfile, $uuid, $uuid_section);
+	//**************************************
 
-		"X-Effective-User: $TalisGUID",
-		"Authorization: Bearer $token",
-		'Cache-Control: no-cache'
+	//**************ITEM_2******************
+	$uuid = guidv4();
+	$resource = "9F64F566-3C07-9EF1-A6E3-77D4D694EBA6";
+	$input = itemBody($etag, $listID, $uuid, $uuid_section, $resource);
+	$etag = itemPost($shortCode, $TalisGUID, $token, $input, $myfile, $uuid, $uuid_section);
+	//**************************************
 
-	));
-	$output4 = curl_exec($ch4);
-	$info4 = curl_getinfo($ch4, CURLINFO_HTTP_CODE);
-	$output_json2 = json_decode($output4);
-	curl_close($ch4);
+	//**************ITEM_3*****************
+	$uuid = guidv4();
+	$resource = "B986A749-F293-3976-40D4-5F616CEAB683";
+	$input = itemBody($etag, $listID, $uuid, $uuid_section, $resource);
+	$etag = itemPost($shortCode, $TalisGUID, $token, $input, $myfile, $uuid, $uuid_section);	
+	//**************************************
 
-	$etag2 = $output_json2->data->meta->list_etag;
-	echo "    Updated ETag: " . $etag2 . "</br>";
-	echo "    ---------------------------------------------------";
-	echo "</br>";
-}
+// END OF STRUCTURE-BUILDING AREA - DO NOT EDIT DATA BELOW THIS LINE (UNLESS YOU KNOW WHAT YOU ARE DOING) :)
 
 	//print_r($publishListArray);
 	//json_encode list array to prepare for API submisson
@@ -263,7 +342,7 @@ while (!feof($file_handle) )  {
 
 	if ($shouldPublishLists === TRUE) {
 		//**************PUBLISH**LIST***************
-		$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/bulk_list_publish_actions';
+		$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/bulk_list_publish_actions'; // change my endpoint
 		$input2 = '{
 					"data": {
 						"type": "bulk_list_publish_actions",
@@ -304,16 +383,14 @@ while (!feof($file_handle) )  {
 			fwrite($myfile, "Published successfully" . "\t");
 		}
 	}
-
+	
 	fwrite($myfile, "\n");
 	echo "End of Record.";
 	echo "---------------------------------------------------</br></br>";
+}
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 
 fclose($file_handle);
 fclose($myfile);
-
-
-
 ?>

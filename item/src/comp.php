@@ -8,33 +8,20 @@ error_reporting(E_ALL);
 
 echo "<p>Starting</p>";
 
-//classes
+function guidv4($data = null) {
 
-	//uuid classes
-	class UUIDGenerator {
-		private $uuids = [];
-		private $preFetch;
-	
-		/**
-		 * @param int $preFetch The number of uuids to cache-ahead when generating
-		 **/
-		public function __construct($preFetch = 100){
-			$this->preFetch = $preFetch;
-		}
-		
-		private function refreshUUIDS(){
-			$response = file_get_contents("https://www.uuidgenerator.net/api/version4/$this->preFetch");
-			$this->uuids = explode("\n", $response);
-			array_pop($this->uuids);
-		}
-	
-		public function getUUID(){
-			if(count($this->uuids) == 0){
-			  $this->refreshUUIDS();
-			}
-			return trim(array_pop($this->uuids));
-		}
-	}
+    // Generate 16 bytes (128 bits) of random data or use the data passed into the function.
+    $data = $data ?? random_bytes(16);
+    assert(strlen($data) == 16);
+
+    // Set version to 0100
+    $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+    // Set bits 6-7 to 10
+    $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+
+    // Output the 36 character UUID.
+    return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+}
 
 //*****************GRAB_INPUT_DATA**********
 
@@ -78,8 +65,7 @@ echo "Should publish lists?: " . var_export($shouldPublishLists, true);
 echo "</br>";
 echo "</br>";
 
-
-$uuidGen = new UUIDGenerator();
+$publishListArray = array();
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
@@ -142,7 +128,7 @@ $file_handle = fopen($uploadfile, "rb");
 
 while (!feof($file_handle) )  {
 
-	$uuid = $uuidGen->getUUID();
+	$uuid = guidv4();
 	$line_of_text = fgets($file_handle);
 	$parts = explode(" ", $line_of_text);
 	
@@ -184,6 +170,11 @@ while (!feof($file_handle) )  {
 	echo "    ETag: " . $etag . "</br>";
 	echo "    UUID: " . $uuid . "</br>";
 	fwrite($myfile, $uuid ."\t");
+
+	// writing list ID to array for bulk publish POST
+	$forListArray = ['type' => 'draft_lists', 'id' => $listID]; //check this $listID value
+	array_push($publishListArray, $forListArray);
+
 	//**************ADD_ITEM***************
 	$patch_url = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/';
 
@@ -268,19 +259,24 @@ while (!feof($file_handle) )  {
 	echo "    ---------------------------------------------------";
 	echo "</br>";
 
+	//print_r($publishListArray);
+	//json_encode list array to prepare for API submisson
+	$publishListArray_encoded = json_encode($publishListArray);
 
+	//var_export($publishListArray_encoded);
+}
 	if ($shouldPublishLists === TRUE) {
 		//**************PUBLISH**LIST***************
-		$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $listID . '/publish_actions';
+		$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/bulk_list_publish_actions'; // change my endpoint
 		$input2 = '{
 					"data": {
-						"type": "list_publish_actions"
-					},
-					"meta": {
-						"has_unpublished_changes": "true",
-						"list_etag": "' . $etag2 . '",
-						"list_id": "' . $listID . '"
-					}
+						"type": "bulk_list_publish_actions",
+						"relationships": {
+							"draft_lists": {
+								"data": ' . $publishListArray_encoded . '
+							}
+						}
+					}	
 				}';
 
 		//**************PUBLISH POST*****************
@@ -306,7 +302,7 @@ while (!feof($file_handle) )  {
 		if ($info3 !== 202){
 			echo "<p>ERROR: There was an error publishing the list:</p><pre>" . var_export($output3, true) . "</pre>";
 			fwrite($myfile, "Publish failed" . "\t");
-			continue;
+			exit;
 		} else {
 			echo "    Published changes to $listID</br>";
 			fwrite($myfile, "Published successfully" . "\t");
@@ -316,7 +312,6 @@ while (!feof($file_handle) )  {
 	fwrite($myfile, "\n");
 	echo "End of Record.";
 	echo "---------------------------------------------------</br></br>";
-}
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 
