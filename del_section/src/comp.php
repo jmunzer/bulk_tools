@@ -113,7 +113,7 @@ while (!feof($file_handle) )  {
 	$line_of_text = fgets($file_handle);
 	$parts = explode(" ", $line_of_text);
 	$barc = trim($parts[0]);
-	$item_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_sections/' . $barc . '?include=list';
+	$section_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_sections/' . $barc . '?include=list';
 
 	//************GRAB**LIST**DETAILS*************
 
