@@ -119,7 +119,7 @@ while (!feof($file_handle) )  {
 
 		$ch4 = curl_init();
 
-		curl_setopt($ch4, CURLOPT_URL, $item_lookup);
+		curl_setopt($ch4, CURLOPT_URL, $section_lookup);
 		curl_setopt($ch4, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch4, CURLOPT_HTTPHEADER, array(
 	
