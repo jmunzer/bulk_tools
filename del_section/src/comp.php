@@ -169,7 +169,7 @@ while (!feof($file_handle) )  {
 
 	$ch2 = curl_init();
 
-	curl_setopt($ch2, CURLOPT_URL, $patch_url);
+	curl_setopt($ch2, CURLOPT_URL, $section_to_delete);
 	curl_setopt($ch2, CURLOPT_CUSTOMREQUEST, 'DELETE');
 	curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch2, CURLOPT_HTTPHEADER, array(
