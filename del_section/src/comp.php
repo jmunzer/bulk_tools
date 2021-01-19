@@ -49,6 +49,9 @@ $shouldPublishLists = filter_var($_REQUEST['PUBLISH_LISTS'], FILTER_VALIDATE_BOO
 
 echo "Should publish lists?: " . var_export($shouldPublishLists, true);
 echo "</br>";
+echo "</br>";
+
+$publishListArray = array();
 
 if(isset($_REQUEST['DRY_RUN']) &&
 	$_REQUEST['DRY_RUN'] == "writeToLive") {
@@ -155,6 +158,10 @@ while (!feof($file_handle) )  {
 
 	if ($shouldWritetoLive == "true") {
 
+	// writing list ID to array for bulk publish POST
+	$forListArray = ['type' => 'draft_lists', 'id' => $listID]; //check this $listID value
+	array_push($publishListArray, $forListArray);
+
 	//**************DELETE_SECTION***************
 	$section_to_delete = 'https://rl.talis.com/3/' . $shortCode . '/draft_sections/' . $section_guid;
 
@@ -195,53 +202,25 @@ while (!feof($file_handle) )  {
 		fwrite($myfile, "Section deleted successfully" . "\t");
 	}
 
-	//************GRAB**AN**ETAG**AGAIN*************
+	//print_r($publishListArray);
+	//json_encode list array to prepare for API submisson
+	$publishListArray_encoded = json_encode($publishListArray);
 
-	$list_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $assoc_listid;
-
-	$ch5 = curl_init();
-
-	curl_setopt($ch5, CURLOPT_URL, $list_lookup);
-	curl_setopt($ch5, CURLOPT_RETURNTRANSFER, 1);
-	curl_setopt($ch5, CURLOPT_HTTPHEADER, array(
-
-		"X-Effective-User: $TalisGUID",
-		"Authorization: Bearer $token",
-		'Cache-Control: no-cache'
-
-	));
-	$output5 = curl_exec($ch5);
-	$info5 = curl_getinfo($ch5, CURLINFO_HTTP_CODE);
-	$output_json3 = json_decode($output5);
-	curl_close($ch5);
-
-	$etag2 = $output_json3->data->meta->list_etag;
-	echo "    Updated ETag: " . $etag2 . "</br>";
-	echo "    ---------------------------------------------------";
-	echo "</br>";
+	//var_export($publishListArray_encoded);
 
 	if ($shouldPublishLists === TRUE) {
 		//**************PUBLISH**LIST***************
-		$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/bulk_list_publish_actions';
+		$patch_url2 = 'https://rl.talis.com/3/' . $shortCode . '/bulk_list_publish_actions'; // change my endpoint
 		$input2 = '{
-			"data": {
-			  "id": "' . $assoc_listid . '",
-			  "type": "bulk_list_publish_actions",
-			  "attributes": {},
-			  "links": {},
-			  "meta": {},
-			  "relationships": {
-				"draft_lists": {
-				  "data": [
-					{
-					  "id": "' . $assoc_listid . '",
-					  "type": "list"
-					}
-				  ]
-				}
-			  }
-			}
-		  }';
+					"data": {
+						"type": "bulk_list_publish_actions",
+						"relationships": {
+							"draft_lists": {
+								"data": ' . $publishListArray_encoded . '
+							}
+						}
+					}	
+				}';
 
 		//**************PUBLISH POST*****************
 
@@ -266,12 +245,13 @@ while (!feof($file_handle) )  {
 		if ($info3 !== 202){
 			echo "<p>ERROR: There was an error publishing the list:</p><pre>" . var_export($output3, true) . "</pre>";
 			fwrite($myfile, "Publish failed" . "\t");
-			continue;
+			exit;
 		} else {
-			echo "    Published changes to $assoc_listid </br>";
+			echo "    Published changes to $listID</br>";
 			fwrite($myfile, "Published successfully" . "\t");
 		}
 	}
+	
 	}
 
 	fwrite($myfile, "\n");
