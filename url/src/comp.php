@@ -361,13 +361,13 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token, ReportRow 
 				$online_resource_found = true;
 			}
 
+			$body = get_patch_template($resource_id);
+
 			// if we do have web addresses that we can work with...
 			if ($web_address_array){
 				$web_address_found = true;
 				$new_web_address_array = check_web_addresses($oldURL, "", $web_address_array, "delete");
 				$report->newWebAddressArray = $new_web_address_array;
-
-				$body = get_patch_template($resource_id);
 
 				// update the web addresses if they have changed
 				if($web_address_array !== $new_web_address_array){
