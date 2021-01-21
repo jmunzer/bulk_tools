@@ -374,22 +374,22 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token, ReportRow 
 					$body = patch_web_addresses($body, $new_web_address_array);
 					$actionMessagePart[] = 'URL Deleted Successfully';
 				}
+			}
 
-				// remove online resource if it matches the URL to remove.
-				// If this is the secondary - we never want to have an online resource set there
-				if ($online_resource === $oldURL || ($primary_resource !== $resource_id && $online_resource_found === true)) {
-					$body = patch_online_resource($body, null);
-					$actionMessagePart[] = 'Had to remove online resource';
-				}
+			// remove online resource if it matches the URL to remove.
+			// If this is the secondary - we never want to have an online resource set there
+			if ($online_resource === $oldURL || ($primary_resource !== $resource_id && $online_resource_found === true)) {
+				$body = patch_online_resource($body, null);
+				$actionMessagePart[] = 'Had to remove online resource';
+			}
 
-				// if no changes have been made to the template then there is nothing to do.
-				if ($body === get_patch_template($resource_id)) {
-					echo_message_to_screen(DEBUG, "Nothing to update with this resource</br>");
-					$report->actionMessage = "Nothing to do";
-					$report->updated = true;
-					continue;
-				}
-
+			// if no changes have been made to the template then there is nothing to do.
+			if ($body === get_patch_template($resource_id)) {
+				echo_message_to_screen(DEBUG, "Nothing to update with this resource</br>");
+				$report->actionMessage = "Nothing to do";
+				$report->updated = true;
+				continue;
+			} else {
 				echo_message_to_screen(DEBUG, "delete_url patch request body: " . var_export($body, true));
 
 				// if not a dry run - update
@@ -409,8 +409,6 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token, ReportRow 
 					$report->actionMessage = "Would remove web address";
 				}
 				increment_counter('URLs deleted: ');
-			} else {
-				$report->actionMessage = "Nothing to do";
 			}
 		}
 
