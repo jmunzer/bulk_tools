@@ -2,6 +2,7 @@
 
 print("</br><a href='section.html'>Back to Section tool</a>");
 
+ini_set('max_execution_time', '0');
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -313,7 +314,7 @@ while (!feof($file_handle) )  {
 
 	//**************ITEM_1*****************
 	$uuid = guidv4();
-	$resource = "61074635-D0EE-C0B5-DC9F-C0A684820DA4"; //GET THIS RESOURCE ID FROM TARL - EDIT RESOURCE URL
+	$resource = "B986A749-F293-3976-40D4-5F616CEAB683"; //GET THIS RESOURCE ID FROM TARL - EDIT RESOURCE URL
 	$input = itemBody($etag, $listID, $uuid, $uuid_section, $resource);
 	$etag = itemPost($shortCode, $TalisGUID, $token, $input, $myfile, $uuid, $uuid_section);
 	//**************************************
@@ -327,12 +328,18 @@ while (!feof($file_handle) )  {
 
 	//**************ITEM_3*****************
 	$uuid = guidv4();
-	$resource = "B986A749-F293-3976-40D4-5F616CEAB683";
+	$resource = "61074635-D0EE-C0B5-DC9F-C0A684820DA4";
 	$input = itemBody($etag, $listID, $uuid, $uuid_section, $resource);
 	$etag = itemPost($shortCode, $TalisGUID, $token, $input, $myfile, $uuid, $uuid_section);	
 	//**************************************
 
 // END OF STRUCTURE-BUILDING AREA - DO NOT EDIT DATA BELOW THIS LINE (UNLESS YOU KNOW WHAT YOU ARE DOING) :)
+
+	fwrite($myfile, "\n");
+	echo "End of Record.";
+	echo "---------------------------------------------------</br></br>";
+
+}
 
 	//print_r($publishListArray);
 	//json_encode list array to prepare for API submisson
@@ -353,7 +360,7 @@ while (!feof($file_handle) )  {
 						}
 					}	
 				}';
-
+			
 		//**************PUBLISH POST*****************
 
 		$ch3 = curl_init();
@@ -379,15 +386,11 @@ while (!feof($file_handle) )  {
 			fwrite($myfile, "Publish failed" . "\t");
 			exit;
 		} else {
-			echo "    Published changes to $listID</br>";
+			echo "    Published successfully</br>";
 			fwrite($myfile, "Published successfully" . "\t");
 		}
 	}
-	
-	fwrite($myfile, "\n");
-	echo "End of Record.";
-	echo "---------------------------------------------------</br></br>";
-}
+
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 
