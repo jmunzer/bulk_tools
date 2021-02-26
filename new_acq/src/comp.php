@@ -109,6 +109,11 @@ print_r($uploadfile);
 echo "</br>";
 echo "</br>";
 
+$listID = $_REQUEST['ListID'];
+
+echo "List ID to use: " . $listID;
+echo "</br>";
+
 /**
  * Get the user config file. This script will fail disgracefully if it has not been created and nothing will happen.
  */
@@ -180,7 +185,7 @@ if (!empty($jsontoken->access_token)){
 
 //************GRAB**LIST DETAILS***************
 
-$etag_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/C315CCB7-3B54-593B-50DD-3473C9B58D4B';
+$etag_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $listID;
 $ch_etag = curl_init();
 
 curl_setopt($ch_etag, CURLOPT_URL, $etag_lookup);
@@ -238,7 +243,7 @@ while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 	
 	echo "Resource Type: " . $resourceType . "</br>";
 	echo "Title: " . $Title . "</br>";
-	echo "LCN: " . $isbn . "</br>";
+	echo "ISBN: " . $isbn . "</br>";
 	
 	
 	

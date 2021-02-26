@@ -36,7 +36,7 @@
 <div id="TARL_bulk updater">
 		<h1>New Acquisitions</h1>
 		<h2>This tool was designed by Mark Kluzek from the University of Westminster - Please attach a .txt file containing a comma-seperated new acquisition per line.</h2>
-		<h2>In the following format: Resource Type, Item Title, LCN</h2>
+		<h2>In the following format: Resource Type, Item Title, ISBN</h2>
 		<h2>Once this script has run, remember to run a 'metadata refresh' to pull full metadata from your LMS</h2>
 				
 			<form enctype="multipart/form-data" action="comp.php" method="POST">
@@ -45,9 +45,12 @@
 				<p>If you have not created your own <code>user.config.php</code> file as a copy of the template in the project root directory do so now!!</p>
 				<p>Otherwise, this script will give you an error about not being able to find the <code>user.config.php</code> file.</p>
 				<h2>Rules</h2>
+				Input a List ID to add new acquisitions to: <input name="ListID" type ="text"/>
+				<br/>
+				<br/>
 				New Acquisitions file: <input name="userfile" type="file"/>
-					<br/>
-					<br/>
+				<br/>
+				<br/>
 				<h2>Action</h2>
 				<input type="submit" value="Send" />
 			</form>
