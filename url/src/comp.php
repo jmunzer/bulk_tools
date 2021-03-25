@@ -224,7 +224,7 @@ function counter_summary() {
     }
 }
 
-function get_resource_id($resource_data) {
+function get_resource_id_value($resource_data) {
 	if (! empty( $resource_data->id )) {
 		$resource = $resource_data->id;
 		echo_message_to_screen(DEBUG, "Resource ID: $resource \t");
