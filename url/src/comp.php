@@ -273,7 +273,7 @@ function add_url($itemID, $newURL, $shortCode, $TalisGUID, $token, ReportRow $it
 		$resource_data = $resources[0];
 
 		// get the existing web addresses
-		$resource_id = get_resource_id($resource_data);
+		$resource_id = get_resource_id_value($resource_data);
 		$web_address_array = get_web_address_array($resource_data);
 		// for reporting purposes only ->
 		$online_resource = get_online_resource($resource_data);
@@ -347,7 +347,7 @@ function delete_url($itemID, $oldURL, $shortCode, $TalisGUID, $token, ReportRow 
 			$actionMessagePart = [];
 			
 			// get the existing web addresses
-			$resource_id = get_resource_id($r);
+			$resource_id = get_resource_id_value($r);
 			$web_address_array = get_web_address_array($r);
 			$online_resource = get_online_resource($r);
 
@@ -451,7 +451,7 @@ function replace_url($itemID, $oldURL, $newURL, $shortCode, $TalisGUID, $token, 
 			$report->transactionType = "replace";
 
 			// get the existing web addresses
-			$resource_id = get_resource_id($r);
+			$resource_id = get_resource_id_value($r);
 			$web_address_array = get_web_address_array($r);
 			$online_resource = get_online_resource($r);
 
