@@ -11,6 +11,39 @@ echo "<p>Starting</p>";
 
 //classes
 //functions
+function token_fetch($clientID, $secret) {
+	$tokenURL = 'https://users.talis.com/oauth/tokens';
+	$content = "grant_type=client_credentials";
+
+	$ch = curl_init();
+
+	curl_setopt($ch, CURLOPT_URL, $tokenURL);
+	curl_setopt($ch, CURLOPT_POST, TRUE);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+	curl_setopt($ch, CURLOPT_USERPWD, "$clientID:$secret");
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $content);
+
+	$return = curl_exec($ch);
+	$info = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+	if ($info !== 200){
+		echo "<p>ERROR: There was an error getting a token:</p><pre>" . var_export($return, true) . "</pre>";
+	} else {
+		echo "Successfully received token</br>";
+	}
+
+	curl_close($ch);
+
+	$jsontoken = json_decode($return);
+
+	if (!empty($jsontoken->access_token)){
+		$token = $jsontoken->access_token;
+	} else {
+		echo "<p>ERROR: Unable to get an access token</p>";
+		exit;
+	}
+	return $token;
+}
 
 function guidv4($data = null) {
 
@@ -91,8 +124,75 @@ function itemBody($etag, $listID, $item_uuid, $resource_uuid) {
 				}
 			}';
 		return $input;
-};
+}
 
+function delete_body($shortCode, $item_id, $etag, $listID) {
+		
+
+	$input = '	{
+					"meta": {
+						"list_etag": "' . $etag . '",
+						"list_id": "' . $listID . '"
+					}
+				}';
+	return $input;
+}
+
+function delete_post($delete_url, $TalisGUID, $token, $input, $item_id, $listID) {
+	$ch = curl_init();
+
+	curl_setopt($ch, CURLOPT_URL, $delete_url);
+	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+		
+		"X-Effective-User: $TalisGUID",
+		"Authorization: Bearer $token",
+		'Cache-Control: no-cache'
+	));
+
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $input);
+
+
+	$output = curl_exec($ch);
+	$info = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+	curl_close($ch);
+	if ($info !== 200){
+		echo "<p>ERROR: There was an error deleting the item:</p><pre>" . var_export($output, true) . "</pre>";
+		//fwrite($myfile, "Item not deleted - failed" . "\t");
+		} else {
+		echo "Deleted item $item_id from list $listID</br>";
+		//fwrite($myfile, "Item deleted successfully" . "\t");
+	}
+}
+
+function etag_fetch($shortCode, $listID, $TalisGUID, $token) {
+	$url = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $listID;
+	
+	$ch = curl_init();
+	
+	curl_setopt($ch, CURLOPT_URL, $url);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+	
+		"X-Effective-User: $TalisGUID",
+		"Authorization: Bearer $token",
+		'Cache-Control: no-cache'
+	
+	));
+	$output = curl_exec($ch);
+	$info = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	$output_json = json_decode($output);
+	curl_close($ch);
+	
+	$etag = $output_json->data->meta->list_etag;
+	echo "    ---------------------------------------------------";
+	echo "    Updated ETag: " . $etag . "</br>";
+	echo "</br>";
+
+	return $etag;
+}
 //*****************GRAB_INPUT_DATA**********
 
 $uploaddir = '../uploads/';
@@ -106,27 +206,20 @@ if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile)) {
 }
 echo "</br>";
 print_r($uploadfile);
-echo "</br>";
-echo "</br>";
+echo "</br></br>";
 
 $listID = $_REQUEST['ListID'];
 
-echo "List ID to use: " . $listID;
-echo "</br>";
+echo "List ID to use: " . $listID . "</br>";
 
 /**
  * Get the user config file. This script will fail disgracefully if it has not been created and nothing will happen.
  */
 require('../../user.config.php');
 
-echo "Tenancy Shortcode set: " . $shortCode;
-echo "</br>";
-
-echo "Client ID set: " . $clientID;
-echo "</br>";
-
-echo "User GUID to use: " . $TalisGUID;
-echo "</br>";
+echo "Tenancy Shortcode set: " . $shortCode . "</br>";
+echo "Client ID set: " . $clientID . "</br>";
+echo "User GUID to use: " . $TalisGUID . "</br>";
 
 /*
 $shouldPublishLists = filter_var($_REQUEST['PUBLISH_LISTS'], FILTER_VALIDATE_BOOLEAN) || FALSE;
@@ -136,53 +229,64 @@ echo "</br>";
 echo "</br>";
 
 $publishListArray = array();
-*/
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
 $myfile = fopen("../../report_files/newacq_output.log", "a") or die("Unable to open newacq_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
 //fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Section Status" . "\t" . "Item Status" . "\t" . "Item Status" . "\t" . "Item Status" . "\t" . "List Published" . "\r\n");
-
-$tokenURL = 'https://users.talis.com/oauth/tokens';
-$content = "grant_type=client_credentials";
+*/
 
 //*********GET DATE**********************
-
-$date = date('Y-m-d\TH:i:s');
 // $date1 = "2015-12-21T15:44:36";
+$date = date('Y-m-d\TH:i:s');
 
 //************GET_TOKEN***************
+$token = token_fetch($clientID, $secret);
+//***************GRAB LIST ITEMS (TO DELETE) ****** */
+$ListItemsUrl = 'https://rl.talis.com/3/' . $shortCode . '/lists/' . $listID . '/items';
+$chLIU = curl_init();
 
+curl_setopt($chLIU, CURLOPT_URL, $ListItemsUrl);
+curl_setopt($chLIU, CURLOPT_RETURNTRANSFER, 1);
+curl_setopt($chLIU, CURLOPT_HTTPHEADER, array(
+	
+	"X-Effective-User: $TalisGUID",
+	"Authorization: Bearer $token",
+	'Cache-Control: no-cache'
 
-$ch = curl_init();
+));
 
-curl_setopt($ch, CURLOPT_URL, $tokenURL);
-curl_setopt($ch, CURLOPT_POST, TRUE);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-curl_setopt($ch, CURLOPT_USERPWD, "$clientID:$secret");
-curl_setopt($ch, CURLOPT_POSTFIELDS, $content);
+$outputLIU = curl_exec($chLIU);
+$infoLIU = curl_getinfo($chLIU, CURLINFO_HTTP_CODE);
+$outputjsonLIU = json_decode($outputLIU);
+curl_close($chLIU);
 
-$return = curl_exec($ch);
-$info = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-if ($info !== 200){
-	echo "<p>ERROR: There was an error getting a token:</p><pre>" . var_export($return, true) . "</pre>";
+if ($infoLIU !== 200){
+	echo "<p>ERROR: There was an error getting the list items:</p><pre>" . var_export($outputLIU, true) . "</pre>";
 } else {
-	echo "Got Token</br>";
+	echo "    Got items from list </br>";
 }
 
-curl_close($ch);
+$item_count = $outputjsonLIU->meta->item_count;
+$item_list = $outputjsonLIU->data;
+//******* get existing item count from list */
+echo "    item count is: " . $item_count . "</br>";
 
-$jsontoken = json_decode($return);
+//******* iterate over each item_id on list */
+foreach ($item_list as $itemID) {
+	$item_id = $itemID->id;
+	echo "Item ID is: " . $item_id . "</br>";
 
-if (!empty($jsontoken->access_token)){
-	$token = $jsontoken->access_token;
-} else {
-	echo "<p>ERROR: Unable to get an access token</p>";
-	exit;
+
+	$delete_url = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $item_id;
+	$etag = etag_fetch($shortCode, $listID, $TalisGUID, $token);
+	$input = delete_body($shortCode, $item_id, $etag, $listID);
+//	delete_post($delete_url, $TalisGUID, $token, $input, $item_id, $listID);
 }
 
+
+/*
 //************GRAB**LIST DETAILS***************
 
 $etag_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $listID;
@@ -221,7 +325,7 @@ echo "    ETag: " . $etag . "</br>";
 // writing list ID to array for bulk publish POST
 $forListArray = ['type' => 'draft_lists', 'id' => $listID]; //check this $listID value
 array_push($publishListArray, $forListArray);
-*/
+
 //***********READ**DATA******************
 
 $file_handle = fopen($uploadfile, "r");
@@ -244,8 +348,6 @@ while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 	echo "Resource Type: " . $resourceType . "</br>";
 	echo "Title: " . $Title . "</br>";
 	echo "ISBN: " . $isbn . "</br>";
-	
-	
 	
 	//************CREATE RESOURCE***************
 	$createResourceAPIpost = 'https://rl.talis.com/3/' . $shortCode . '/resources';
@@ -280,8 +382,6 @@ while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 		"Authorization: Bearer $token",
 		'Cache-Control: no-cache'
 	
-	
-
 	));
 	curl_setopt($ch1, CURLOPT_POSTFIELDS, $body);
 
