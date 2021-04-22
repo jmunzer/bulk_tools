@@ -113,8 +113,7 @@ function getToken($clientID, $secret) {
 function metadataLookup($shortCode, $lcn) {
 
 	$LookupUrl = 'https://' . $shortCode . '.rl.talis.com/catalog/records/' . $lcn;
-	//$metadataLookup = simplexml_load_file($LookupUrl) or die("Failed to pull metadata for $lcn from your catalogue");
-	$metadata = SimpleXML_load_file($LookupUrl);
+	$metadata = SimpleXML_load_file($LookupUrl) or die("Failed to pull metadata for $lcn from your catalogue");
 	//var_export($metadata);
 	return $metadata;
 }
@@ -138,7 +137,7 @@ while (!feof($file_handle) )  {
 		$webaddr = $metadata->record->datafield[28]->subfield[0];
 	// $publisher
 	// $edition
-	
+
 		echo $isbn . "</br>";
 		echo $author . "</br>";
 		echo $pubyear . "</br>";
