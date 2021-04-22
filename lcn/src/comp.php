@@ -136,10 +136,15 @@ while (!feof($file_handle) )  {
 		$author = $metadata->record->datafield[8]->subfield[0];
 		$pubyear = $metadata->record->datafield[8]->subfield[1];
 		$webaddr = $metadata->record->datafield[28]->subfield[0];
+	// $publisher
+	// $edition
+	
 		echo $isbn . "</br>";
 		echo $author . "</br>";
 		echo $pubyear . "</br>";
 		echo $webaddr . "</br>";
+	//	echo $publisher . "</br>";
+	//	echo $edition . "</br>";
 
 	echo "</br>";
 //	var_dump($metadata);
