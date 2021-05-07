@@ -35,8 +35,8 @@
 
 <div id="TARL_bulk updater">
 		<h1>LCN Updater - </h1>
-		<h2>You will need to provide a resourceID to update.. do so by selecting 'Edit' on a pre-created bookmark. The ResourceID is in the URL between /resources/ & .html </h2>
-		<h3> - for example: https://yorksj.rl.talis.com/resources/<mark>C86AD996-66D9-3C52-7B11-7D0158522F6F</mark>.html</h3>
+		<h2>You will need to provide a csv of Item IDs to update..along with an old LCN and a new LCN. </h2>
+		
 		
 			<form enctype="multipart/form-data" action="comp.php" method="POST">
 				<input type="hidden" name="MAX_FILE_SIZE" value="3000000" />
@@ -47,13 +47,6 @@
 					Send this file: <input name="userfile" type="file" />
 					<br/>
 					<br/>
-				<!--Input a Resource ID to update: <input name="UUID" type ="text"/>
-					<br/>
-					<br/>
-					Publish lists?: <select name="PUBLISH_LISTS">
-						<option selected="selected">FALSE</option>
-						<option>TRUE</option>
-					</select> -->
 				<h2>Action</h2>
 				<input type="submit" value="Send" />
 			</form>
