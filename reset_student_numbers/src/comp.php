@@ -1,6 +1,7 @@
 <?php
 
-// Resets supplied lists' student numbers to the values of any nodes it is attached to by removing any override_student_number data in the list node relationship
+// Resets supplied lists' student numbers to the values of any nodes it is attached to
+// By finding student numbers on nodes a list is attached to and supplying this value in the list node relationship override_student_numbers attributes
 
 print("</br><a href='reset_numbers.html'>Back to reset student numbers tool</a>");
 
@@ -69,7 +70,7 @@ echo "</br>";
 $logfile = "../../report_files/reset_numbers_output.log";
 $myfile = fopen("../../report_files/reset_numbers_output.log", "a") or die("Unable to open reset_numbers_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-fwrite($myfile, "List ID" . "\t" . "Current Node Relationships" . "\t" . "Update Status" . "\r\n");
+fwrite($myfile, "List ID" . "\t" . "Old Node Relationships" . "\t" . "New Node Relationships" . "\t" ."Update Status" . "\r\n");
 
 // Get an API token
 $ch = curl_init();
@@ -132,26 +133,45 @@ while (!feof($file_handle)) {
 	if (!empty($listID)) {
 		echo_message_to_screen(INFO, "List ID: $listID \t");
 		fwrite($myfile, $listID . "\t");
+	} else {
+		echo_message_to_screen(INFO, "No List ID, skipping line... \t");
+		fwrite($myfile, "No list ID\t\t\tSkipping... \r\n");
+		continue;
 	}
 
 	// Get list node relationship data
 	$list_node_relationships = get_list_node_relationships($shortCode, $listID, $TalisGUID, $token);
 	if (!$list_node_relationships) {
-		fwrite($myfile, "\t" . "Unable to retrieve list's node relationship data" . "\t" . "Skipping..." . "\r\n");
+		fwrite($myfile, "Unable to retrieve list's node relationship data" . "\t\t" . "Skipping..." . "\r\n");
 		continue;
 	}
 
 	// Does the list have an existing list node relationship?
 	if (empty($list_node_relationships->data[0]->type)) {
 		echo_message_to_screen(INFO, "List not attached to any nodes. Moving onto next list...");
-		fwrite($myfile, "\t" . "List not attached to any nodes - nothing updated" . "\r\n");
-	} else {
-		// Log list's current node relationship and any override student numbers
-		$current_node_relationships = friendly_node_data($list_node_relationships);
-		fwrite($myfile, $current_node_relationships . "\t");	
+		fwrite($myfile, "\t\t" . "List not attached to any nodes - nothing updated" . "\r\n");
+	} else {		
+		// Log list's old node relationship and any override student numbers
+		$old_node_relationships = format_old_node_data($list_node_relationships);
+		fwrite($myfile, $old_node_relationships . "\t");
 		
-		// Create attach template
-		$attachBody = patch_attach_template($list_node_relationships);
+		// Populate an array of node ids from relationships...
+		$list_nodes = [];
+		for ($i = 0, $size = count($list_node_relationships->data); $i < $size; ++$i) {
+			$list_nodes[$i] = $list_node_relationships->data[$i]->id;
+		}
+		// ... and get student numbers from the list's attached nodes
+		$node_student_numbers = [];
+		foreach ($list_nodes as $search_term) {
+			$node_student_numbers[$search_term] = get_new_student_numbers($shortCode, $TalisGUID, $token, $search_term);
+		}
+
+		// Log list's new node relationship data
+		$new_node_relationships = format_new_node_data($node_student_numbers);
+		fwrite($myfile, $new_node_relationships . "\t");
+
+		// Create attach template from list node relationships and the node data's student numbers
+		$attachBody = patch_attach_template($list_node_relationships, $node_student_numbers);
 		
 		// If not dry run - update
 		if ($shouldWritetoLive === "true") {
@@ -179,6 +199,7 @@ while (!feof($file_handle)) {
 	}
 }
 
+// List node relationships
 function get_list_node_relationships($shortCode, $listID, $TalisGUID, $token) {
 	$list_lookup = "https://rl.talis.com/3/" . $shortCode . "/lists/" . $listID . "/relationships/nodes";
 
@@ -199,7 +220,7 @@ function get_list_node_relationships($shortCode, $listID, $TalisGUID, $token) {
 	
 	curl_close($ch1);
 
-	if ($info1 !== 200){
+	if ($info1 !== 200) {
 		echo_message_to_screen(WARNING, "Unable to retrieve the list's node relationship data: <pre>" . var_export($output, true) . "</pre>");
 		return false;
 	} else {
@@ -208,33 +229,105 @@ function get_list_node_relationships($shortCode, $listID, $TalisGUID, $token) {
 	}
 }
 
-// Format node data for logs
-function friendly_node_data($list_node_relationships) {
+// Format old node data for logs
+function format_old_node_data($list_node_relationships) {
 	for ($i = 0, $size = count($list_node_relationships->data); $i < $size; ++$i) {
-		$type = $list_node_relationships->data[$i]->type;
 		$id = $list_node_relationships->data[$i]->id;
-		$overide_student_numbers = $list_node_relationships->data[$i]->meta->override_student_numbers;
+		$old_student_numbers = $list_node_relationships->data[$i]->meta->override_student_numbers;
 		
-		$node_data = "$type: $id";
+		$log_data .= "$id";
 
-		if ($overide_student_numbers) {
-			$node_data .= " (Override student numbers: $overide_student_numbers)";
+		if ($old_student_numbers) {
+			$log_data .= " ($old_student_numbers)";
+		} else {
+			$log_data .= " (null)";
 		}
 
-		if ($i === 0) {
-			$log_data = $node_data;
-		} else {
-			$log_data .= "; $node_data";
+		if ($i + 1 !== $size) {
+			$log_data .= "; ";
 		}
 	}
 	return $log_data;
 }
 
-function patch_attach_template($list_node_relationships){
+// Format new node data for logs
+function format_new_node_data($node_student_numbers) {
+	$size = count($node_student_numbers);
+	$i = 0;
+	foreach ($node_student_numbers as $id => $student_numbers) {
+		$log_data .= $id . " (" . $student_numbers . ")";
+		if (++$i !== $size) {
+			$log_data .= "; ";
+		}
+	}
+	return $log_data;
+}
+
+// Get new student numbers from attached nodes
+// getNodes call limited to 10 results - a low but otherwise arbitary value (for now).
+// Limit can be lowered/raised as needed if results of search_term too broad/narrow.
+function get_new_student_numbers($shortCode, $TalisGUID, $token, $search_term) {
+	$node_lookup = "https://rl.talis.com/3/" . $shortCode . "/nodes?page[limit]=10&page[offset]=0&filter[search_term]=" . $search_term;
+
+	$ch1 = curl_init();
+		
+		curl_setopt($ch1, CURLOPT_URL, $node_lookup);
+		curl_setopt($ch1, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($ch1, CURLOPT_HTTPHEADER, array(
+			
+			"X-Effective-User: $TalisGUID",
+			"Authorization: Bearer $token",
+			'Cache-Control: no-cache'
+	
+		));
+		$output = curl_exec($ch1);
+		$info1 = curl_getinfo($ch1, CURLINFO_HTTP_CODE);
+		$output_json = json_decode($output);
+	
+	curl_close($ch1);
+
+	if ($info1 !== 200) {
+		echo_message_to_screen(WARNING, "Unable to retrieve any node data: <pre>" . var_export($output, true) . "</pre>");
+		return false;
+	} else {
+		echo_message_to_screen(DEBUG, "Successfully retrieved node data for search term: " . $search_term . "<pre>" . var_export($output, true) . "</pre>");
+
+		// Use extract_student_numbers() with $output_json to get student numbers for the provided $node_id
+		// If no results are returned by getNodes, then the string "null" is returned
+		if ($output_json->meta->total > 0) {
+			$node_student_numbers = extract_student_numbers($output_json, $search_term);
+			return $node_student_numbers;
+		} else {
+			return "null";
+		}
+	}
+}
+
+// Returns the value of the student_number attribute against the first match it makes
+// If no match or if the matched node has no student_number attribute then the string "null" is returned
+function extract_student_numbers($node_search_result, $search_id) {
+	for ($i = 0, $size = count($node_search_result->data); $i < $size; ++$i) {
+		$result_id = $node_search_result->data[$i]->id;
+		$node_student_numbers = $node_search_result->data[$i]->attributes->student_numbers;
+
+		if (empty($node_student_numbers)) {
+			$node_student_numbers = "null";
+		}
+		if ($search_id == $result_id) {
+			return $node_student_numbers;
+		}
+	}
+	return "null";
+}
+
+// Bring list node relationship data together with node student number data
+function patch_attach_template($list_node_relationships, $node_student_numbers){
 	for ($i = 0, $size = count($list_node_relationships->data); $i < $size; ++$i) {
 		$type = $list_node_relationships->data[$i]->type;
 		$id = $list_node_relationships->data[$i]->id;
-		$node = '{"type":"'. $type .'","id":"'. $id .'"}';
+		$override_student_numbers = $node_student_numbers[$id];
+		
+		$node = '{"type":"'. $type .'","id":"'. $id .'","meta":{"override_student_numbers":'. $override_student_numbers .'}}';
 		if ($i === 0) {
 			$template_data = $node;
 		} else {
@@ -248,6 +341,8 @@ function patch_attach_template($list_node_relationships){
 	return $templateArr;
 }
 
+// Patch listNodeRelationship
+// Has two modes (DETACH and REATTACH)
 function post_url($shortCode, $listID, $body, $TalisGUID, $token, $mode) {
 	$patch_url = "https://rl.talis.com/3/" . $shortCode . "/lists/" . $listID . "/relationships/nodes";
 	$ch2 = curl_init();
