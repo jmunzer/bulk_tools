@@ -56,7 +56,6 @@ function getList($TalisGUID, $token, $shortCode, $itemID) {
 
         if ($info !== 200){
 			echo "<p>ERROR: There was an error getting the list information:</p><pre>" . var_export($output, true) . "</pre>";
-			exit;
 		} else {
             $listID = $output_json->included[0]->id;
             $etag = $output_json->included[0]->meta->list_etag;
