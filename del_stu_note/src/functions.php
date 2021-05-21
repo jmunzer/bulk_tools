@@ -61,9 +61,7 @@ function getList($TalisGUID, $token, $shortCode, $itemID) {
 			echo "    Got list information</br>";
             
             $listID = $output_json->included[0]->id;
-            echo "\tlist_id: " . $listID . "</br>";
             $etag = $output_json->included[0]->meta->list_etag;
-            echo "\tETag: " . $etag . "</br>";
     
             $ListDataArray = array();
             array_push($ListDataArray, $listID);

@@ -71,9 +71,6 @@ echo "</br>";
 
 $myfile = fopen("../../report_files/delstunote_output.log", "a") or die("Unable to open delstunote_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Section GUID" . "\t" . "Section deleted" . "\t" . "List Published" . "\r\n");
-
-
 
 //************GET_TOKEN***************
 $token = getToken($clientID, $secret);
@@ -87,11 +84,12 @@ while (!feof($file_handle) )  {
 	$line_of_text = fgets($file_handle);
 	$parts = explode(" ", $line_of_text);
 	$itemID = trim($parts[0]);
-	
+	fwrite($myfile, $itemID . ",");
 	//************GRAB LIST DETAILS*************
 
 	$ListDataArray = getList($TalisGUID, $token, $shortCode, $itemID);
 		$listID = $ListDataArray[0];
+		fwrite($myfile, $listID . ",");
 		$etag = json_encode($ListDataArray[1]);
 
 	if ($shouldWritetoLive == "true") {
@@ -104,25 +102,26 @@ while (!feof($file_handle) )  {
 	$deleteResponse = delete_student_note($shortCode, $itemID, $etag, $listID, $TalisGUID, $token);
 	if ($deleteResponse !== 200){
 		echo "<p>ERROR: There was an error deleting the note:</p>";
+		fwrite($myfile, "FAILURE: note not deleted" . ",");
 		continue;
 	} else {
 		echo "<p>Deleted student note</p>";
+		fwrite($myfile, "SUCCESS: note deleted" . ",");
 	}
-
-	//print_r($publishListArray);
-	//json_encode list array to prepare for API submisson
-	$publishListArray_encoded = json_encode($publishListArray);
+}
 
 	//**************PUBLISH**LIST***************
+	$publishListArray_encoded = json_encode($publishListArray);
+
 	if ($shouldPublishLists === TRUE) {
 		$publishResponse = publishlists($shortCode, $publishListArray_encoded, $TalisGUID, $token);
 		if ($publishResponse !== 202){
-			echo "<p>ERROR: There was an error publishing the lists:</p>";
-			//fwrite($myfile, "Publish failed" . "\t");
+			echo "<p>FAILURE: lists not published</p>";
+			fwrite($myfile, "FAILURE: lists not published" . ",");
 			exit;
 		} else {
-			echo "Published changes to $listID</br>";
-			//fwrite($myfile, "Published successfully" . "\t");
+			echo "SUCCESS: lists published</br>";
+			fwrite($myfile, "SUCCESS: lists published");
 		}
 	}
 	
@@ -131,7 +130,7 @@ while (!feof($file_handle) )  {
 	fwrite($myfile, "\n");
 	echo "End of Record.";
 	echo "---------------------------------------------------</br></br>";
-}
+
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 
