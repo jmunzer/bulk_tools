@@ -71,6 +71,7 @@ echo "</br>";
 
 $myfile = fopen("../../report_files/delstunote_output.log", "a") or die("Unable to open delstunote_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
+fwrite($myfile, "Item ID,List ID,Note Status\n");
 
 //************GET_TOKEN***************
 $token = getToken($clientID, $secret);
@@ -94,45 +95,44 @@ while (!feof($file_handle) )  {
 
 	if ($shouldWritetoLive == "true") {
 
-	// writing list ID to array for bulk publish POST
-	$forListArray = ['type' => 'draft_lists', 'id' => $listID]; //check this $listID value
-	array_push($publishListArray, $forListArray);
+		// writing list ID to array for bulk publish POST
+		$forListArray = ['type' => 'draft_lists', 'id' => $listID]; //check this $listID value
+		array_push($publishListArray, $forListArray);
 
-	//**************DELETE STUDENT NOTE***************
-	$deleteResponse = delete_student_note($shortCode, $itemID, $etag, $listID, $TalisGUID, $token);
-	if ($deleteResponse !== 200){
-		echo "<p>ERROR: There was an error deleting the note:</p>";
-		fwrite($myfile, "FAILURE: note not deleted" . ",");
-		continue;
-	} else {
-		echo "<p>Deleted student note</p>";
-		fwrite($myfile, "SUCCESS: note deleted" . ",");
-	}
-}
-
-	//**************PUBLISH**LIST***************
-	$publishListArray_encoded = json_encode($publishListArray);
-
-	if ($shouldPublishLists === TRUE) {
-		$publishResponse = publishlists($shortCode, $publishListArray_encoded, $TalisGUID, $token);
-		if ($publishResponse !== 202){
-			echo "<p>FAILURE: lists not published</p>";
-			fwrite($myfile, "FAILURE: lists not published" . ",");
-			exit;
+		//**************DELETE STUDENT NOTE***************
+		$deleteResponse = delete_student_note($shortCode, $itemID, $etag, $listID, $TalisGUID, $token);
+		if ($deleteResponse !== 200){
+			echo "<p>ERROR: There was an error deleting the note:</p>";
+			fwrite($myfile, "FAILURE: note not deleted" . "\n");
+			continue;
 		} else {
-			echo "SUCCESS: lists published</br>";
-			fwrite($myfile, "SUCCESS: lists published");
+			echo "<p>Deleted student note</p>";
+			fwrite($myfile, "SUCCESS: note deleted" . "\n");
 		}
 	}
-	
+}
+//**************PUBLISH**LIST***************
+$publishListArray_encoded = json_encode($publishListArray);
+
+if ($shouldPublishLists === TRUE) {
+	$publishResponse = publishlists($shortCode, $publishListArray_encoded, $TalisGUID, $token);
+	if ($publishResponse !== 202){
+		echo "<p>FAILURE: lists not published</p>";
+		fwrite($myfile, "FAILURE: lists not published\n");
+		exit;
+	} else {
+		echo "SUCCESS: lists published</br>";
+		fwrite($myfile, "SUCCESS: lists published\n");
 	}
+}
+	
 
 	fwrite($myfile, "\n");
 	echo "End of Record.";
 	echo "---------------------------------------------------</br></br>";
 
 
-fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
+fwrite($myfile, "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 
 fclose($file_handle);
 fclose($myfile);
