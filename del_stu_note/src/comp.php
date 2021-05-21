@@ -50,7 +50,6 @@ $shouldPublishLists = filter_var($_REQUEST['PUBLISH_LISTS'], FILTER_VALIDATE_BOO
 
 echo "Should publish lists?: " . var_export($shouldPublishLists, true);
 echo "</br>";
-echo "</br>";
 
 $publishListArray = array();
 
@@ -63,15 +62,13 @@ if(isset($_REQUEST['DRY_RUN']) &&
 		$shouldWritetoLive = "false";
 	}
 
-echo "Writing to live tenancy?: $shouldWritetoLive";
-echo "</br>";
-echo "</br>";
+echo "Writing to live tenancy?: $shouldWritetoLive </br>";
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
 $myfile = fopen("../../report_files/delstunote_output.log", "a") or die("Unable to open delstunote_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-fwrite($myfile, "Item ID,List ID,Note Status\n");
+fwrite($myfile, "Item ID,List ID,Note to Remove,Note Status\n");
 
 //************GET_TOKEN***************
 $token = getToken($clientID, $secret);
@@ -85,12 +82,20 @@ while (!feof($file_handle) )  {
 	$line_of_text = fgets($file_handle);
 	$parts = explode(" ", $line_of_text);
 	$itemID = trim($parts[0]);
+	echo "$itemID\t";
 	fwrite($myfile, $itemID . ",");
 	//************GRAB LIST DETAILS*************
 
 	$ListDataArray = getList($TalisGUID, $token, $shortCode, $itemID);
 		$listID = $ListDataArray[0];
+		echo "$listID\t";
 		fwrite($myfile, $listID . ",");
+		$stuNote = $ListDataArray[2];
+		if (empty($stuNote)) {
+			$stuNote = "no student note";
+		}
+		echo "$stuNote\t";
+		fwrite($myfile, $stuNote . ",");
 		$etag = json_encode($ListDataArray[1]);
 
 	if ($shouldWritetoLive == "true") {
@@ -102,11 +107,11 @@ while (!feof($file_handle) )  {
 		//**************DELETE STUDENT NOTE***************
 		$deleteResponse = delete_student_note($shortCode, $itemID, $etag, $listID, $TalisGUID, $token);
 		if ($deleteResponse !== 200){
-			echo "<p>ERROR: There was an error deleting the note:</p>";
+			echo "FAILURE: note not deleted</br>";
 			fwrite($myfile, "FAILURE: note not deleted" . "\n");
 			continue;
 		} else {
-			echo "<p>Deleted student note</p>";
+			echo "SUCCESS: note deleted</br>";
 			fwrite($myfile, "SUCCESS: note deleted" . "\n");
 		}
 	}
@@ -117,11 +122,11 @@ $publishListArray_encoded = json_encode($publishListArray);
 if ($shouldPublishLists === TRUE) {
 	$publishResponse = publishlists($shortCode, $publishListArray_encoded, $TalisGUID, $token);
 	if ($publishResponse !== 202){
-		echo "<p>FAILURE: lists not published</p>";
+		echo "</br>FAILURE: lists not published</br>";
 		fwrite($myfile, "FAILURE: lists not published\n");
 		exit;
 	} else {
-		echo "SUCCESS: lists published</br>";
+		echo "</br>SUCCESS: lists published</br>";
 		fwrite($myfile, "SUCCESS: lists published\n");
 	}
 }

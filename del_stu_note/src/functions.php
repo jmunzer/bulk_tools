@@ -18,7 +18,7 @@ function getToken($clientID, $secret) {
     if ($info !== 200) {
         echo "<p>ERROR: There was an error getting a token:</p><pre>" . var_export($return, true) . "</pre>";
     } else {
-        echo "Got Token</br>";
+        echo "Got Token</br></br>";
     }
 
     curl_close($ch);
@@ -58,14 +58,14 @@ function getList($TalisGUID, $token, $shortCode, $itemID) {
 			echo "<p>ERROR: There was an error getting the list information:</p><pre>" . var_export($output, true) . "</pre>";
 			exit;
 		} else {
-			echo "    Got list information</br>";
-            
             $listID = $output_json->included[0]->id;
             $etag = $output_json->included[0]->meta->list_etag;
+            $stuNote = $output_json->data->attributes->student_note;
     
             $ListDataArray = array();
             array_push($ListDataArray, $listID);
             array_push($ListDataArray, $etag);
+            array_push($ListDataArray, $stuNote);
     
             return $ListDataArray;
 		}
