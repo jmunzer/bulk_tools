@@ -4,6 +4,7 @@ print("</br><a href='del_stu_note.html'>Back to Delete Student Note tool</a>");
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
+ini_set('max_execution_time', '0');
 error_reporting(E_ALL);
 
 echo "<p>Starting</p>";
