@@ -35,8 +35,8 @@
 
 <div id="TARL_bulk updater">
 		<h1>New Acquisitions</h1>
-		<h2>This tool was designed by Joe Munzer (York St John University) and Mark Kluzek (University of Westminster) </h2>
-		<h2></h2>
+		<h2>This tool was designed by Mark Kluzek from the University of Westminster - Please attach a .txt file containing a comma-seperated new acquisition per line.</h2>
+		<h2>In the following format: Resource Type, Item Title, ISBN</h2>
 		<h2>Once this script has run, remember to run a 'metadata refresh' to pull full metadata from your LMS</h2>
 				
 			<form enctype="multipart/form-data" action="comp.php" method="POST">
@@ -51,7 +51,7 @@
 				New Acquisitions file: <input name="userfile" type="file"/>
 				<br/>
 				<br/>
-					Pull from CSV?: <select name="SOURCE_TYPE">
+					Publish lists?: <select name="PUBLISH_LISTS">
 						<option selected="selected">FALSE</option>
 						<option>TRUE</option>
 					</select>
