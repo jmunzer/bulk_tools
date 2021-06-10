@@ -147,7 +147,7 @@ $record=$xml->QueryResult->ResultXml->rowset->Row;
 
 	
 	echo "------------</br>";
-	$resource_id = make_resource($shortCode, $title, $resource_type, $isbn, $TalisGUID, $token, $lcn, $full_name, $edition, $publisher_name, $web_addresses );
+	$resource_id = make_resource($shortCode, $title, $resource_type, $isbn, $token, $lcn, $full_name, $edition, $publisher_name, $web_addresses );
 	$etag = etag_fetch($shortCode, $listID, $TalisGUID, $token);
 		$input_item = guidv4();	
 		$input = itemBody($input_item, $etag, $listID, $resource_id);
