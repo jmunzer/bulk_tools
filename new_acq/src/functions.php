@@ -213,7 +213,7 @@ function etag_fetch($shortCode, $listID, $TalisGUID, $token) {
 	return $etag;
 }
       
-function make_resource($shortCode, $title, $resource_type, $isbn, $TalisGUID, $token, $lcn, $full_name, $edition, $publisher_name, $web_addresses) {
+function make_resource($shortCode, $title, $resource_type, $isbn, $token, $lcn, $full_name, $edition, $publisher_name, $web_addresses) {
 	
 	$uuid = guidv4();
 	$url = 'https://rl.talis.com/3/' . $shortCode . '/resources';
@@ -332,12 +332,9 @@ function make_resource($shortCode, $title, $resource_type, $isbn, $TalisGUID, $t
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array(
 		
-		"X-Effective-User: $TalisGUID",
 		"Authorization: Bearer $token",
 		'Cache-Control: no-cache'
 	
-	
-
 	));
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
 
