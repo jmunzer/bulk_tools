@@ -32,10 +32,13 @@
 
 <div id="bulk">
 
-		<h1>Bulk reset list student numbers</h1>
+		<h1>Reset List Student Numbers from Hierarchy Nodes</h1>
 
-        Resets a reading list's student value to the value held in the list's parent node(s)</br></br>
-		Please upload a .txt file containing list IDs</br></br>
+		Resets a reading list's student number value to the value held in the list's attached hierarchy node(s)</br>
+		<h3>Default behaviour</h3>
+		By default, if a hierarchy node a list is attached to has no student number information, this tool will keep the existing student numbers linked to nodes on the list, i.e. they will not be overwritten with "0".<br /><br />
+		If you wish override this behaviour and use the value held in attached hierarchy nodes even if it is "0", tick the box in the configuration section below.<br /><br /><br />
+		Please upload a .txt file containing list IDs</br>
 
 			<form enctype="multipart/form-data" action="comp.php" method="POST">
 				<input type="hidden" name="MAX_FILE_SIZE" value="3000000" />
@@ -52,10 +55,12 @@
 						<option value="1">ERROR</option>
 						<option value="3">INFO</option>
 						<option value="4">DEBUG</option>
-					  </select>
+					</select>
 					<br/><br/>
 					<input type="checkbox" name="DRY_RUN" value="writeToLive">
 					<label for="dryrun">Tick this box to write to live tenancy</label><br>
+					<input type="checkbox" name="OVERRIDE" value="overrideDefault">
+					<label for="override">Tick this box to override the default behaviour (see above)</label><br>
 				<h2>Action</h2>
 				<input type="submit" value="Send" />
 			</form>

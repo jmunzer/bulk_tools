@@ -2,6 +2,8 @@
 
 // Resets supplied lists' student numbers to the values of any nodes it is attached to
 // By finding student numbers on nodes a list is attached to and supplying this value in the list node relationship override_student_numbers attributes
+// Default behaviour is to not overwrite the list numbers where this would result in a value of "0"
+// Contains a switch to override the default behaviour, meaning the numbers on lists are overwritten regardless of the value on the node
 
 print("</br><a href='reset_numbers.html'>Back to reset student numbers tool</a>");
 
@@ -32,7 +34,19 @@ if(isset($_REQUEST['DRY_RUN']) &&
 		$shouldWritetoLive = "false";
 	}
 
+// Default behaviour override switch
+if(isset($_REQUEST['OVERRIDE']) &&
+	$_REQUEST['OVERRIDE'] === "overrideDefault") {
+		$overrideDefault = "true";
+	}
+	else
+	{
+		$overrideDefault = "false";
+}
+
 echo "Writing to live tenancy?: $shouldWritetoLive";
+echo "</br>";
+echo "Override default behaviour?: $overrideDefault";
 echo "</br>";
 
 // Constants
@@ -70,7 +84,7 @@ echo "</br>";
 $logfile = "../../report_files/reset_numbers_output.log";
 $myfile = fopen("../../report_files/reset_numbers_output.log", "a") or die("Unable to open reset_numbers_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-fwrite($myfile, "List ID" . "\t" . "Old Node Relationships" . "\t" . "New Node Relationships" . "\t" ."Update Status" . "\r\n");
+fwrite($myfile, "List ID\tOld Node Relationships\tNew Node Relationships\tUpdate Status\r\n");
 
 // Get an API token
 $ch = curl_init();
@@ -129,41 +143,45 @@ while (!feof($file_handle)) {
 		trim($line[0], "\\xef\\xbb\\xbf");
 	}
 
+	// Check for blank lines and output useful message (instead of API error response)
 	$listID = trim(fgets($file_handle));
 	if (!empty($listID)) {
 		echo_message_to_screen(INFO, "List ID: $listID \t");
 		fwrite($myfile, $listID . "\t");
 	} else {
-		echo_message_to_screen(INFO, "No List ID, skipping line... \t");
-		fwrite($myfile, "No list ID\t\t\tSkipping... \r\n");
+		echo_message_to_screen(INFO, "No List ID, skipping line...\t");
+		fwrite($myfile, "No list ID\t\t\tSkipping...\r\n");
 		continue;
 	}
 
 	// Get list node relationship data
 	$list_node_relationships = get_list_node_relationships($shortCode, $listID, $TalisGUID, $token);
 	if (!$list_node_relationships) {
-		fwrite($myfile, "Unable to retrieve list's node relationship data" . "\t\t" . "Skipping..." . "\r\n");
+		fwrite($myfile, "Unable to retrieve list's node relationship data\t\tSkipping...\r\n");
 		continue;
 	}
 
 	// Does the list have an existing list node relationship?
 	if (empty($list_node_relationships->data[0]->type)) {
 		echo_message_to_screen(INFO, "List not attached to any nodes. Moving onto next list...");
-		fwrite($myfile, "\t\t" . "List not attached to any nodes - nothing updated" . "\r\n");
+		fwrite($myfile, "\t\tList not attached to any nodes - nothing updated\r\n");
 	} else {		
 		// Log list's old node relationship and any override student numbers
 		$old_node_relationships = format_old_node_data($list_node_relationships);
 		fwrite($myfile, $old_node_relationships . "\t");
 		
-		// Populate an array of node ids from relationships...
+		// Populate an array of node ids and their override_student_numbers from relationships...
 		$list_nodes = [];
 		for ($i = 0, $size = count($list_node_relationships->data); $i < $size; ++$i) {
-			$list_nodes[$i] = $list_node_relationships->data[$i]->id;
+			$node_id = $list_node_relationships->data[$i]->id;
+			$override_student_numbers = $list_node_relationships->data[$i]->meta->override_student_numbers;
+			$list_nodes[$node_id] = $override_student_numbers;
 		}
 		// ... and get student numbers from the list's attached nodes
+		// By default, using the old override_student_numbers if the node's student number value is 0
 		$node_student_numbers = [];
-		foreach ($list_nodes as $search_term) {
-			$node_student_numbers[$search_term] = get_new_student_numbers($shortCode, $TalisGUID, $token, $search_term);
+		foreach ($list_nodes as $node_id => $old_student_numbers) {
+			$node_student_numbers[$node_id] = get_new_student_numbers($shortCode, $TalisGUID, $token, $node_id, $old_student_numbers, $overrideDefault);
 		}
 
 		// Log list's new node relationship data
@@ -184,17 +202,21 @@ while (!feof($file_handle)) {
 				$attachResult = post_url($shortCode, $listID, $attachBody, $TalisGUID, $token, ATTACH);
 				if ($attachResult) {
 					// If reattach successful, log result
-					fwrite($myfile, " and reattached. Student numbers reset to parent node(s) value" . "\r\n");
+					if ($overrideDefault === "true") {
+						fwrite($myfile, " and reattached. Student numbers reset using override behaviour.\r\n");
+					} else {
+						fwrite($myfile, " and reattached. Student numbers reset using default behaviour.\r\n");
+					}
 				} else {
 					// Log reattach not successful
-					fwrite($myfile, " but not reattached. Student numbers NOT reset - check list's hierarchy relationships" . "\r\n");
+					fwrite($myfile, " but not reattached. Student numbers NOT reset - check list's hierarchy relationships.\r\n");
 				}
 			} else {
 				// Log detach not succesful
-				fwrite($myfile, "List not detached from node. No further action taken." . "\r\n");
+				fwrite($myfile, "List not detached from node. No further action taken.\r\n");
 			}
 		} else {
-			fwrite($myfile, "Dry Run - nothing updated" . "\r\n");
+			fwrite($myfile, "Dry Run - nothing updated.\r\n");
 		}
 	}
 }
@@ -266,8 +288,12 @@ function format_new_node_data($node_student_numbers) {
 // Get new student numbers from attached nodes
 // getNodes call limited to 10 results - a low but otherwise arbitary value (for now).
 // Limit can be lowered/raised as needed if results of search_term too broad/narrow.
-function get_new_student_numbers($shortCode, $TalisGUID, $token, $search_term) {
+function get_new_student_numbers($shortCode, $TalisGUID, $token, $search_term, $old_student_numbers, $overrideDefault) {
 	$node_lookup = "https://rl.talis.com/3/" . $shortCode . "/nodes?page[limit]=10&page[offset]=0&filter[search_term]=" . $search_term;
+	// Set value of $old_student_numbers to "null" if empty
+	if (empty($old_student_numbers)) {
+		$old_student_numbers = "null";
+	}
 
 	$ch1 = curl_init();
 		
@@ -293,31 +319,45 @@ function get_new_student_numbers($shortCode, $TalisGUID, $token, $search_term) {
 		echo_message_to_screen(DEBUG, "Successfully retrieved node data for search term: " . $search_term . "<pre>" . var_export($output, true) . "</pre>");
 
 		// Use extract_student_numbers() with $output_json to get student numbers for the provided $node_id
-		// If no results are returned by getNodes, then the string "null" is returned
+		// If no results are returned by getNodes, then the $old_student_numbers are returned
 		if ($output_json->meta->total > 0) {
 			$node_student_numbers = extract_student_numbers($output_json, $search_term);
-			return $node_student_numbers;
+			// Check for default behaviour override
+			if ($overrideDefault === "true") {
+				// Override behaviour
+				// Returns student number value found on node, or "null" if no value was found on node
+				if (empty($node_student_numbers)) {
+					return "null";
+				} else {
+					return $node_student_numbers;
+				}
+			} else {
+				// Default behaviour
+				// If extract_student_numbers is empty (i.e. the matching node was not found or the matching node had no student numbers), return $old_student_numbers
+				if (empty($node_student_numbers)) {
+					return $old_student_numbers;
+				} else {
+					return $node_student_numbers;
+				}
+			}
 		} else {
-			return "null";
+			return $old_student_numbers;
 		}
 	}
 }
 
 // Returns the value of the student_number attribute against the first match it makes
-// If no match or if the matched node has no student_number attribute then the string "null" is returned
+// If no match or if the matched node has no student_number attribute then null is returned
 function extract_student_numbers($node_search_result, $search_id) {
 	for ($i = 0, $size = count($node_search_result->data); $i < $size; ++$i) {
 		$result_id = $node_search_result->data[$i]->id;
 		$node_student_numbers = $node_search_result->data[$i]->attributes->student_numbers;
 
-		if (empty($node_student_numbers)) {
-			$node_student_numbers = "null";
-		}
 		if ($search_id == $result_id) {
 			return $node_student_numbers;
 		}
 	}
-	return "null";
+	return null;
 }
 
 // Bring list node relationship data together with node student number data
