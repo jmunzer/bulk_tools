@@ -3,7 +3,7 @@
 function impPost($shortCode, $TalisGUID, $token, $input_imp, $input_item) {
 	
 	
-	var_export($input_imp);
+	//var_export($input_imp);
 	$item_patch = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $input_item ;
 	$ch = curl_init();
 
@@ -22,7 +22,7 @@ function impPost($shortCode, $TalisGUID, $token, $input_imp, $input_item) {
 	
 	$output = curl_exec($ch);
 	$info = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-	echo $info;
+	// echo $info;
 
 	$output_json_etag = json_decode($output);
 
@@ -138,6 +138,52 @@ function token_fetch($clientID, $secret) {
 	return $token;
 }
 
+function publish_single_list($shortCode, $listID, $TalisGUID, $token, $etag)
+	{
+
+	$body = '{
+    "data": {
+        "type": "list_publish_actions"
+    },
+    "meta": {
+        "list_etag": "' . $etag . '"
+			}
+	}';
+	//var_export ($etag);
+	//var_export ($body);
+	
+	
+	
+	$url = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $listID . '/publish_actions';
+	echo $url;
+	$ch = curl_init();
+	
+	curl_setopt($ch, CURLOPT_URL, $url);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($ch, CURLOPT_POST, TRUE);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+	curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+	
+		"X-Effective-User: $TalisGUID",
+		"Authorization: Bearer $token",
+		'Cache-Control: no-cache'
+	
+	));
+	$output = curl_exec($ch);
+	$info = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	$output_json = json_decode($output);
+	curl_close($ch);
+	 
+     if ($info !== 202){
+		echo "<p>ERROR: There was an error publishing a list:</p><pre>" . var_export($output, true) . "</pre>";
+		
+	} else {
+		echo "    Hurray guys, we published the list </br>";
+	}
+	}
+
+
+
 function etag_fetch($shortCode, $listID, $TalisGUID, $token) {
 	$url = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $listID;
 	
@@ -158,75 +204,13 @@ function etag_fetch($shortCode, $listID, $TalisGUID, $token) {
 	curl_close($ch);
 	
 	$etag = $output_json->data->meta->list_etag;
-	echo "    ---------------------------------------------------";
+	echo "    </br>";
 	echo "    Updated ETag: " . $etag . "</br>";
 	echo "</br>";
 
 	return $etag;
 }
       
-function make_resource($shortCode, $title, $resource_type, $isbn, $TalisGUID, $token, $lcn, $full_name, $edition, $publisher_name, $web_addresses) {
-	
-	$uuid = guidv4();
-	$url = 'https://rl.talis.com/3/' . $shortCode . '/resources';
-	
-	$body = '{
-		"data": {
-		  "id": "' . $uuid . '",
-		  "type": "resources",
-		  "attributes": {
-            "authors": [
-                {
-                    "full_name": "' . $full_name . '"          
-                }
-						],
-            "isbn13": ["' . $isbn . '"],
-            "edition": "' . $edition . '",
-            "lcn": "' . $lcn . '",
-            "publisher_name": ["' . $publisher_name . '"],
-            "resource_type": "' . $resource_type . '",
-            "title": "' . $title . '",
-            "web_addresses": ["' . $web_addresses . '"]
-						},
-		  "links": {},
-		  "meta": {},
-		  "relationships": {}
-				}
-	  }';
-	
-	var_export($body);
-	
-	$ch = curl_init();
-	
-	curl_setopt($ch, CURLOPT_URL, $url);
-	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-	curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-		
-		"X-Effective-User: $TalisGUID",
-		"Authorization: Bearer $token",
-		'Cache-Control: no-cache'
-	
-	
-
-	));
-	curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-
-	$output = curl_exec($ch);
-	$info = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-	echo $info;
-	$output_json = json_decode($output);
-	curl_close($ch);
-	if ($info !== 200){
-		echo "<p>ERROR: There was an error creating resource:</p><pre>" . var_export($output, true) . "</pre>";
-		
-	} else {
-		echo "    Hurray guys, we made a resource </br>";
-}	return $uuid;
-}
-	
-
-
 
 function guidv4($data = null) {
 
@@ -243,15 +227,14 @@ function guidv4($data = null) {
     return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
 
-function itemPost($shortCode, $TalisGUID, $token, $input) {
+function ownerPatch($shortCode, $TalisGUID, $token, $input, $listID) {
 	
-	
-	var_export($input);
-	$item_patch = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/';
+	//var_export($input);
+	$item_patch = 'https://rl.talis.com/3/' . $shortCode . '/lists/' . $listID . '/relationships/owners';
 	$ch = curl_init();
 
 	curl_setopt($ch, CURLOPT_URL, $item_patch);
-	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_HTTPHEADER, array(
 		
@@ -265,52 +248,28 @@ function itemPost($shortCode, $TalisGUID, $token, $input) {
 	
 	$output = curl_exec($ch);
 	$info = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-	echo $info;
+	//echo $info;
 
 	$output_json_etag = json_decode($output);
 	//$etag = $output_json_etag->meta->list_etag;
 
 	curl_close($ch);
-	if ($info !== 201){
-		echo "<p>ERROR: There was an error adding the item:</p><pre>" . var_export($output, true) . "</pre>";
+	if ($info !== 200){
+		echo "<p>ERROR: There was an error assigning the list owner:</p><pre>" . var_export($output, true) . "</pre>";
 	} else {
-		echo "    Added item to list</br>";
+		echo "    List Owner Assigned Successfully</br>";
 	}
 	
 }
 
-function itemBody($input_item, $etag, $listID, $resource_id) {
+function patchBody($etag, $listID, $ownerID) {
 	//$uuid = guidv4();		
 			
-$input= ' {"data": {
-  "id": "' . $input_item . '",
-  "type": "items",
-  "relationships": {
-    "container": {
-      "data": {
-        "id": "' . $listID . '",
-        "type": "lists"
-      },
-      "meta": {
-        "index": 0
-      }
-    },
-
-    
-    "resource": {
-      "data": {
-        "id": "' . $resource_id . '",
-        "type": "resources"
-      }
-    }
-
-  }
-},
-
-"meta": {
-  "list_etag": "' . $etag . '",
-  "list_id": "' . $listID . '"
-}
+$input= 
+'{"data":
+        [{"id": "' . $ownerID . '", "type": "users"}],
+    "meta":
+        {"list_etag": "' . $etag . '"}
 }';
 
 		return $input;
