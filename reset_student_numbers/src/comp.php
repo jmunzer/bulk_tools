@@ -253,6 +253,7 @@ function get_list_node_relationships($shortCode, $listID, $TalisGUID, $token) {
 
 // Format old node data for logs
 function format_old_node_data($list_node_relationships) {
+	$log_data = "";
 	for ($i = 0, $size = count($list_node_relationships->data); $i < $size; ++$i) {
 		$id = $list_node_relationships->data[$i]->id;
 		$old_student_numbers = $list_node_relationships->data[$i]->meta->override_student_numbers;
@@ -276,6 +277,7 @@ function format_old_node_data($list_node_relationships) {
 function format_new_node_data($node_student_numbers) {
 	$size = count($node_student_numbers);
 	$i = 0;
+	$log_data = "";
 	foreach ($node_student_numbers as $id => $student_numbers) {
 		$log_data .= $id . " (" . $student_numbers . ")";
 		if (++$i !== $size) {
@@ -362,6 +364,7 @@ function extract_student_numbers($node_search_result, $search_id) {
 
 // Bring list node relationship data together with node student number data
 function patch_attach_template($list_node_relationships, $node_student_numbers){
+	$template_data = "";
 	for ($i = 0, $size = count($list_node_relationships->data); $i < $size; ++$i) {
 		$type = $list_node_relationships->data[$i]->type;
 		$id = $list_node_relationships->data[$i]->id;
