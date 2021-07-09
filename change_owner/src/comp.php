@@ -26,12 +26,6 @@ print_r($uploadfile);
 echo "</br>";
 echo "</br>";
 
-$ownerID = $_REQUEST['OwnerID'];
-//$ownerID = "";
-
-echo "Owner ID to use: " . $ownerID;
-echo "</br>";
-
 /**
  * Get the user config file. This script will fail disgracefully if it has not been created and nothing will happen.
  */
@@ -47,12 +41,11 @@ echo "</br>";
 echo "User GUID to use: " . $TalisGUID;
 echo "</br>";
 
-
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
 $myfile = fopen("../../report_files/change_owner_output.log", "a") or die("Unable to open change_owner_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-//fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Section Status" . "\t" . "Item Status" . "\t" . "Item Status" . "\t" . "Item Status" . "\t" . "List Published" . "\r\n");
+fwrite($myfile, "Owner GUID" . "\t" . "List ID" . "\t" . "Outcome" . "\r\n");
 
 $tokenURL = 'https://users.talis.com/oauth/tokens';
 $content = "grant_type=client_credentials";
@@ -69,19 +62,17 @@ while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 
 	$ownerID = trim($line[0]);
 	$listID = trim($line[1]);
+
+	fwrite($myfile, $ownerID . "\t");
+	fwrite($myfile, $listID . "\t");
 		
-	echo "------------</br>";
-	
 	$etag = etag_fetch($shortCode, $listID, $TalisGUID, $token);
 	$input = patchBody($etag, $listID, $ownerID);
-	ownerPatch($shortCode, $TalisGUID, $token, $input, $listID, $ownerID);
+	ownerPatch($shortCode, $TalisGUID, $token, $input, $listID, $ownerID, $myfile);
 	
 }
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
-
-
 fclose($file_handle);
-
 fclose($myfile);
 ?>
