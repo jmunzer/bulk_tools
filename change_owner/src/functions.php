@@ -227,7 +227,7 @@ function guidv4($data = null) {
     return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
 
-function ownerPatch($shortCode, $TalisGUID, $token, $input, $listID) {
+function ownerPatch($shortCode, $TalisGUID, $token, $input, $listID, $ownerID) {
 	
 	//var_export($input);
 	$item_patch = 'https://rl.talis.com/3/' . $shortCode . '/lists/' . $listID . '/relationships/owners';
@@ -257,7 +257,7 @@ function ownerPatch($shortCode, $TalisGUID, $token, $input, $listID) {
 	if ($info !== 200){
 		echo "<p>ERROR: There was an error assigning the list owner:</p><pre>" . var_export($output, true) . "</pre>";
 	} else {
-		echo "    List Owner Assigned Successfully</br>";
+		echo "List: $listID has been successfully assigned owner: $ownerID</br>";
 	}
 	
 }

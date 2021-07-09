@@ -67,14 +67,14 @@ if ($file_handle == FALSE) {
 
 while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 
-	$listID = trim($line[0]);		
-	echo "</br>list ID= ". $listID ."</br>";
-	
+	$ownerID = trim($line[0]);
+	$listID = trim($line[1]);
+		
 	echo "------------</br>";
 	
 	$etag = etag_fetch($shortCode, $listID, $TalisGUID, $token);
 	$input = patchBody($etag, $listID, $ownerID);
-	ownerPatch($shortCode, $TalisGUID, $token, $input, $listID);
+	ownerPatch($shortCode, $TalisGUID, $token, $input, $listID, $ownerID);
 	
 }
 
