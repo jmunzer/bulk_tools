@@ -38,7 +38,7 @@ echo "</br>";
 
 $sourceselect = filter_var($_REQUEST['SOURCE_TYPE'], FILTER_VALIDATE_BOOLEAN) || FALSE;
 
-echo "Use CSV: " . var_export($sourceselect, true);
+echo "Use TSV: " . var_export($sourceselect, true);
 echo "</br>";
 
 
@@ -161,7 +161,7 @@ $record=$xml->QueryResult->ResultXml->rowset->Row;
 	
 	$file_handle = fopen($uploadfile, "r");
     if ($file_handle == FALSE) {
-		echo_message_to_screen(ERROR, "Could not open csv file - Process Stopped.");
+		echo_message_to_screen(ERROR, "Could not open tsv file - Process Stopped.");
 		exit;
     }
 	while (($line = fgetcsv($file_handle, 1000, "\t")) !== FALSE) {
