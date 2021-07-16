@@ -1,7 +1,6 @@
 <?php
 
-function impPost($shortCode, $TalisGUID, $token, $input_imp, $input_item) {
-	
+function impPost($shortCode, $TalisGUID, $token, $input_imp, $input_item, $title) {
 	
 	//var_export($input_imp);
 	$item_patch = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $input_item ;
@@ -28,38 +27,33 @@ function impPost($shortCode, $TalisGUID, $token, $input_imp, $input_item) {
 
 	curl_close($ch);
 	if ($info !== 200){
-		echo "<p>ERROR: There was an error adding the importance:</p><pre>" . var_export($output, true) . "</pre>";
-	} else {
-		echo "    Added importance to item</br>";
+		echo "<p>ERROR: There was an error adding the importance to: $title</p><pre>" . var_export($output, true) . "</pre>";
 	}
-	
 }
 
 function impBody($input_item, $etag, $listID, $resource_id) {
-
 					
-$input_imp= ' {
-  "data": {
-    "id": "' . $input_item . '",
-    "type": "items",
-    "relationships": {
-      "importance": {
-        "data": {
-          "id": "http://readinglists.westminster.ac.uk/config/importance53fdf54c4f1c0",
-          "type": "importances"
-        }
-      }
-    }
-  },
-  "meta": {
-    "list_id": "' . $listID .'",
-    "list_etag": "' . $etag . '"
-  }
-}';
+	$input_imp= ' {
+	"data": {
+		"id": "' . $input_item . '",
+		"type": "items",
+		"relationships": {
+		"importance": {
+			"data": {
+			"id": "http://yorksj.rl.talis.com/config/importance5ab0e620d975a",
+			"type": "importances"
+			}
+		}
+		}
+	},
+	"meta": {
+		"list_id": "' . $listID .'",
+		"list_etag": "' . $etag . '"
+	}
+	}';
 
-		return $input_imp;
-};
-
+	return $input_imp;
+}
 
 function delete_body($shortCode, $item_id, $etag, $listID) {
 	
@@ -140,8 +134,7 @@ function token_fetch($clientID, $secret) {
 
 
 
-function publish_single_list($shortCode, $listID, $TalisGUID, $token, $etag)
-	{
+function publish_single_list($shortCode, $listID, $TalisGUID, $token, $etag) {
 
 	$body = '{
     "data": {
@@ -154,10 +147,8 @@ function publish_single_list($shortCode, $listID, $TalisGUID, $token, $etag)
 	//var_export ($etag);
 	//var_export ($body);
 	
-	
-	
 	$url = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $listID . '/publish_actions';
-	echo $url;
+	//echo $url;
 	$ch = curl_init();
 	
 	curl_setopt($ch, CURLOPT_URL, $url);
@@ -177,12 +168,12 @@ function publish_single_list($shortCode, $listID, $TalisGUID, $token, $etag)
 	curl_close($ch);
 	 
      if ($info !== 202){
-		echo "<p>ERROR: There was an error publishing a list:</p><pre>" . var_export($output, true) . "</pre>";
+		echo "<p>ERROR: There was an error publishing list $listID:</p><pre>" . var_export($output, true) . "</pre>";
 		
 	} else {
-		echo "    Hurray guys, we published the list </br>";
+		echo "</br></br>List: $listID changes successfully published - script complete</br>";
 	}
-	}
+}
 
 
 
@@ -206,9 +197,12 @@ function etag_fetch($shortCode, $listID, $TalisGUID, $token) {
 	curl_close($ch);
 	
 	$etag = $output_json->data->meta->list_etag;
+	
+	/* uncomment for debugging
 	echo "    </br>";
 	echo "    Updated ETag: " . $etag . "</br>";
 	echo "</br>";
+	*/
 
 	return $etag;
 }
@@ -311,15 +305,10 @@ function make_resource($shortCode, $title, $resource_type, $isbn, $token, $lcn, 
 	$output_json = json_decode($output);
 	curl_close($ch);
 	if ($info !== 200){
-		echo "<p>ERROR: There was an error creating resource:</p><pre>" . var_export($output, true) . "</pre>";
-		
-	} else {
-		echo "    Hurray guys, we made a resource </br>";
-}	return $uuid;
+		echo "<p>ERROR: There was an error creating resource for $isbn:</p><pre>" . var_export($output, true) . "</pre>";
+	}
+	return $uuid;
 }
-	
-
-
 
 function guidv4($data = null) {
 
@@ -336,7 +325,7 @@ function guidv4($data = null) {
     return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
 
-function itemPost($shortCode, $TalisGUID, $token, $input) {
+function itemPost($shortCode, $TalisGUID, $token, $input, $title) {
 	
 	
 	//var_export($input);
@@ -365,47 +354,44 @@ function itemPost($shortCode, $TalisGUID, $token, $input) {
 
 	curl_close($ch);
 	if ($info !== 201){
-		echo "<p>ERROR: There was an error adding the item:</p><pre>" . var_export($output, true) . "</pre>";
-	} else {
-		echo "    Added item to list</br>";
-	}
-	
+		echo "<p>ERROR: There was an error adding the item: $title:</p><pre>" . var_export($output, true) . "</pre>";
+	}	
 }
 
 function itemBody($input_item, $etag, $listID, $resource_id) {
 	//$uuid = guidv4();		
 			
-$input= ' {"data": {
-  "id": "' . $input_item . '",
-  "type": "items",
-  "relationships": {
-    "container": {
-      "data": {
-        "id": "' . $listID . '",
-        "type": "lists"
-      },
-      "meta": {
-        "index": 0
-      }
-    },
+	$input= ' {"data": {
+	"id": "' . $input_item . '",
+	"type": "items",
+	"relationships": {
+		"container": {
+		"data": {
+			"id": "' . $listID . '",
+			"type": "lists"
+		},
+		"meta": {
+			"index": 0
+		}
+		},
 
-    
-    "resource": {
-      "data": {
-        "id": "' . $resource_id . '",
-        "type": "resources"
-      }
-    }
+		
+		"resource": {
+		"data": {
+			"id": "' . $resource_id . '",
+			"type": "resources"
+		}
+		}
 
-  }
-},
+	}
+	},
 
-"meta": {
-  "list_etag": "' . $etag . '",
-  "list_id": "' . $listID . '"
+	"meta": {
+	"list_etag": "' . $etag . '",
+	"list_id": "' . $listID . '"
+	}
+	}';
+
+			return $input;
 }
-}';
-
-		return $input;
-};
 ?>
