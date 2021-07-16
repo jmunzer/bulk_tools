@@ -111,53 +111,54 @@ echo "Iresource ID is: " . $resource_id . "</br>";
     delete_post($shortCode, $TalisGUID, $token, $input, $item_id, $listID);
 };
 
-if ($sourceselect === FALSE){
-$xml=simplexml_load_file($alma_lookup);
+if ($sourceselect === FALSE) {
+	$xml=simplexml_load_file($alma_lookup);
 
-echo "</br></br>";
-// var_export($xml);
+	echo "</br></br>";
+	// var_export($xml);
 
-echo "</br></br>";
-
-$record=$xml->QueryResult->ResultXml->rowset->Row;
-
-	foreach ($record as $v) {
-	$isbn=$v->Column8;
-	$resource_type = $v->Column3;
-	$lcn = $v->Column4;
-	$title = $v->Column6;
-	$full_name = $v->Column1;
-	$edition = $v->Column2;
-	$web_addresses = $v->Column7;
-	$publisher_name = $v->Column5;
-
-
-	echo "</br>isbn= ". $isbn."</t>";
-	echo " / title = ".$title."</t>";
-	echo " / resource type = ".$resource_type."</t>";
-	echo " / lcn= ". $lcn."</br>";
-	echo "web address= ".$web_addresses."</t>";
-	echo " / publisher = ".$publisher_name."</t>";
-	echo " / edition= ". $edition."</t>";
-	echo " / author= ". $full_name."</br>";
-
-
-	//var_export ($web_addresses);
 	echo "</br></br>";
 
-	
-	echo "------------</br>";
-	$resource_id = make_resource($shortCode, $title, $resource_type, $isbn, $token, $lcn, $full_name, $edition, $publisher_name, $web_addresses );
-	$etag = etag_fetch($shortCode, $listID, $TalisGUID, $token);
-		$input_item = guidv4();	
-		$input = itemBody($input_item, $etag, $listID, $resource_id);
-		itemPost($shortCode, $TalisGUID, $token, $input);
-		$etag = etag_fetch($shortCode, $listID, $TalisGUID, $token);
-		$input_imp = impBody($input_item, $etag, $listID, $resource_id) ;
-		impPost($shortCode, $TalisGUID, $token, $input_imp, $input_item);
+	$record=$xml->QueryResult->ResultXml->rowset->Row;
+
+		foreach ($record as $v) {
+		$isbn=$v->Column8;
+		$resource_type = $v->Column3;
+		$lcn = $v->Column4;
+		$title = $v->Column6;
+		$full_name = $v->Column1;
+		$edition = $v->Column2;
+		$web_addresses = $v->Column7;
+		$publisher_name = $v->Column5;
+
+
+		echo "</br>isbn= ". $isbn."</t>";
+		echo " / title = ".$title."</t>";
+		echo " / resource type = ".$resource_type."</t>";
+		echo " / lcn= ". $lcn."</br>";
+		echo "web address= ".$web_addresses."</t>";
+		echo " / publisher = ".$publisher_name."</t>";
+		echo " / edition= ". $edition."</t>";
+		echo " / author= ". $full_name."</br>";
+
+
+		//var_export ($web_addresses);
+		echo "</br></br>";
+
 		
+		echo "------------</br>";
+		$resource_id = make_resource($shortCode, $title, $resource_type, $isbn, $token, $lcn, $full_name, $edition, $publisher_name, $web_addresses );
+		$etag = etag_fetch($shortCode, $listID, $TalisGUID, $token);
+			$input_item = guidv4();	
+			$input = itemBody($input_item, $etag, $listID, $resource_id);
+			itemPost($shortCode, $TalisGUID, $token, $input);
+			$etag = etag_fetch($shortCode, $listID, $TalisGUID, $token);
+			$input_imp = impBody($input_item, $etag, $listID, $resource_id) ;
+			impPost($shortCode, $TalisGUID, $token, $input_imp, $input_item);
+			
 	}
-} ELSE {
+} 
+ELSE {
 	
 	$file_handle = fopen($uploadfile, "r");
     if ($file_handle == FALSE) {
