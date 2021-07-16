@@ -214,91 +214,58 @@ function etag_fetch($shortCode, $listID, $TalisGUID, $token) {
 }
       
 function make_resource($shortCode, $title, $resource_type, $isbn, $token, $lcn, $full_name, $edition, $publisher_name, $web_addresses) {
-	
+
 	$uuid = guidv4();
 	$url = 'https://rl.talis.com/3/' . $shortCode . '/resources';
-	
-
-		 
-	if (!empty ($full_name)) 
-	    {
-	$full_name  = '"' . $full_name . '"';
-		}
-	else {
-		$full_name = "null";
-				 }
 	 
-				 
-	
-				 				 
-				 
-		if (!empty ($isbn)) 
-	    {
-	$isbn = '["' . $isbn . '"]';
-		}
-	else {
+	if (!empty ($full_name)) {
+		$full_name  = '"' . $full_name . '"';
+	} else {
+		$full_name = "null";
+	}	 
+	 
+	if (!empty ($isbn)) {
+		$isbn = '["' . $isbn . '"]';
+	} else {
 		$isbn = "null";
-				 }
+	}
 			
-	if (!empty ($edition)) 
-	{
-	$edition = '"' . $edition . '"';
-	}
-	else {
+	if (!empty ($edition)) {
+		$edition = '"' . $edition . '"';
+	} else {
 		$edition = "null";
-		 }
-		 
-		 	if (!empty ($title)) 
-	{
-	$title = '"' . $title . '"';
 	}
-	else {
-		$title = "null";
-		 }
 		 
-		 			
-				 
+	if (!empty ($title)) {
+		$title = '"' . $title . '"';
+	} else {
+		$title = "null";
+	}
 	
-		if (!empty ($lcn)) 
-	    {
-	$lcn = '"' . $lcn . '"';
-		}
-	else {
+	if (!empty ($lcn)) {
+		$lcn = '"' . $lcn . '"';
+	} else {
 		$lcn = "null";
-				 }
-	
-	
-		if (!empty ($publisher_name)) 
-	    {
-	$publisher_name = '["' . $publisher_name . '"]';
-		}
-	else {
+	}
+		
+	if (!empty ($publisher_name)) {
+		$publisher_name = '["' . $publisher_name . '"]';
+	} else {
 		$publisher_name = "null";
-				 }
+	}
 	
-	
-	
-		if (!empty ($resource_type)) 
-	    {
-	$resource_type = '"' . $resource_type . '"';
-		}
-	else {
+	if (!empty ($resource_type)) {
+		$resource_type = '"' . $resource_type . '"';
+	} else {
 		$resource_type = "null";
-				 }
-				 	
-					
-					
-
-				 
-		if (!empty ($web_addresses)) 
-	    {
-	$web_addresses = '["' . $web_addresses . '"]';
-		}
-	else {
+	}
+			 
+	if (!empty ($web_addresses)) {
+		$web_addresses = '["' . $web_addresses . '"]';
+	} else {
 		$web_addresses = "null";
-				 }
-				 
-				 
+	}
+					 
 	$body = '{
 		"data": {
 		  "id": "' . $uuid . '",

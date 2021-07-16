@@ -165,9 +165,8 @@ ELSE {
 		echo_message_to_screen(ERROR, "Could not open tsv file - Process Stopped.");
 		exit;
     }
+
 	while (($line = fgetcsv($file_handle, 1000, "\t")) !== FALSE) {
-
-
 	$isbn = trim($line[0]);
 	$resource_type = trim($line[1]);
 	$lcn = trim($line[2]);
@@ -177,8 +176,6 @@ ELSE {
 	$web_addresses = trim($line[6]);
 	$publisher_name = trim($line[7]);
 
-	
-	
 	echo "</br>isbn= ". $isbn."</t>";
 	echo " / title = ".$title."</t>";
 	echo " / resource type = ".$resource_type."</t>";
@@ -188,13 +185,11 @@ ELSE {
 	echo " / edition= ". $edition."</t>";
 	echo " / author= ". $full_name."</br>";
 
-
 	//var_export ($web_addresses);
 	echo "</br></br>";
 
-	
 	echo "------------</br>";
-	$resource_id = make_resource($shortCode, $title, $resource_type, $isbn, $TalisGUID, $token, $lcn, $full_name, $edition, $publisher_name, $web_addresses );
+	$resource_id = make_resource($shortCode, $title, $resource_type, $isbn, $token, $lcn, $full_name, $edition, $publisher_name, $web_addresses);
 	$etag = etag_fetch($shortCode, $listID, $TalisGUID, $token);
 		$input_item = guidv4();	
 		$input = itemBody($input_item, $etag, $listID, $resource_id);
