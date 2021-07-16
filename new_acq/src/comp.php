@@ -164,7 +164,7 @@ $record=$xml->QueryResult->ResultXml->rowset->Row;
 		echo_message_to_screen(ERROR, "Could not open csv file - Process Stopped.");
 		exit;
     }
-	while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
+	while (($line = fgetcsv($file_handle, 1000, "\t")) !== FALSE) {
 
 
 	$isbn = trim($line[0]);
