@@ -15,7 +15,7 @@ function token_fetch($clientID, $secret) {
 	$return = curl_exec($ch);
 	$info = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
-	if ($info !== 200){
+	if ($info !== 200) {
 		echo "<p>ERROR: There was an error getting a token:</p><pre>" . var_export($return, true) . "</pre>";
 	} else {
 		echo "Successfully received token</br></br>";
@@ -53,9 +53,12 @@ function etag_fetch($shortCode, $listID, $TalisGUID, $token) {
 	$output_json = json_decode($output);
 	curl_close($ch);
 	
-	$etag = $output_json->data->meta->list_etag;
-
-	return $etag;
+	if ($info != 200) {
+		echo "<p>unable to get list information (is it archived?). Moving on to next row</p>";
+	} else {
+		$etag = $output_json->data->meta->list_etag;
+		return $etag;
+	}	
 }    
 
 function guidv4($data = null) {

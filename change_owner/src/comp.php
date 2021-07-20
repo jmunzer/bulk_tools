@@ -67,9 +67,15 @@ while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 	fwrite($myfile, $listID . "\t");
 		
 	$etag = etag_fetch($shortCode, $listID, $TalisGUID, $token);
-	$input = patchBody($etag, $listID, $ownerID);
-	ownerPatch($shortCode, $TalisGUID, $token, $input, $listID, $ownerID, $myfile);
-	
+
+	if (empty($etag)) {
+		continue;
+	} else {
+
+		$input = patchBody($etag, $listID, $ownerID);
+		ownerPatch($shortCode, $TalisGUID, $token, $input, $listID, $ownerID, $myfile);
+
+	}
 }
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
