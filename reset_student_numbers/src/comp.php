@@ -1,5 +1,5 @@
 <?php
-
+//error_reporting(E_ALL);
 // Resets supplied lists' student numbers to the values of any nodes it is attached to
 // By finding student numbers on nodes a list is attached to and supplying this value in the list node relationship override_student_numbers attributes
 // Default behaviour is to not overwrite the list numbers where this would result in a value of "0"
@@ -140,7 +140,7 @@ while (!feof($file_handle)) {
 	$row++;
 	// if this is the first row, detect and remove BOMs from UTF8 files.
 	if ($row === 1) {
-		trim($line[0], "\\xef\\xbb\\xbf");
+		trim($file_handle[0], "\\xef\\xbb\\xbf");
 	}
 
 	// Check for blank lines and output useful message (instead of API error response)
@@ -174,7 +174,11 @@ while (!feof($file_handle)) {
 		$list_nodes = [];
 		for ($i = 0, $size = count($list_node_relationships->data); $i < $size; ++$i) {
 			$node_id = $list_node_relationships->data[$i]->id;
-			$override_student_numbers = $list_node_relationships->data[$i]->meta->override_student_numbers;
+			if (isset($list_node_relationships->data[$i]->meta->override_student_numbers)) {
+				$override_student_numbers = $list_node_relationships->data[$i]->meta->override_student_numbers;
+			} else {
+				$override_student_numbers = 0;
+			}
 			$list_nodes[$node_id] = $override_student_numbers;
 		}
 		// ... and get student numbers from the list's attached nodes
@@ -256,7 +260,11 @@ function format_old_node_data($list_node_relationships) {
 	$log_data = "";
 	for ($i = 0, $size = count($list_node_relationships->data); $i < $size; ++$i) {
 		$id = $list_node_relationships->data[$i]->id;
-		$old_student_numbers = $list_node_relationships->data[$i]->meta->override_student_numbers;
+		if (isset($list_node_relationships->data[$i]->meta->override_student_numbers)) {
+			$old_student_numbers = $list_node_relationships->data[$i]->meta->override_student_numbers;
+		} else {
+			$old_student_numbers = false;
+		}		
 		
 		$log_data .= "$id";
 
@@ -353,7 +361,11 @@ function get_new_student_numbers($shortCode, $TalisGUID, $token, $search_term, $
 function extract_student_numbers($node_search_result, $search_id) {
 	for ($i = 0, $size = count($node_search_result->data); $i < $size; ++$i) {
 		$result_id = $node_search_result->data[$i]->id;
-		$node_student_numbers = $node_search_result->data[$i]->attributes->student_numbers;
+		if (isset($node_search_result->data[$i]->attributes->student_numbers)) {
+			$node_student_numbers = $node_search_result->data[$i]->attributes->student_numbers;
+		} else {
+			$node_student_numbers = null;
+		}
 
 		if ($search_id == $result_id) {
 			return $node_student_numbers;
@@ -369,7 +381,7 @@ function patch_attach_template($list_node_relationships, $node_student_numbers){
 		$type = $list_node_relationships->data[$i]->type;
 		$id = $list_node_relationships->data[$i]->id;
 		$override_student_numbers = $node_student_numbers[$id];
-		
+
 		$node = '{"type":"'. $type .'","id":"'. $id .'","meta":{"override_student_numbers":'. $override_student_numbers .'}}';
 		if ($i === 0) {
 			$template_data = $node;
