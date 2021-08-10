@@ -1,5 +1,5 @@
 <?php
-
+//error_reporting(E_ALL);
 // Deletes supplied lists
 
 print("</br><a href='del.html'>Back to delete list tool</a>");
@@ -118,7 +118,7 @@ while (!feof($file_handle)) {
 	$row++;
 	// if this is the first row, detect and remove BOMs from UTF8 files.
 	if ($row === 1) {
-		trim($line[0], "\\xef\\xbb\\xbf");
+		trim($file_handle[0], "\\xef\\xbb\\xbf");
 	}
 
     $listID = trim(fgets($file_handle));
@@ -139,13 +139,18 @@ while (!feof($file_handle)) {
 	}
 
 	// Check for reviews
-	$review = $list_data->data->links->review;
+	if (isset($list_data->data->links->review)) {
+		$review = $list_data->data->links->review;
+	} else {
+		$review = "";
+	}
+	
 	if (!empty($review)) {
 		echo_message_to_screen(WARNING, "List ID: $listID has an open <a href=\"$review\" target=\"_blank\">review</a>. Review must be closed to delete list. \r\n");
 		fwrite($myfile, "List has an open review: $review. Review must be closed to delete list. \r\n");
 		continue;
 	}
-
+	
 	// If not dry run - update
 	if ($shouldWritetoLive === "true") {
 		$delete_data = delete_list($shortCode, $listID, $TalisGUID, $token);
