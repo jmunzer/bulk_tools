@@ -132,8 +132,6 @@ function token_fetch($clientID, $secret) {
 	return $token;
 }
 
-
-
 function publish_single_list($shortCode, $listID, $TalisGUID, $token, $etag) {
 
 	$body = '{
@@ -174,8 +172,6 @@ function publish_single_list($shortCode, $listID, $TalisGUID, $token, $etag) {
 		echo "</br></br>List: $listID changes successfully published - script complete</br>";
 	}
 }
-
-
 
 function etag_fetch($shortCode, $listID, $TalisGUID, $token) {
 	$url = 'https://rl.talis.com/3/' . $shortCode . '/draft_lists/' . $listID;
@@ -394,4 +390,5 @@ function itemBody($input_item, $etag, $listID, $resource_id) {
 
 			return $input;
 }
+
 ?>
