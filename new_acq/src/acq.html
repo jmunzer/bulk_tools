@@ -24,9 +24,18 @@
 			padding: 44px;
 			vertical-align: top;
 		}
+		#fileinput {
+			display: none;
+		}
 
 	</style>
+<script>
+	function showDiv(divId, element)	{
+		document.getElementById(divId).style.display = element.value == 1 ? 'block' : 'none';
+	}
+</script>
 	
+
  </head>
 
  <body>
@@ -35,10 +44,8 @@
 
 <div id="TARL_bulk updater">
 		<h1>New Acquisitions</h1>
-		<h2>This tool was designed by Joe Munzer (York St John University) and Mark Kluzek (University of Westminster) </h2>
-		<h2></h2>
-		<h2>Once this script has run, remember to run a 'metadata refresh' to pull full metadata from your LMS</h2>
-				
+		<h2>This tool was designed for the automated population of a list where bookmarks do not yet exist in TARL.</h2>
+						
 			<form enctype="multipart/form-data" action="comp.php" method="POST">
 				<input type="hidden" name="MAX_FILE_SIZE" value="3000000" />
 				<h2>Configuration</h2>
@@ -48,15 +55,20 @@
 				Input a List ID to add new acquisitions to: <input name="ListID" type ="text"/>
 				<br/>
 				<br/>
-				New Acquisitions file: <input name="userfile" type="file"/>
-				<br/>
-				<br/>
-					Pull from CSV?: <select name="SOURCE_TYPE">
-						<option selected="selected">FALSE</option>
-						<option>TRUE</option>
-					</select>
-				<h2>Action</h2>
+
+				Pull from TSV (Tab-Separated): 
+				<select name="SOURCE_TYPE" onchange="showDiv('fileinput', this)">
+					<option value="0" selected="selected">FALSE</option>
+					<option value="1">TRUE</option>
+				</select>
+
+				<div id="fileinput">
 				
+				</br>New Acquisitions file: <input name="userfile" type="file"/>
+				</div>
+				<br/>
+	
+				<h2>Action</h2>
 				<input type="submit" value="Send" />
 			</form>
 		
