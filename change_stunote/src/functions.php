@@ -466,13 +466,19 @@ function itemPatch($shortCode, $TalisGUID, $token, $input, $itemID) {
 }
 
 function itemBody_StuNote($itemID, $stuNote, $listID, $etag) {
+
+	if ($stuNote === '') {
+		$stuNote = 'null';
+	} else {
+		$stuNote = '"' . $stuNote . '"';
+	}
 			
 	$input= '
 		{"data":{
 		"id":"' . $itemID . '",
 		"type":"items",
 		"attributes":{
-			"student_note":"' . $stuNote . '"}
+			"student_note": '. $stuNote .'}
 		},
 		"meta":{
 			"list_id":"' . $listID . '",
