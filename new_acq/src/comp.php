@@ -130,8 +130,6 @@ if ($sourceselect === FALSE) {
 			$web_addresses = $v->Column7;
 			$isbn=$v->Column8;
 			
-			echo "</br>" . $isbn . "</t>" . $title . "</br>";
-		
 		// Below are the steps to create resources, add items to list, set importances.
 		$resource_id = make_resource($shortCode, $title, $resource_type, $isbn, $token, $lcn, $author, $edition, $publisher_name, $web_addresses );
 			
@@ -148,7 +146,7 @@ if ($sourceselect === FALSE) {
 		$input_imp = impBody($input_item, $etag, $listID, $resource_id, $importanceID);
 		impPost($shortCode, $TalisGUID, $token, $input_imp, $input_item, $title);
 		
-		echo "$isbn - $title: Successfully created resource and added to list $listID";	
+		echo "</br>$isbn - $title: Successfully created resource and added to list $listID";	
 	}
 } ELSE {
 	
@@ -179,7 +177,7 @@ if ($sourceselect === FALSE) {
 		$input_imp = impBody($input_item, $etag, $listID, $resource_id, $importanceID) ;
 		impPost($shortCode, $TalisGUID, $token, $input_imp, $input_item, $title);
 		
-		echo "$isbn - $title: Successfully created resource and added to list $listID";
+		echo "</br>$isbn - $title: Successfully created resource and added to list $listID";
 	}
 
 	fclose($file_handle);
