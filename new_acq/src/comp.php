@@ -181,6 +181,8 @@ if ($sourceselect === FALSE) {
 		
 		echo "$isbn - $title: Successfully created resource and added to list $listID";
 	}
+
+	fclose($file_handle);
 }
 
 // Here we publish the list.
@@ -188,6 +190,5 @@ $etag = etag_fetch($shortCode, $listID, $TalisGUID, $token);
 publish_single_list($shortCode, $listID, $TalisGUID, $token, $etag);
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
-fclose($file_handle);
 fclose($myfile);
 ?>
