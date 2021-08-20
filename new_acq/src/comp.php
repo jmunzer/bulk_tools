@@ -146,7 +146,7 @@ if ($sourceselect === FALSE) {
 		itemPost($shortCode, $TalisGUID, $token, $input, $title);
 		$etag = etag_fetch($shortCode, $listID, $TalisGUID, $token);
 		$input_imp = impBody($input_item, $etag, $listID, $resource_id, $importanceID);
-		impPost($shortCode, $TalisGUID, $token, $input_imp, $input_item);
+		impPost($shortCode, $TalisGUID, $token, $input_imp, $input_item, $title);
 		
 		echo "$isbn - $title: Successfully created resource and added to list $listID";	
 	}
