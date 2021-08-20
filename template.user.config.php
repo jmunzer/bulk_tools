@@ -28,3 +28,10 @@ $secret = '';
  * You will find this in the all users report CSV export.
  */
 $TalisGUID = '';
+
+/**
+ * Used with the New Acquisitions tool, this sets a default item importance to assign to newly created items
+ * See documentation within new_acq folder for more details
+ * for example: 'http://yorksj.rl.talis.com/config/importance5ab0e620d975a'
+ */
+$importanceID = '';
