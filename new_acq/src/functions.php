@@ -31,7 +31,7 @@ function impPost($shortCode, $TalisGUID, $token, $input_imp, $input_item, $title
 	}
 }
 
-function impBody($input_item, $etag, $listID, $resource_id) {
+function impBody($input_item, $etag, $listID, $resource_id, $importanceID) {
 					
 	$input_imp= ' {
 	"data": {
@@ -40,7 +40,7 @@ function impBody($input_item, $etag, $listID, $resource_id) {
 		"relationships": {
 		"importance": {
 			"data": {
-			"id": "http://yorksj.rl.talis.com/config/importance5ab0e620d975a",
+			"id": "' . $importanceID . '",
 			"type": "importances"
 			}
 		}
@@ -303,6 +303,7 @@ function make_resource($shortCode, $title, $resource_type, $isbn, $token, $lcn, 
 	if ($info !== 200){
 		echo "<p>ERROR: There was an error creating resource for $isbn:</p><pre>" . var_export($output, true) . "</pre>";
 	}
+	
 	return $uuid;
 }
 
@@ -357,7 +358,7 @@ function itemPost($shortCode, $TalisGUID, $token, $input, $title) {
 function itemBody($input_item, $etag, $listID, $resource_id) {
 	//$uuid = guidv4();		
 			
-	$input= ' {"data": {
+	$input = ' {"data": {
 	"id": "' . $input_item . '",
 	"type": "items",
 	"relationships": {
