@@ -438,6 +438,7 @@ function itemBody($input_item, $etag, $listID, $resource_id) {
 
 function getResource($shortCode, $itemID, $token, $TalisGUID) {
 	$url = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $itemID;
+	echo $url;
 	$ch = curl_init();
 
 	curl_setopt($ch, CURLOPT_URL, $url);
