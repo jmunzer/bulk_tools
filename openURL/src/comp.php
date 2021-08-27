@@ -66,21 +66,14 @@ $file_handle = fopen($uploadfile, "r");
 		
 		$itemID = trim($line[0]);
 
-		$resourceID = getResource($shortCode, $itemID, $token);
+		$resourceID = getResource($shortCode, $itemID, $token, $TalisGUID);
 		$PatchOutcome = update_resource($shortCode, $token, $resourceID);
 			if ($PatchOutcome == 200) {
 				echo "</br>Successfully updated $resourceID to openURL";
-			}
-				
-			
+			}	
 	}
 
 	fclose($file_handle);
-
-
-// Here we publish the list.
-$etag = etag_fetch($shortCode, $listID, $TalisGUID, $token);
-publish_single_list($shortCode, $listID, $TalisGUID, $token, $etag);
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 fclose($myfile);
