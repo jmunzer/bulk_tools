@@ -324,7 +324,7 @@ function update_resource($shortCode, $token, $resourceID) {
 				}
 			}';
 	
-	var_export($body);
+	// var_export($body);
 	
 	$ch = curl_init();
 	
