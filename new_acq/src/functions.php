@@ -251,9 +251,11 @@ function make_resource($shortCode, $title, $resource_type, $isbn, $token, $lcn, 
 	}
 			 
 	if (!empty ($web_addresses)) {
+		$online_resource = $web_addresses;
 		$web_addresses = '["' . $web_addresses . '"]';
 	} else {
 		$web_addresses = "null";
+		$online_resource = "null";
 	}
 					 
 	$body = '{
@@ -269,19 +271,19 @@ function make_resource($shortCode, $title, $resource_type, $isbn, $token, $lcn, 
             "isbn13s": ' . $isbn . ',
             "edition": ' . $edition . ',
             "lcn": ' . $lcn . ',
+			"online_resource": {
+				"source": "uri",
+				"link": "' . $online_resource . '"
+			},
             "publisher_name": ' . $publisher_name . ',
             "resource_type": ' . $resource_type . ',
             "title": ' . $title . ',
             "web_addresses": ' . $web_addresses . '
-			"online_resource": {
-				"source": "uri",
-				"link": "' . $web_addresses . '"
-				},
 			},
 		  "links": {},
 		  "meta": {},
 		  "relationships": {}
-				}
+			}
 	  }';
 	
 	//var_export($body);
