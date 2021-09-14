@@ -273,7 +273,11 @@ function make_resource($shortCode, $title, $resource_type, $isbn, $token, $lcn, 
             "resource_type": ' . $resource_type . ',
             "title": ' . $title . ',
             "web_addresses": ' . $web_addresses . '
-						},
+			"online_resource": {
+				"source": "uri",
+				"link": "' . $web_addresses . '"
+				},
+			},
 		  "links": {},
 		  "meta": {},
 		  "relationships": {}
