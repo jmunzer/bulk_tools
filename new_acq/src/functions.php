@@ -203,16 +203,16 @@ function etag_fetch($shortCode, $listID, $TalisGUID, $token) {
 	return $etag;
 }
       
-function make_resource($shortCode, $title, $resource_type, $isbn, $token, $lcn, $full_name, $edition, $publisher_name, $web_addresses) {
+function make_resource($shortCode, $title, $resource_type, $isbn, $token, $lcn, $author, $edition, $publisher_name, $web_addresses ){
 
 	$uuid = guidv4();
 	$url = 'https://rl.talis.com/3/' . $shortCode . '/resources';
 	 
-	if (!empty ($full_name)) {
-		$full_name  = '"' . $full_name . '"';
+	if (!empty ($author)) {
+		$author  = '"' . $author . '"';
 	} else {
-		$full_name = "null";
-	}	 
+		$author = "null";
+	}
 	 
 	if (!empty ($isbn)) {
 		$isbn = '["' . $isbn . '"]';
@@ -279,7 +279,7 @@ function make_resource($shortCode, $title, $resource_type, $isbn, $token, $lcn, 
             "edition": ' . $edition . ',
             "lcn": ' . $lcn . ',
 			' . $online_resource_block . '
-            "publisher_name": ' . $publisher_name . ',
+            "publisher_names": ' . $publisher_name . ',
             "resource_type": ' . $resource_type . ',
             "title": ' . $title . ',
             "web_addresses": ' . $web_addresses . '
