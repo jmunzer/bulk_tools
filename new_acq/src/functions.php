@@ -272,7 +272,7 @@ function make_resource($shortCode, $title, $resource_type, $isbn, $token, $lcn, 
 		  "attributes": {
             "authors": [
                 {
-                    "full_name": ' . $full_name . '          
+                    "full_name": ' . $author . '          
                 }
 						],
             "isbn13s": ' . $isbn . ',
