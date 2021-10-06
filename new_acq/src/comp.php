@@ -62,7 +62,7 @@ echo "</br>";
 
 $myfile = fopen("../../report_files/newacq_output.log", "a") or die("Unable to open newacq_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-//fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Section Status" . "\t" . "Item Status" . "\t" . "Item Status" . "\t" . "Item Status" . "\t" . "List Published" . "\r\n");
+fwrite($myfile, "Item ID" . "\t" . "List ID" . "\t" . "Outcome" . "\r\n");
 
 $tokenURL = 'https://users.talis.com/oauth/tokens';
 $content = "grant_type=client_credentials";
@@ -134,12 +134,13 @@ if ($sourceselect === FALSE) {
 		$resource_id = make_resource($shortCode, $title, $resource_type, $isbn, $token, $lcn, $author, $edition, $publisher_name, $web_addresses );
 			
 			if ($resource_id == null) {
-				echo "<p>ERROR: There was an error creating resource for $isbn:</p><pre>";
+				echo "<p>ERROR: There was an error creating resource for $title:</p><pre>";
+				fwrite($myfile, "\t" . $listID . "Failed to create resource for $title" . "\r\n");
 				continue;
 			}
 
 		$etag = etag_fetch($shortCode, $listID, $TalisGUID, $token);
-		$input_item = guidv4();	
+		$input_item = guidv4();
 		$input = itemBody($input_item, $etag, $listID, $resource_id);
 		itemPost($shortCode, $TalisGUID, $token, $input, $title);
 		$etag = etag_fetch($shortCode, $listID, $TalisGUID, $token);
@@ -149,7 +150,8 @@ if ($sourceselect === FALSE) {
 			impPost($shortCode, $TalisGUID, $token, $input_imp, $input_item, $title);
 		}
 		
-		echo "</br>$isbn - $title: Successfully created resource and added to list $listID";	
+		echo "</br> - $title: Successfully created resource and added to list $listID";	
+		fwrite($myfile, "https://rl.talis.com/3/$shortCode/items/$input_item.html?lang=en-GB&login=1" . "\t" . $listID . "\t" . "Successfully created resource " . "\r\n");
 	}
 } ELSE {
 	
@@ -172,6 +174,11 @@ if ($sourceselect === FALSE) {
 		
 		// Below are the steps to create resources, add items to list, set importances.
 		$resource_id = make_resource($shortCode, $title, $resource_type, $isbn, $token, $lcn, $author, $edition, $publisher_name, $web_addresses);
+			if ($resource_id == null) {
+				echo "<p>ERROR: There was an error creating resource for $title:</p><pre>";
+				fwrite($myfile, "\t" . $listID . "Failed to create resource for $title" . "\r\n");
+				continue;
+			}
 		$etag = etag_fetch($shortCode, $listID, $TalisGUID, $token);
 		$input_item = guidv4();	
 		$input = itemBody($input_item, $etag, $listID, $resource_id);
@@ -183,7 +190,8 @@ if ($sourceselect === FALSE) {
 			impPost($shortCode, $TalisGUID, $token, $input_imp, $input_item, $title);
 		}
 		
-		echo "</br>$isbn - $title: Successfully created resource and added to list $listID";
+		echo "</br> - $title: Successfully created resource and added to list $listID";
+		fwrite($myfile, "https://rl.talis.com/3/$shortCode/items/$input_item.html?lang=en-GB&login=1" . "\t" . $listID . "\t" . "Successfully created resource " . "\r\n");
 	}
 
 	fclose($file_handle);
