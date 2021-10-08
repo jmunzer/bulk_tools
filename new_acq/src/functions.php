@@ -96,6 +96,7 @@ function delete_post($shortCode, $TalisGUID, $token, $input, $item_id, $listID) 
 		echo "Deleted item $item_id from list $listID</br>";
 		//fwrite($myfile, "Item deleted successfully" . "\t");
 	}
+	return $info;
 }
 
 function token_fetch($clientID, $secret) {

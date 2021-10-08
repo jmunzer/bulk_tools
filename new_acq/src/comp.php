@@ -68,6 +68,7 @@ $tokenURL = 'https://users.talis.com/oauth/tokens';
 $content = "grant_type=client_credentials";
 
 $token=token_fetch($clientID, $secret); 
+
 //***************GRAB LIST ITEMS (TO DELETE) ****** */
 $ListItemsUrl = 'https://rl.talis.com/3/' . $shortCode . '/lists/' . $listID . '/items?draft=1';
 $chLIU = curl_init();
@@ -100,13 +101,18 @@ $item_list = $outputjsonLIU->data;
 //******* get existing item count from list 
 echo "    item count is: " . $item_count . "</br>";
 
-//******* iterate over each item_id on list 
+//******* iterate over each item_id on list to delete
 foreach ($item_list as $itemID) {
 	$item_id = $itemID->id;
 	$resource_id = $itemID->relationships->resource->data->id;
 	$etag = etag_fetch($shortCode, $listID, $TalisGUID, $token);
 	$input = delete_body($shortCode, $item_id, $etag, $listID);
-    delete_post($shortCode, $TalisGUID, $token, $input, $item_id, $listID);
+    $diditdelete = delete_post($shortCode, $TalisGUID, $token, $input, $item_id, $listID);
+	if ($diditdelete == 200) {
+		fwrite($myfile, "$resource_id\t$listID\tItem deleted\r\n");	
+	} else {
+		fwrite($myfile, $resource_id . "\t" . $listID . "\t" . "Item not deleted" . "\r\n");
+	}
 }
 
 if ($sourceselect === FALSE) {
