@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+ <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
+	
+	<style>
+		html, body {
+			margin: 10, 0;
+			padding: 0;
+			}
+			mark { 
+				background-color: yellow;
+				color: black;
+				}
+		body, input, select { font-family: 'Raleway', sans-serif; }
+		select, input { font-size: 1em; }
+		form { font-size: 1.5em; }
+		#shelf, #lastSeen, #res {
+			display: inline-block;
+			position: relative;
+			width: 50%;
+			box-sizing: border-box;
+			padding: 44px;
+			vertical-align: top;
+		}
+		#fileinput {
+			display: none;
+		}
+
+	</style>
+
+ </head>
+
+ <body>
+
+</br><a href="../../index.html">Back to Index</a></br>
+
+<div id="TARL_bulk updater">
+		<h1>PLACEHOLDER</h1>
+		<h2>This tool was designed for the automated population of a list where bookmarks do not yet exist in TARL.</h2>
+						
+			<form enctype="multipart/form-data" action="comp.php" method="POST">
+				<input type="hidden" name="MAX_FILE_SIZE" value="3000000" />
+				<h2>Configuration</h2>
+				<p>If you wish to assign an item importance, please ensure you have populated the <code>$importanceID</code> variable in <code>user.config.php</code> - please see documentation for more details.</p>
+				<p>If you have not created your own <code>user.config.php</code> file as a copy of the template in the project root directory do so now!!</p>
+				<p>Otherwise, this script will give you an error about not being able to find the <code>user.config.php</code> file.</p>
+				<h2>Rules</h2>
+			
+				
+				</br>New Acquisitions file: <input name="userfile" type="file"/>
+			
+				<br/>
+	
+				<h2>Action</h2>
+				<input type="submit" value="Send" />
+			</form>
+		
+		
+</div>
+
+		
+  </body>
+
+</html>
