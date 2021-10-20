@@ -318,8 +318,7 @@ function update_resource($shortCode, $token, $resourceID) {
 					"attributes": {
 						"online_resource": {
 							"source": "open_url"
-						},
-						"web_addresses": null
+						}
 					}
 				}
 			}';
