@@ -437,8 +437,7 @@ function itemBody($input_item, $etag, $listID, $resource_id) {
 }
 
 function getResource($shortCode, $itemID, $token, $TalisGUID) {
-	$url = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $itemID;
-	echo $url;
+	$url = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $itemID . "?include=resource,list";
 	$ch = curl_init();
 
 	curl_setopt($ch, CURLOPT_URL, $url);
@@ -455,16 +454,16 @@ function getResource($shortCode, $itemID, $token, $TalisGUID) {
 	$output = curl_exec($ch);
 	$info = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 	$outputjson = json_decode($output);
+
 	curl_close($ch);
 
-	if ($info !== 200){
-		echo "<p>ERROR: There was an error getting the items associated resource ID:</p><pre>" . var_export($output, true) . "</pre>";
-	} else {
-		echo "    Got items associated resource </br>";
-	}
-		$resourceID = $outputjson->data->relationships->resource->data->id;
+	$resourceID = $outputjson->data->relationships->resource->data->id;
+	$itemTitle =  $outputjson->included[0]->attributes->title;
+	$listTitle =  $outputjson->included[1]->attributes->title;
 
-	return $resourceID;
+	$resourceData = array($resourceID, $itemTitle, $listTitle);
+
+	return $resourceData;
 }
 
 ?>
