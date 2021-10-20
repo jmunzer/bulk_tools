@@ -45,9 +45,9 @@ echo "</br>";
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
-$myfile = fopen("../../report_files/newacq_output.log", "a") or die("Unable to open newacq_output.log");
+$myfile = fopen("../../report_files/openurl_output.log", "a") or die("Unable to open openurl_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-//fwrite($myfile, "List name" . "\t" . "List ID" . "\t" . "Section Status" . "\t" . "Item Status" . "\t" . "Item Status" . "\t" . "Item Status" . "\t" . "List Published" . "\r\n");
+fwrite($myfile, "Item Link" . "\t" . "Item Title" . "\t" . "List" . "\t" .  "Outcome" . "\r\n");
 
 $tokenURL = 'https://users.talis.com/oauth/tokens';
 $content = "grant_type=client_credentials";
