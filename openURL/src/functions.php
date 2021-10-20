@@ -460,7 +460,18 @@ function getResource($shortCode, $itemID, $token, $TalisGUID) {
 	$itemTitle =  $outputjson->included[0]->attributes->title;
 	$listTitle =  $outputjson->included[1]->attributes->title;
 
-	$resourceData = array($resourceID, $itemTitle, $listTitle);
+	$old_OnlineResource = "";
+	$old_OnlineLink = "";
+
+	if(!empty($outputjson->included[0]->attributes->online_resource)) {
+		$old_OnlineResource =  $outputjson->included[0]->attributes->online_resource->source;
+		
+		if(!empty($outputjson->included[0]->attributes->online_resource->link)) {
+			$old_OnlineLink =  $outputjson->included[0]->attributes->online_resource->link;
+		}
+	}
+
+	$resourceData = array($resourceID, $itemTitle, $listTitle, $old_OnlineResource, $old_OnlineLink);
 
 	return $resourceData;
 }

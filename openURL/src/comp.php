@@ -47,7 +47,8 @@ echo "</br>";
 
 $myfile = fopen("../../report_files/openurl_output.log", "a") or die("Unable to open openurl_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-fwrite($myfile, "Item Link" . "\t" . "Resource Link" . "\t" ."Item Title" . "\t" . "List Title" . "\t" .  "Outcome" . "\r\n");
+fwrite($myfile, "Item Link" . "\t" . "Resource Link" . "\t" ."Item Title" . "\t" . "List Title" . "\t" . "Old Online Resource" . "\t" . "Old Online Link" . "\t" . "Outcome" . "\r\n");
+
 
 $tokenURL = 'https://users.talis.com/oauth/tokens';
 $content = "grant_type=client_credentials";
@@ -61,7 +62,7 @@ $file_handle = fopen($uploadfile, "r");
 		echo_message_to_screen(ERROR, "Could not open csv file - Process Stopped.");
 		exit;
     }
-
+	echo "Item Link" . "\t" . "Resource Link" . "\t" ."Item Title" . "\t" . "List Title" . "\t" . "Old Online Resource" . "\t" . "Old Online Link" . "\t" . "Outcome";
 	while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 		
 		$itemID = trim($line[0]);
@@ -72,7 +73,8 @@ $file_handle = fopen($uploadfile, "r");
 			$resourceID = $resourceData[0];
 			$itemTitle =  $resourceData[1];
 			$listTitle =  $resourceData[2];
-
+			$old_OnlineResource = $resourceData[3];
+			$old_OnlineLink = $resourceData[4];
 			echo "</br>";
 			echo $resourceID . "\t";
 			fwrite($myfile, "https://$shortCode.rl.talis.com/resources/$resourceID.html" . "\t");
@@ -80,6 +82,10 @@ $file_handle = fopen($uploadfile, "r");
 			fwrite($myfile, $itemTitle . "\t");
 			echo $listTitle . "\t";
 			fwrite($myfile, $listTitle . "\t");
+			echo $old_OnlineResource . "\t";
+			fwrite($myfile, $old_OnlineResource . "\t");
+			echo $old_OnlineLink . "\t";
+			fwrite($myfile, $old_OnlineLink . "\t");
 
 		$PatchOutcome = update_resource($shortCode, $token, $resourceID);
 			if ($PatchOutcome == 200) {
