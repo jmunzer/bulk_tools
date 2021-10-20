@@ -47,7 +47,7 @@ echo "</br>";
 
 $myfile = fopen("../../report_files/openurl_output.log", "a") or die("Unable to open openurl_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-fwrite($myfile, "Item Link" . "\t" . "Item Title" . "\t" . "List Title" . "\t" .  "Outcome" . "\r\n");
+fwrite($myfile, "Item Link" . "\t" . "Resource Link" . "\t" ."Item Title" . "\t" . "List Title" . "\t" .  "Outcome" . "\r\n");
 
 $tokenURL = 'https://users.talis.com/oauth/tokens';
 $content = "grant_type=client_credentials";
@@ -65,7 +65,7 @@ $file_handle = fopen($uploadfile, "r");
 	while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 		
 		$itemID = trim($line[0]);
-		fwrite($myfile, $itemID . "\t");
+		fwrite($myfile, "https://rl.talis.com/3/$shortCode/items/$itemID.html?lang=en-GB&login=1" . "\t");
 
 		$resourceData = getResource($shortCode, $itemID, $token, $TalisGUID);
 
@@ -75,7 +75,7 @@ $file_handle = fopen($uploadfile, "r");
 
 			echo "</br>";
 			echo $resourceID . "\t";
-			fwrite($myfile, $resourceID . "\t");
+			fwrite($myfile, "https://$shortCode.rl.talis.com/resources/$resourceID.html" . "\t");
 			echo $itemTitle . "\t";
 			fwrite($myfile, $itemTitle . "\t");
 			echo $listTitle . "\t";
