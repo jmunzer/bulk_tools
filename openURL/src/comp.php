@@ -83,10 +83,10 @@ $file_handle = fopen($uploadfile, "r");
 
 		$PatchOutcome = update_resource($shortCode, $token, $resourceID);
 			if ($PatchOutcome == 200) {
-				echo "Successfully updated to openURL</br>";
+				echo "Successfully updated to openURL";
 				fwrite($myfile, "Successfully updated to openURL\r\n");
 			} else {
-			echo "Not updated item - requires investigation.</br></br>";
+			echo "Not updated item - requires investigation.";
 			fwrite($myfile, "Not updated item - requires investigation\r\n");
 			}
 	}
@@ -94,7 +94,7 @@ $file_handle = fopen($uploadfile, "r");
 
 	fclose($file_handle);
 
-echo "Finished run";
+echo "</br></br>Finished run";
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 fclose($myfile);
 ?>
