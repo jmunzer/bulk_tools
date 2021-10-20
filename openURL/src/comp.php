@@ -47,7 +47,7 @@ echo "</br>";
 
 $myfile = fopen("../../report_files/openurl_output.log", "a") or die("Unable to open openurl_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-fwrite($myfile, "Item Link" . "\t" . "Item Title" . "\t" . "List" . "\t" .  "Outcome" . "\r\n");
+fwrite($myfile, "Item Link" . "\t" . "Item Title" . "\t" . "List Title" . "\t" .  "Outcome" . "\r\n");
 
 $tokenURL = 'https://users.talis.com/oauth/tokens';
 $content = "grant_type=client_credentials";
@@ -65,16 +65,36 @@ $file_handle = fopen($uploadfile, "r");
 	while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 		
 		$itemID = trim($line[0]);
+		fwrite($myfile, $itemID . "\t");
 
-		$resourceID = getResource($shortCode, $itemID, $token, $TalisGUID);
+		$resourceData = getResource($shortCode, $itemID, $token, $TalisGUID);
+
+			$resourceID = $resourceData[0];
+			$itemTitle =  $resourceData[1];
+			$listTitle =  $resourceData[2];
+
+			echo "</br>";
+			echo $resourceID . "\t";
+			fwrite($myfile, $resourceID . "\t");
+			echo $itemTitle . "\t";
+			fwrite($myfile, $itemTitle . "\t");
+			echo $listTitle . "\t";
+			fwrite($myfile, $listTitle . "\t");
+
 		$PatchOutcome = update_resource($shortCode, $token, $resourceID);
 			if ($PatchOutcome == 200) {
-				echo "</br>Successfully updated $resourceID to openURL";
-			}	
+				echo "Successfully updated to openURL</br>";
+				fwrite($myfile, "Successfully updated to openURL\r\n");
+			} else {
+			echo "Not updated item - requires investigation.</br></br>";
+			fwrite($myfile, "Not updated item - requires investigation\r\n");
+			}
 	}
+
 
 	fclose($file_handle);
 
+echo "Finished run";
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
 fclose($myfile);
 ?>
