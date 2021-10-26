@@ -62,44 +62,63 @@ $file_handle = fopen($uploadfile, "r");
 		echo_message_to_screen(ERROR, "Could not open csv file - Process Stopped.");
 		exit;
     }
-	echo "Item ID" . "\t" . "Item Link" . "\t" . "Resource Link" . "\t" ."Item Title" . "\t" . "List Title" . "\t" . "Old Online Resource" . "\t" . "Old Online Link" . "\t" . "Outcome";
+	
+	// Write headersto audit file
+	$headers = [
+		"Item ID",
+		"Item Link", 
+		"Resource Link",
+		"Item Title",
+		"List Title",
+		"Old Online Resource",
+		"Old Online Link",
+		"Outcome"
+	];
+
+	echo "<table>";
+	writeToPage($headers);
+	writeToAuditFileOrExitOnFail($myfile, $headers);
+	
 	while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 		
 		$itemID = trim($line[0]);
-		fwrite($myfile, $itemID . "\t");
-		fwrite($myfile, "https://rl.talis.com/3/$shortCode/items/$itemID.html?lang=en-GB&login=1" . "\t");
 
-		$resourceData = getResource($shortCode, $itemID, $token, $TalisGUID);
+		// Get resource Data
+		$resourceData = getResourceDataFromItemID($shortCode, $itemID, $token, $TalisGUID);
+		$resourceID = $resourceData[0];
+		$itemTitle =  $resourceData[1];
+		$listTitle =  $resourceData[2];
+		$old_OnlineResource = $resourceData[3];
+		$old_OnlineLink = $resourceData[4];
 
-			$resourceID = $resourceData[0];
-			$itemTitle =  $resourceData[1];
-			$listTitle =  $resourceData[2];
-			$old_OnlineResource = $resourceData[3];
-			$old_OnlineLink = $resourceData[4];
-			echo "</br>";
-			echo $itemID . "\t";
-			fwrite($myfile, "https://$shortCode.rl.talis.com/resources/$resourceID.html" . "\t");
-			echo $itemTitle . "\t";
-			fwrite($myfile, $itemTitle . "\t");
-			echo $listTitle . "\t";
-			fwrite($myfile, $listTitle . "\t");
-			echo $old_OnlineResource . "\t";
-			fwrite($myfile, $old_OnlineResource . "\t");
-			echo $old_OnlineLink . "\t";
-			fwrite($myfile, $old_OnlineLink . "\t");
+		// Build Audit Fields
+		$auditFields = [];
+		$auditFields[] = $itemID;
+		$auditFields[] = "https://rl.talis.com/3/$shortCode/items/$itemID.html?lang=en-GB&login=1";
+		$auditFields[] = "https://rl.talis.com/3/$shortCode/resources/$resourceID.html?lang=en-GB&login=1";
+		$auditFields[] = $itemTitle;
+		$auditFields[] = $listTitle;
+		$auditFields[] = $old_OnlineResource;
+		$auditFields[] = $old_OnlineLink;
 
+		// Patch resource
 		$PatchOutcome = update_resource($shortCode, $token, $resourceID);
-			if ($PatchOutcome == 200) {
-				echo "Successfully updated to openURL";
-				fwrite($myfile, "Successfully updated to openURL\r\n");
-			} else {
-			echo "Not updated item - requires investigation.";
-			fwrite($myfile, "Not updated item - requires investigation\r\n");
-			}
+		if ($PatchOutcome == 200) {
+			echo "Successfully updated to openURL";
+			$auditFields[] = "Successfully updated to openURL";
+		} else {
+		echo "Not updated item - requires investigation.";
+		$auditFields[] = "Not updated item - requires investigation";
+		}
+
+		// Write audit
+		writeToPage($auditFields);
+		writeToAuditFileOrExitOnFail($myfile, $auditFields);
 	}
+	echo "</table>";
 
 
-	fclose($file_handle);
+fclose($file_handle);
 
 echo "</br></br>Finished run";
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
