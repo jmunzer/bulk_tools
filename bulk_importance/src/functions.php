@@ -1,9 +1,47 @@
 <?php
 
-function impPost($shortCode, $TalisGUID, $token, $input_imp, $input_item, $title) {
+
+function item($shortCode, $TalisGUID, $token, $item_id) {
+	
+	$url = 'https://rl.talis.com/3/' . $shortCode . '/items/' . $item_id . '?include=list,resource';
+	$ch = curl_init();
+
+	curl_setopt($ch, CURLOPT_URL, $url);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+		
+		"X-Effective-User: $TalisGUID",
+		"Authorization: Bearer $token",
+		'Cache-Control: no-cache'
+	));
+
+	$output = curl_exec($ch);
+	$info = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	// echo $info;
+
+	$output_json = json_decode($output);
+
+	curl_close($ch);
+	if ($info !== 200){
+		echo "<p>ERROR: There was an error getting item information</p><pre>" . var_export($output, true) . "</pre>";
+	}
+	//var_export($output_json);
+	$resource_id = $output_json->included[0]->id;
+	$resource_title = $output_json->included[0]->attributes->title;
+	$list_id = $output_json->included[1]->id;
+	$list_title = $output_json->included[1]->attributes->title;
+	
+	$item = array($resource_id, $resource_title, $list_id, $list_title);
+	return $item;
+}
+
+
+
+
+function impPost($shortCode, $TalisGUID, $token, $input_imp, $item_id, $resource_title) {
 	
 	//var_export($input_imp);
-	$item_patch = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $input_item ;
+	$item_patch = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $item_id ;
 	$ch = curl_init();
 
 	curl_setopt($ch, CURLOPT_URL, $item_patch);
@@ -27,15 +65,15 @@ function impPost($shortCode, $TalisGUID, $token, $input_imp, $input_item, $title
 
 	curl_close($ch);
 	if ($info !== 200){
-		echo "<p>ERROR: There was an error adding the importance to: $title</p><pre>" . var_export($output, true) . "</pre>";
+		echo "<p>ERROR: There was an error adding the importance to: $resource_title</p><pre>" . var_export($output, true) . "</pre>";
 	}
 }
 
-function impBody($input_item, $etag, $listID, $resource_id, $importanceID) {
+function impBody($item_id, $etag, $list_id, $importanceID) {
 					
 	$input_imp= ' {
 	"data": {
-		"id": "' . $input_item . '",
+		"id": "' . $item_id . '",
 		"type": "items",
 		"relationships": {
 		"importance": {
@@ -47,7 +85,7 @@ function impBody($input_item, $etag, $listID, $resource_id, $importanceID) {
 		}
 	},
 	"meta": {
-		"list_id": "' . $listID .'",
+		"list_id": "' . $list_id .'",
 		"list_etag": "' . $etag . '"
 	}
 	}';
