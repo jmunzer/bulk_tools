@@ -62,10 +62,11 @@ $file_handle = fopen($uploadfile, "r");
 		echo_message_to_screen(ERROR, "Could not open csv file - Process Stopped.");
 		exit;
     }
-	echo "Item Link" . "\t" . "Resource Link" . "\t" ."Item Title" . "\t" . "List Title" . "\t" . "Old Online Resource" . "\t" . "Old Online Link" . "\t" . "Outcome";
+	echo "Item ID" . "\t" . "Item Link" . "\t" . "Resource Link" . "\t" ."Item Title" . "\t" . "List Title" . "\t" . "Old Online Resource" . "\t" . "Old Online Link" . "\t" . "Outcome";
 	while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 		
 		$itemID = trim($line[0]);
+		fwrite($myfile, $itemID . "\t");
 		fwrite($myfile, "https://rl.talis.com/3/$shortCode/items/$itemID.html?lang=en-GB&login=1" . "\t");
 
 		$resourceData = getResource($shortCode, $itemID, $token, $TalisGUID);
