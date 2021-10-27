@@ -76,7 +76,7 @@ $file_handle = fopen($uploadfile, "r");
 			$old_OnlineResource = $resourceData[3];
 			$old_OnlineLink = $resourceData[4];
 			echo "</br>";
-			echo $resourceID . "\t";
+			echo $itemID . "\t";
 			fwrite($myfile, "https://$shortCode.rl.talis.com/resources/$resourceID.html" . "\t");
 			echo $itemTitle . "\t";
 			fwrite($myfile, $itemTitle . "\t");
