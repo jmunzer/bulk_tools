@@ -47,8 +47,6 @@ echo "</br>";
 
 $myfile = fopen("../../report_files/openurl_output.log", "a") or die("Unable to open openurl_output.log");
 fwrite($myfile, "Started | Input File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n\r\n");
-fwrite($myfile, "Item Link" . "\t" . "Resource Link" . "\t" ."Item Title" . "\t" . "List Title" . "\t" . "Old Online Resource" . "\t" . "Old Online Link" . "\t" . "Outcome" . "\r\n");
-
 
 $tokenURL = 'https://users.talis.com/oauth/tokens';
 $content = "grant_type=client_credentials";
