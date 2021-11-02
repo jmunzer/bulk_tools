@@ -101,7 +101,7 @@ $file_handle = fopen($uploadfile, "r");
 		$auditFields[] = $listTitle;
 		$auditFields[] = $old_OnlineResource;
 		$auditFields[] = $old_OnlineLink;
-		$auditFields[] = patchSuccessful ? "Successfully updated to openURL" : "Not updated item - requires investigation";
+		$auditFields[] = $patchSuccessful ? "Successfully updated to openURL" : "Not updated item - requires investigation";
 
 		// Write audit
 		writeToPage($auditFields);
