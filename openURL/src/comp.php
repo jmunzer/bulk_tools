@@ -78,7 +78,6 @@ $file_handle = fopen($uploadfile, "r");
 	writeToAuditFileOrExitOnFail($myfile, $headers);
 	
 	while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
-		
 		$itemID = trim($line[0]);
 
 		// Get resource Data
@@ -89,6 +88,10 @@ $file_handle = fopen($uploadfile, "r");
 		$old_OnlineResource = $resourceData[3];
 		$old_OnlineLink = $resourceData[4];
 
+		// Patch resource
+		$PatchOutcome = update_resource($shortCode, $token, $resourceID);
+		$patchSuccessful = ($PatchOutcome == 200);
+
 		// Build Audit Fields
 		$auditFields = [];
 		$auditFields[] = $itemID;
@@ -98,16 +101,7 @@ $file_handle = fopen($uploadfile, "r");
 		$auditFields[] = $listTitle;
 		$auditFields[] = $old_OnlineResource;
 		$auditFields[] = $old_OnlineLink;
-
-		// Patch resource
-		$PatchOutcome = update_resource($shortCode, $token, $resourceID);
-		if ($PatchOutcome == 200) {
-			echo "Successfully updated to openURL";
-			$auditFields[] = "Successfully updated to openURL";
-		} else {
-		echo "Not updated item - requires investigation.";
-		$auditFields[] = "Not updated item - requires investigation";
-		}
+		$auditFields[] = patchSuccessful ? "Successfully updated to openURL" : "Not updated item - requires investigation";
 
 		// Write audit
 		writeToPage($auditFields);
