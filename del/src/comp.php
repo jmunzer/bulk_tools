@@ -112,9 +112,33 @@ $file_handle = fopen($uploadfile, "rb");
 while (!feof($file_handle) )  {
 
 	$line_of_text = fgets($file_handle);
+
+	// clean up the input value - in this case, the itemID
 	$parts = explode(" ", $line_of_text);
-	$barc = trim($parts[0]);
-	$item_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $barc . '?include=list';
+	$item = filter_var(trim($parts[0]), FILTER_VALIDATE_URL);
+	
+	// regex pattern for a valid UUID
+	$UUID_valid = '/^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$/';
+
+	if(empty($item)){
+		// this is not a URL
+		$itemId = trim($parts[0]);
+		
+	} else {
+		// this is a URL
+		$itemLink = preg_split('/[\/\.]/', $item);
+		$itemId = implode(" ",preg_grep($UUID_valid, $itemLink));
+	}
+
+	// validate the UUID
+	if(preg_match($UUID_valid, $itemId)) {
+		echo "Valid UUID: $itemId </br>";
+	} else {
+		echo "Error with reading a valid Item ID, please verify input file: $itemId </br>";
+		continue;
+	}
+	
+	$item_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $itemId . '?include=list';
 
 	//************GRAB**LIST**DETAILS*************
 
@@ -152,7 +176,7 @@ while (!feof($file_handle) )  {
 		fwrite($myfile, $title . "\t");
 		fwrite($myfile, $assoc_listid . "\t");
 		fwrite($myfile, $title . "\t");
-		fwrite($myfile, $barc . "\t");
+		fwrite($myfile, $itemId . "\t");
 
 		// writing list ID to array for bulk publish POST
 		$forListArray = ['type' => 'draft_lists', 'id' => $assoc_listid];
@@ -161,7 +185,7 @@ while (!feof($file_handle) )  {
 	if ($shouldWritetoLive == "true") {
 
 	//**************DELETE_ITEM***************
-	$patch_url = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $barc;
+	$patch_url = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $itemId;
 
 	$input = '	{
 					"meta": {
@@ -196,7 +220,7 @@ while (!feof($file_handle) )  {
 		fwrite($myfile, "Item not deleted - failed" . "\t");
 		continue;
 	} else {
-		echo "    Deleted item $barc from list $assoc_listid</br>";
+		echo "    Deleted item $itemId from list $assoc_listid</br>";
 		fwrite($myfile, "Item deleted successfully" . "\t");
 	}
 
