@@ -9,39 +9,29 @@ error_reporting(E_ALL);
 
 echo "<p>Starting</p>";
 
-//*****************GRAB_INPUT_DATA**********
-
-$uploaddir = '../uploads/';
-$uploadfile = $uploaddir . basename($_FILES['userfile']['name']);
-
-echo '<pre>';
-if (move_uploaded_file($_FILES['userfile']['tmp_name'], $uploadfile)) {
-	echo "File is valid, and was successfully uploaded.\n";
-} else {
-	echo "File is invalid, and failed to upload - Please try again. -\n";
-}
-
-echo "</br>";
-print_r($uploadfile);
-echo "</br>";
-echo "</br>";
-
-/**
- * Get the user config file. This script will fail disgracefully if it has not been created and nothing will happen.
- */
-
-require('../../user.config.php');
 require('functions.php');
 
-echo "Tenancy Shortcode set: " . $shortCode;
-echo "</br>";
+try {
+	require('../../SOURCE/models/UploadedFile.php');
+	require('../../SOURCE/models/UserConf.php');
+	require('../../SOURCE/models/Tool.php');
 
-echo "Client ID set: " . $clientID;
-echo "</br>";
+	$uploadedFile = new UploadedFile();	
+	$userConf = new UserConf();	
 
-echo "User GUID to use: " . $TalisGUID;
-echo "</br>";
+	$columnConfig = [
+		1 => "ITEM",
+		2 => ""
+	];
+	$myOperation = function(){};
+	$tool = new Tool($uploadedFile, $columnConfig, $myOpenURLTask);
 
+} catch(Exception $e){
+	echo_message_to_screen(ERROR, $e->message);
+	exit(1);
+}
+
+/// old code below here!!
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
@@ -57,11 +47,7 @@ $token=token_fetch($clientID, $secret);
 
 // update_resource($shortCode, $token, $resourceID)
 
-$file_handle = fopen($uploadfile, "r");
-    if ($file_handle == FALSE) {
-		echo_message_to_screen(ERROR, "Could not open csv file - Process Stopped.");
-		exit;
-    }
+$file_handle = $uploadedFile->getFileHandler();
 	echo "Item ID" . "\t" . "Item Link" . "\t" . "Resource Link" . "\t" ."Item Title" . "\t" . "List Title" . "\t" . "Old Online Resource" . "\t" . "Old Online Link" . "\t" . "Outcome";
 	while (($line = fgetcsv($file_handle, 1000, ",")) !== FALSE) {
 		
