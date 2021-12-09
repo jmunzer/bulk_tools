@@ -35,6 +35,7 @@ echo "</br>";
 **/
 
 require('../../user.config.php');
+require('functions.php');
 
 echo "Tenancy Shortcode set: " . $shortCode;
 echo "</br>";
@@ -104,40 +105,20 @@ if (!empty($jsontoken->access_token)){
 	exit;
 }
 
-
 //***********READ**DATA******************
 
 $file_handle = fopen($uploadfile, "rb");
 
 while (!feof($file_handle) )  {
-
-	$line_of_text = fgets($file_handle);
-
-	// clean up the input value - in this case, the itemID
-	$parts = explode(" ", $line_of_text);
-	$item = filter_var(trim($parts[0]), FILTER_VALIDATE_URL);
 	
-	// regex pattern for a valid UUID
-	$UUID_valid = '/^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$/';
+	$itemId = input_validator($file_handle);
 
-	if(empty($item)){
-		// this is not a URL
-		$itemId = trim($parts[0]);
-		
-	} else {
-		// this is a URL
-		$itemLink = preg_split('/[\/\.]/', $item);
-		$itemId = implode(" ",preg_grep($UUID_valid, $itemLink));
-	}
-
-	// validate the UUID
-	if(preg_match($UUID_valid, $itemId)) {
-		echo "Valid UUID: $itemId </br>";
-	} else {
-		echo "Error with reading a valid Item ID, please verify input file: $itemId </br>";
+	if (empty($itemId)) {
 		continue;
 	}
-	
+
+	echo "</br></br>-------------</br>";
+
 	$item_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $itemId . '?include=list';
 
 	//************GRAB**LIST**DETAILS*************
@@ -302,6 +283,7 @@ if ($shouldPublishLists === TRUE) {
 	fwrite($myfile, "\n");
 	echo "End of Record.";
 	echo "---------------------------------------------------</br></br>";
+
 }
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
