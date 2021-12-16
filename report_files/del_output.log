@@ -409,3 +409,48 @@ Started | Input File: ../uploads/bulk_tools_input.txt | Date: 09-12-2021 13:46:4
 List name	List ID	Item UUID	Item deleted	List Published
 
 Stopped | End of File: ../uploads/bulk_tools_input.txt | Date: 09-12-2021 13:46:41
+Started | Input File: ../uploads/123.txt | Date: 16-12-2021 15:39:25
+
+List name	List ID	Item UUID	Item deleted	List Published
+Library Systems List 8	FAEFE97D-1632-FD57-34BB-A5163D3F8F81	Library Systems List 8	D772B780-67A9-234C-09B6-0C5C8A27D2E0	
+Stopped | End of File: ../uploads/123.txt | Date: 16-12-2021 15:39:25
+Started | Input File: ../uploads/123.txt | Date: 16-12-2021 15:41:26
+
+List name	List ID	Item UUID	Item deleted	List Published
+Library Systems List 8	FAEFE97D-1632-FD57-34BB-A5163D3F8F81	Library Systems List 8	D772B780-67A9-234C-09B6-0C5C8A27D2E0	
+Stopped | End of File: ../uploads/123.txt | Date: 16-12-2021 15:41:27
+Started | Input File: ../uploads/123.txt | Date: 16-12-2021 15:44:20
+
+List name	List ID	Item UUID	Item deleted	List Published
+Library Systems List 8	FAEFE97D-1632-FD57-34BB-A5163D3F8F81	Library Systems List 8	D772B780-67A9-234C-09B6-0C5C8A27D2E0	
+Stopped | End of File: ../uploads/123.txt | Date: 16-12-2021 15:44:21
+Started | Input File: ../uploads/123.txt | Date: 16-12-2021 15:44:57
+
+List name	List ID	Item UUID	Item deleted	List Published
+Library Systems List 8	FAEFE97D-1632-FD57-34BB-A5163D3F8F81	Library Systems List 8	D772B780-67A9-234C-09B6-0C5C8A27D2E0	Item deleted successfully	
+Stopped | End of File: ../uploads/123.txt | Date: 16-12-2021 15:44:58
+Started | Input File: ../uploads/123.txt | Date: 16-12-2021 15:45:54
+
+List name	List ID	Item UUID	Item deleted	List Published
+
+Stopped | End of File: ../uploads/123.txt | Date: 16-12-2021 15:45:55
+Started | Input File: ../uploads/123.txt | Date: 16-12-2021 15:46:13
+
+List name	List ID	Item UUID	Item deleted	List Published
+
+Stopped | End of File: ../uploads/123.txt | Date: 16-12-2021 15:46:14
+Started | Input File: ../uploads/123.txt | Date: 16-12-2021 15:46:57
+
+List name	List ID	Item UUID	Item deleted	List Published
+
+Stopped | End of File: ../uploads/123.txt | Date: 16-12-2021 15:46:58
+Started | Input File: ../uploads/123.txt | Date: 16-12-2021 15:47:09
+
+List name	List ID	Item UUID	Item deleted	List Published
+
+Stopped | End of File: ../uploads/123.txt | Date: 16-12-2021 15:47:09
+Started | Input File: ../uploads/123.txt | Date: 16-12-2021 15:51:00
+
+List name	List ID	Item UUID	Item deleted	List Published
+
+Stopped | End of File: ../uploads/123.txt | Date: 16-12-2021 15:51:00
