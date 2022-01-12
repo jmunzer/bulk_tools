@@ -35,6 +35,7 @@ echo "</br>";
 **/
 
 require('../../user.config.php');
+require('functions.php');
 
 echo "Tenancy Shortcode set: " . $shortCode;
 echo "</br>";
@@ -51,18 +52,7 @@ $publishListArray = array();
 echo "Should publish lists?: " . var_export($shouldPublishLists, true);
 echo "</br>";
 
-if(isset($_REQUEST['DRY_RUN']) &&
-	$_REQUEST['DRY_RUN'] == "writeToLive") {
-		$shouldWritetoLive = "true";
-	}
-	else
-	{
-		$shouldWritetoLive = "false";
-	}
-
-echo "Writing to live tenancy?: $shouldWritetoLive";
-echo "</br>";
-echo "</br>";
+$shouldWritetoLive = dryRun();
 
 //**********CREATE LOG FILE TO WRITE OUTPUT*
 
@@ -74,35 +64,7 @@ $tokenURL = 'https://users.talis.com/oauth/tokens';
 $content = "grant_type=client_credentials";
 
 //************GET_TOKEN***************
-
-
-$ch = curl_init();
-
-curl_setopt($ch, CURLOPT_URL, $tokenURL);
-curl_setopt($ch, CURLOPT_POST, TRUE);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-curl_setopt($ch, CURLOPT_USERPWD, "$clientID:$secret");
-curl_setopt($ch, CURLOPT_POSTFIELDS, $content);
-
-$return = curl_exec($ch);
-$info = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-if ($info !== 200){
-	echo "<p>    ERROR: There was an error getting a token:</p><pre>" . var_export($return, true) . "</pre>";
-} else {
-	echo "    Got Token</br>";
-}
-
-curl_close($ch);
-
-$jsontoken = json_decode($return);
-
-if (!empty($jsontoken->access_token)){
-	$token = $jsontoken->access_token;
-} else {
-	echo "<p>    ERROR: Unable to get an access token</p>";
-	exit;
-}
+$token = token_fetch($clientID, $secret);
 
 
 //***********READ**DATA******************
@@ -110,58 +72,35 @@ if (!empty($jsontoken->access_token)){
 $file_handle = fopen($uploadfile, "rb");
 
 while (!feof($file_handle) )  {
+	
+	$itemId = input_validator($file_handle);
 
-	$line_of_text = fgets($file_handle);
-	$parts = explode(" ", $line_of_text);
-	$barc = trim($parts[0]);
-	$item_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $barc . '?include=list';
+	if (empty($itemId)) {
+		continue;
+	}
 
+	echo "</br></br>-------------</br>";
 	//************GRAB**LIST**DETAILS*************
+	$item_lookup = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $itemId . '?include=list';
+	$itemData = get_item_info($item_lookup, $TalisGUID, $token);
 
-		$ch4 = curl_init();
+		$info = $itemData[0];
+		$listId = $itemData[1];
+		$listTitle  = $itemData[2];
+		$eTag  = $itemData[3];
 
-		curl_setopt($ch4, CURLOPT_URL, $item_lookup);
-		curl_setopt($ch4, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($ch4, CURLOPT_HTTPHEADER, array(
-	
-			"X-Effective-User: $TalisGUID",
-			"Authorization: Bearer $token",
-			'Cache-Control: no-cache'
-	
-		));
-		$output4 = curl_exec($ch4);
-
-  		$info4 = curl_getinfo($ch4, CURLINFO_HTTP_CODE);
-		$output_json2 = json_decode($output4);
-		curl_close($ch4);
-
-		if ($info4 !== 200){
-			echo "<p>ERROR: There was an error getting the draft item information:</p><pre>" . var_export($output, true) . "</pre>";
+		if ($info !== 200) {
 			continue;
-		} else {
-			echo "    Got item draft information</br></br>";
 		}
 
-		$assoc_listid = $output_json2->included[0]->id;
-		echo "    list_id: " . $assoc_listid . "</br>";
-		$title = $output_json2->included[0]->attributes->title;
-		echo "    Title: " . $title . "</br>";
-		$etag = $output_json2->included[0]->meta->list_etag;
-		echo "    ETag: " . $etag . "</br>";
-		
-		fwrite($myfile, $title . "\t");
-		fwrite($myfile, $assoc_listid . "\t");
-		fwrite($myfile, $title . "\t");
-		fwrite($myfile, $barc . "\t");
-
 		// writing list ID to array for bulk publish POST
-		$forListArray = ['type' => 'draft_lists', 'id' => $assoc_listid];
+		$forListArray = ['type' => 'draft_lists', 'id' => $listId];
 		array_push($publishListArray, $forListArray);
 
 	if ($shouldWritetoLive == "true") {
 
 	//**************DELETE_ITEM***************
-	$patch_url = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $barc;
+	$patch_url = 'https://rl.talis.com/3/' . $shortCode . '/draft_items/' . $itemId;
 
 	$input = '	{
 					"meta": {
@@ -196,7 +135,7 @@ while (!feof($file_handle) )  {
 		fwrite($myfile, "Item not deleted - failed" . "\t");
 		continue;
 	} else {
-		echo "    Deleted item $barc from list $assoc_listid</br>";
+		echo "    Deleted item $itemId from list $assoc_listid</br>";
 		fwrite($myfile, "Item deleted successfully" . "\t");
 	}
 
@@ -278,6 +217,7 @@ if ($shouldPublishLists === TRUE) {
 	fwrite($myfile, "\n");
 	echo "End of Record.";
 	echo "---------------------------------------------------</br></br>";
+
 }
 
 fwrite($myfile, "\r\n" . "Stopped | End of File: $uploadfile | Date: " . date('d-m-Y H:i:s') . "\r\n");
