@@ -97,11 +97,12 @@ function updateResource($shortCode, $resource_id, $TalisGUID, $token, $new_lcn, 
 				"type": "resources",
 				"id": "' . $resource_id . '",
 				"attributes": {
-					"lcn": "' . $new_lcn . '"
+					"lcn": ' . $new_lcn . '
 				}
 			}
 			}';
 	
+	// var_export($body);
 	
 	$ch = curl_init();
 	
@@ -125,7 +126,7 @@ function updateResource($shortCode, $resource_id, $TalisGUID, $token, $new_lcn, 
 		echo "<p>ERROR: There was an error updating the LCN:</p><pre>" . var_export($output, true) . "</pre>";
 		fwrite($myfile, "ERROR: There was an error updating the LCN" ."\t\r\n");
 	} else {
-		echo " - LCN Updated Successfully</br>";
+		echo " - LCN Updated Successfully to $new_lcn</br>";
 		fwrite($myfile, "LCN Updated Successfully" ."\t\r\n");
 	}
 
@@ -146,14 +147,14 @@ function getResource($shortCode, $item_id, $TalisGUID, $token) {
 	));
 	$output = curl_exec($ch);
 	$info = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-	echo $info;
+	// echo $info;
 	$output_json = json_decode($output);
 	curl_close($ch);
 	
 	if ($info !== 200){
 		echo "<p>ERROR: There was an error getting the resource:</p><pre>" . var_export($output, true) . "</pre>";
 	} else {
-		echo "Hurray guys, we got a resource </br>";
+		echo "Resource details acquired </br>";
 	}
 
 	$resource_id = $output_json->data->relationships->resource->data->id;
@@ -172,25 +173,29 @@ while (!feof($file_handle) )  {
 	
 		$item_id = trim($parts[0]);
 		$old_lcn = trim($parts[1]);
-		
-		
-		$new_lcn = trim($parts[2]);
 
-	echo "this is the item_id: $item_id";
+		if (!empty(trim($parts[2]))) {
+			$new_lcn = '"' . trim($parts[2]) . '"';
+		} else {
+			$new_lcn = "null";
+			echo "no new LCN found. Removing $old_lcn from $item_id.</br>";
+		}
+
+	//echo "this is the item_id: $item_id";
 	fwrite($myfile, $item_id ."\t");
-	echo "</br>";
-	echo "this is the old_lcn: $old_lcn";
+	//echo "</br>";
+	//echo "this is the old_lcn: $old_lcn";
 	fwrite($myfile, $old_lcn ."\t");
-	echo "</br>";
-	echo "this is the new_lcn: $new_lcn";
+	//echo "</br>";
+	//echo "this is the new_lcn: $new_lcn";
 	fwrite($myfile, $new_lcn ."\t");
-	echo "</br>";
+	//echo "</br>";
 
 	$resource_id = getResource($shortCode, $item_id, $TalisGUID, $token);
-	echo $resource_id;
+	echo "Resource: $resource_id";
 	fwrite($myfile, $resource_id ."\t");
 	updateResource($shortCode, $resource_id, $TalisGUID, $token, $new_lcn, $myfile);
-
+	echo "----------- </br>";
 }
 
 
