@@ -118,14 +118,14 @@ function updateResource($shortCode, $resource_id, $TalisGUID, $token, $new_lcn, 
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
 	$output = curl_exec($ch);
 	$info = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-	echo $info;
+	// echo $info;
 	$output_json = json_decode($output);
 	curl_close($ch);
 	if ($info !== 200){
 		echo "<p>ERROR: There was an error updating the LCN:</p><pre>" . var_export($output, true) . "</pre>";
 		fwrite($myfile, "ERROR: There was an error updating the LCN" ."\t\r\n");
 	} else {
-		echo "LCN Updated Successfully</br>";
+		echo " - LCN Updated Successfully</br>";
 		fwrite($myfile, "LCN Updated Successfully" ."\t\r\n");
 	}
 
@@ -172,6 +172,8 @@ while (!feof($file_handle) )  {
 	
 		$item_id = trim($parts[0]);
 		$old_lcn = trim($parts[1]);
+		
+		
 		$new_lcn = trim($parts[2]);
 
 	echo "this is the item_id: $item_id";
