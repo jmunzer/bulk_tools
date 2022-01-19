@@ -123,4 +123,3 @@ function patchBody($etag, $listID, $ownerID) {
 
 			return $input;
 }
-?>
